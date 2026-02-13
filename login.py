@@ -3,21 +3,7 @@ import flet as ft
 
 # Função que cria a tela de login
 def login_view(page: ft.Page, on_login_sucesso):
-    page.bgcolor=ft.Colors.GREY # Cor de fundo da página
-
-    avatar = ft.Container( # Container que representa o avatar
-        content=ft.Icon( # Ícone dentro do container
-            ft.Icons.PERSON, # Ícone de pessoa
-            size=70, # Tamanho do ícone
-            color=ft.Colors.WHITE # Cor branca do ícone.
-        ),
-
-        width=110, # Largura do Container
-        height=110, # Altura do Container
-        bgcolor=ft.Colors.LIGHT_BLUE, # Cor do fundo do Container
-        border_radius=55, # Deixa o container redondo
-        alignment=ft.Alignment.CENTER # Centraliza o conteúdo
-    )
+    page.bgcolor = ft.Colors.BLACK_45 # Cor de fundo da página
 
     # Texto para exibir mensagens (erro/sucesso)
     mensagem = ft.Text(value="")
@@ -38,8 +24,9 @@ def login_view(page: ft.Page, on_login_sucesso):
     usuario = ft.TextField(
         label="Usuário", # Rótulo do campo
         width=300, # Largura do campo
+        height=40,
         border_color=ft.Colors.WHITE, # Cor da borda
-        focused_border_color=ft.Colors.YELLOW_ACCENT_700, # Cor da borda quando focado
+        focused_border_color=ft.Colors.BLUE_500, # Cor da borda quando focado
         bgcolor=ft.Colors.WHITE_30, # Cor de fundo do campo de usuário
         label_style=ft.TextStyle(color=ft.Colors.WHITE), # Cor do rótulo
     )
@@ -50,15 +37,26 @@ def login_view(page: ft.Page, on_login_sucesso):
         password=True, # Oculta os caracteres
         can_reveal_password=True, # Permite mostrar/ocultar senha
         width=300, # Largura
+        height=40,
         on_submit=login, # Executa login ao pressionar Enter
         border_color=ft.Colors.WHITE, # Cor da borda
-        focused_border_color=ft.Colors.YELLOW_ACCENT_700, # Cor da borda quando focado
+        focused_border_color=ft.Colors.BLUE_500, # Cor da borda quando focado
         bgcolor=ft.Colors.WHITE_30, # Cor de fundo do campo de senha
         label_style=ft.TextStyle(color=ft.Colors.WHITE) # Cor do rótulo
     )
 
     # Botão que chama a função login
-    botao_login = ft.ElevatedButton("Entrar", on_click=login)
+    botao_login = ft.ElevatedButton(
+        "ENTRAR",
+        width=150,
+        height=45,
+        style=ft.ButtonStyle(
+            bgcolor=ft.Colors.BLUE_500,
+            color=ft.Colors.WHITE,
+            shape=ft.RoundedRectangleBorder(radius=150),
+        ),
+        on_click=login
+    )
     
 
     def esqueci_senha(e):
@@ -76,10 +74,18 @@ def login_view(page: ft.Page, on_login_sucesso):
         color=ft.Colors.WHITE, # Cor do texto do link
     ),)
 
+    logo = ft.Image(
+        src="imgs/icon.png",   # confira se a pasta é imgs mesmo
+        width=300,
+        height=300,
+        fit="contain",
+    )
+
     return ft.Container(
         content=ft.Column(
             [
-                avatar,
+               logo,
+            ft.Container(height=1),
                 ft.Text("Bem-vindo(a)!", size=20, weight=ft.FontWeight.BOLD, style=ft.TextStyle(color=ft.Colors.WHITE)), # Título de boas-vindas
                 usuario,
                 senha,
