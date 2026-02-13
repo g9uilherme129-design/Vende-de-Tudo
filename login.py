@@ -8,7 +8,7 @@ def login_view(page: ft.Page, on_login_sucesso):
         content=ft.Icon( # Ícone dentro do container
             ft.Icons.PERSON, # Ícone de pessoa
             size=70, # Tamanho do ícone
-            color=ft.Colors.WHITE # Cor branca do ícone.
+            color=ft.Colors.BLACK # Cor branca do ícone.
         ),
 
         width=110, # Largura do Container
@@ -34,17 +34,24 @@ def login_view(page: ft.Page, on_login_sucesso):
             # Atualiza a página
             page.update()
 
-    usuario = ft.TextField( # Campo de texto para usuário
-        label= "Usuário", # Texto do rótulo
-        width = 300 # Largura do campo
+    usuario = ft.TextField(
+        label="Usuário",
+        width=300,
+        border_color=ft.Colors.BLUE_600,
+        focused_border_color=ft.Colors.BLUE_600,
+        bgcolor=ft.Colors.BLUE_400,
     )
+
 
     senha = ft.TextField( # Campo de texto para senha
         label="Senha", # Rótulo
         password=True, # Oculta os caracteres
         can_reveal_password=True, # Permite mostrar/ocultar senha
         width=300, # Largura
-        on_submit=login # Executa login ao pressionar Enter
+        on_submit=login, # Executa login ao pressionar Enter
+        border_color=ft.Colors.BLUE_600,
+        focused_border_color=ft.Colors.BLUE_600,
+        bgcolor=ft.Colors.BLUE_400,
     )
 
     # Botão que chama a função login

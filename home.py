@@ -59,5 +59,3 @@ def home_page(page: ft.Page, on_logout):
     )
 
     page.update()
-
-ft.run(home_page)
