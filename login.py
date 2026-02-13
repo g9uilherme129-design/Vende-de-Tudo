@@ -38,9 +38,10 @@ def login_view(page: ft.Page, on_login_sucesso):
     usuario = ft.TextField(
         label="Usuário", # Rótulo do campo
         width=300, # Largura do campo
-        border_color=ft.Colors.BLACK, # Cor da borda
+        border_color=ft.Colors.WHITE, # Cor da borda
         focused_border_color=ft.Colors.YELLOW_ACCENT_700, # Cor da borda quando focado
         bgcolor=ft.Colors.WHITE_30, # Cor de fundo do campo de usuário
+        label_style=ft.TextStyle(color=ft.Colors.WHITE), # Cor do rótulo
     )
 
 
@@ -50,9 +51,10 @@ def login_view(page: ft.Page, on_login_sucesso):
         can_reveal_password=True, # Permite mostrar/ocultar senha
         width=300, # Largura
         on_submit=login, # Executa login ao pressionar Enter
-        border_color=ft.Colors.BLACK, # Cor da borda
+        border_color=ft.Colors.WHITE, # Cor da borda
         focused_border_color=ft.Colors.YELLOW_ACCENT_700, # Cor da borda quando focado
         bgcolor=ft.Colors.WHITE_30, # Cor de fundo do campo de senha
+        label_style=ft.TextStyle(color=ft.Colors.WHITE) # Cor do rótulo
     )
 
     # Botão que chama a função login
@@ -78,7 +80,7 @@ def login_view(page: ft.Page, on_login_sucesso):
         content=ft.Column(
             [
                 avatar,
-                ft.Text("Bem-vindo(a)!", size=20, weight=ft.FontWeight.BOLD),
+                ft.Text("Bem-vindo(a)!", size=20, weight=ft.FontWeight.BOLD, style=ft.TextStyle(color=ft.Colors.WHITE)), # Título de boas-vindas
                 usuario,
                 senha,
                 botao_login,
