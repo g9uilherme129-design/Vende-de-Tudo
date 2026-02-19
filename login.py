@@ -25,9 +25,9 @@ def login_view(page: ft.Page, on_login_sucesso):
         label="Usuário", # Rótulo do campo
         width=300, # Largura do campo
         height=40,
-        border_color=ft.Colors.WHITE, # Cor da borda
+        border_color=ft.Colors.BLUE_900, # Cor da borda
         focused_border_color=ft.Colors.BLUE_500, # Cor da borda quando focado
-        bgcolor=ft.Colors.WHITE_30, # Cor de fundo do campo de usuário
+        bgcolor=ft.Colors.BLUE_900, # Cor de fundo do campo de usuário
         label_style=ft.TextStyle(color=ft.Colors.WHITE), # Cor do rótulo
     )
 
@@ -39,9 +39,9 @@ def login_view(page: ft.Page, on_login_sucesso):
         width=300, # Largura
         height=40,
         on_submit=login, # Executa login ao pressionar Enter
-        border_color=ft.Colors.WHITE, # Cor da borda
+        border_color=ft.Colors.BLUE_900, # Cor da borda
         focused_border_color=ft.Colors.BLUE_500, # Cor da borda quando focado
-        bgcolor=ft.Colors.WHITE_30, # Cor de fundo do campo de senha
+        bgcolor=ft.Colors.BLUE_900, # Cor de fundo do campo de senha
         label_style=ft.TextStyle(color=ft.Colors.WHITE) # Cor do rótulo
     )
 
@@ -51,7 +51,7 @@ def login_view(page: ft.Page, on_login_sucesso):
         width=150,
         height=45,
         style=ft.ButtonStyle(
-            bgcolor=ft.Colors.BLUE_500,
+            bgcolor=ft.Colors.BLUE_900,
             color=ft.Colors.WHITE,
             shape=ft.RoundedRectangleBorder(radius=150),
         ),
@@ -75,7 +75,7 @@ def login_view(page: ft.Page, on_login_sucesso):
     ),)
 
     logo = ft.Image(
-        src="imgs/icon.png",   # confira se a pasta é imgs mesmo
+        src="imgs/icon.png", 
         width=300,
         height=300,
         fit="contain",
@@ -85,8 +85,8 @@ def login_view(page: ft.Page, on_login_sucesso):
         content=ft.Column(
             [
                logo,
-            ft.Container(height=1),
-                ft.Text("Bem-vindo(a)!", size=20, weight=ft.FontWeight.BOLD, style=ft.TextStyle(color=ft.Colors.WHITE)), # Título de boas-vindas
+            ft.Container(height=0),
+                ft.Text("LOGIN", size=20, weight=ft.FontWeight.BOLD, style=ft.TextStyle(color=ft.Colors.WHITE)), # Título de boas-vindas
                 usuario,
                 senha,
                 botao_login,
@@ -95,11 +95,11 @@ def login_view(page: ft.Page, on_login_sucesso):
             ],
             alignment=ft.MainAxisAlignment.CENTER,
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-            spacing=15, # Espaçamento entre os elementos
+            spacing=20, # Espaçamento entre os elementos
         ),
         
         # Estilização do Container de fundo
-        bgcolor=ft.Colors.LIGHT_BLUE_900,       # Cor do fundo do container
+        bgcolor="#12193D",       # Cor do fundo do container
         padding=40,                    # Espaço interno entre borda e conteúdo
         border_radius=20,              # Arredondamento das bordas
         shadow=ft.BoxShadow(           # Adiciona uma sombra suave
@@ -108,6 +108,7 @@ def login_view(page: ft.Page, on_login_sucesso):
             color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK),
         ),
         width=400,                     # Largura do container branco
+        height=700
     )
 
     # return ft.Column(

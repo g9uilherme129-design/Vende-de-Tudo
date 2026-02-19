@@ -1,4 +1,5 @@
 import flet as ft
+import flet_charts as fch
 
 def home_page(page: ft.Page, on_logout):
 
@@ -50,29 +51,133 @@ def home_page(page: ft.Page, on_logout):
     # CARD VOLUME SEMANAL
     # -------------------------
 
-    card_volume = ft.Container(
-        padding=15,
-        border_radius=20,
-        bgcolor="#0b1445",
-        content=ft.Column(
-            [
-                ft.Text("VOLUME SEMANAL", size=12, color=ft.Colors.WHITE70),
-                ft.Container(
-                    height=120,
-                    content=ft.Row(
-                        [
-                            ft.Container(width=20, height=60, bgcolor=ft.Colors.GREEN),
-                            ft.Container(width=20, height=90, bgcolor=ft.Colors.GREEN),
-                            ft.Container(width=20, height=75, bgcolor=ft.Colors.GREEN),
-                            ft.Container(width=20, height=110, bgcolor=ft.Colors.GREEN),
-                            ft.Container(width=20, height=130, bgcolor=ft.Colors.GREEN),
-                        ],
-                        alignment=ft.MainAxisAlignment.SPACE_AROUND,
-                        vertical_alignment=ft.CrossAxisAlignment.END
-                    )
-                )
-            ]
-        )
+    # card_volume = ft.Container(
+    #     padding=15,
+    #     border_radius=20,
+    #     bgcolor="#0b1445",
+    #     content=ft.Column(
+    #         [
+    #             ft.Text("VOLUME SEMANAL", size=12, color=ft.Colors.WHITE70),
+    #             ft.Container(
+    #                 height=120,
+    #                 content=ft.Row(
+    #                     [
+    #                         ft.Container(width=20, height=60, bgcolor=ft.Colors.GREEN),
+    #                         ft.Container(width=20, height=90, bgcolor=ft.Colors.GREEN),
+    #                         ft.Container(width=20, height=75, bgcolor=ft.Colors.GREEN),
+    #                         ft.Container(width=20, height=110, bgcolor=ft.Colors.GREEN),
+    #                         ft.Container(width=20, height=130, bgcolor=ft.Colors.GREEN),
+    #                     ],
+    #                     alignment=ft.MainAxisAlignment.SPACE_AROUND,
+    #                     vertical_alignment=ft.CrossAxisAlignment.END
+    #                 )
+    #             )
+    #         ]
+    #     )
+    # )
+
+
+    card_volume = fch.BarChart(
+        expand=True,
+        interactive=True,
+        max_y=110,
+        border=ft.Border.all(1, ft.Colors.BLUE_400),
+        horizontal_grid_lines=fch.ChartGridLines(
+            color=ft.Colors.BLUE_300, width=1, dash_pattern=[3, 3]
+        ),
+        tooltip=fch.BarChartTooltip(
+            bgcolor=ft.Colors.with_opacity(0.5, ft.Colors.WHITE),
+            border_radius=ft.BorderRadius.all(20),
+        ),
+        left_axis=fch.ChartAxis(
+            label_size=40, title=ft.Text("Fruit supply", color=ft.Colors.WHITE), title_size=40
+        ),
+        right_axis=fch.ChartAxis(show_labels=False),
+        bottom_axis=fch.ChartAxis(
+            label_size=40,
+            labels=[
+                fch.ChartAxisLabel(
+                    value=0, label=ft.Container(ft.Text("S", color=ft.Colors.WHITE), padding=10)
+                ),
+                fch.ChartAxisLabel(
+                    value=1, label=ft.Container(ft.Text("T", color=ft.Colors.WHITE), padding=10)
+                ),
+                fch.ChartAxisLabel(
+                    value=2, label=ft.Container(ft.Text("Q", color=ft.Colors.WHITE), padding=10)
+                ),
+                fch.ChartAxisLabel(
+                    value=3, label=ft.Container(ft.Text("Q", color=ft.Colors.WHITE), padding=10)
+                ),
+                fch.ChartAxisLabel(
+                    value=4, label=ft.Container(ft.Text("S", color=ft.Colors.WHITE), padding=10)
+                ),
+            ],
+        ),
+        groups=[
+            fch.BarChartGroup(
+                x=0,
+                rods=[
+                    fch.BarChartRod(
+                        from_y=0,
+                        to_y=40,
+                        width=40,
+                        color=ft.Colors.GREEN_ACCENT_400,
+                        border_radius=0,
+                    ),
+                ],
+            ),
+            fch.BarChartGroup(
+                x=1,
+                rods=[
+                    fch.BarChartRod(
+                        from_y=0,
+                        to_y=100,
+                        width=40,
+                        color=ft.Colors.GREEN_ACCENT_400,
+                        tooltip=fch.BarChartRodTooltip("Blueberry"),
+                        border_radius=0,
+                    ),
+                ],
+            ),
+            fch.BarChartGroup(
+                x=2,
+                rods=[
+                    fch.BarChartRod(
+                        from_y=0,
+                        to_y=30,
+                        width=40,
+                        color=ft.Colors.GREEN_ACCENT_400,
+                        border_radius=0,
+                    ),
+                ],
+            ),
+            fch.BarChartGroup(
+                x=3,
+                rods=[
+                    fch.BarChartRod(
+                        from_y=0,
+                        to_y=60,
+                        width=40,
+                        color=ft.Colors.GREEN_ACCENT_400,
+                        tooltip=fch.BarChartRodTooltip("Orange"),
+                        border_radius=0,
+                    ),
+                ],
+            ),
+            fch.BarChartGroup(
+                x=4,
+                rods=[
+                    fch.BarChartRod(
+                        from_y=0,
+                        to_y=60,
+                        width=40,
+                        color=ft.Colors.GREEN_ACCENT_400,
+                        tooltip=fch.BarChartRodTooltip("Orange"),
+                        border_radius=0,
+                    ),
+                ],
+            ),
+        ],
     )
 
     # -------------------------
