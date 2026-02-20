@@ -22,6 +22,7 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil):
                     width=35,
                     height=35,
                 ),
+                on_click=lambda e: print("Botão adicionar clicado!"),
             )
         ],
         alignment=ft.MainAxisAlignment.SPACE_BETWEEN
