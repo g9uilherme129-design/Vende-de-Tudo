@@ -78,104 +78,136 @@ def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil):
     # )
 
 
-    card_volume = fch.BarChart(
-        expand=True,
-        interactive=True,
-        max_y=110,
-        border=ft.Border.all(1, ft.Colors.BLUE_400),
-        horizontal_grid_lines=fch.ChartGridLines(
-            color=ft.Colors.BLUE_300, width=1, dash_pattern=[3, 3]
-        ),
-        tooltip=fch.BarChartTooltip(
-            bgcolor=ft.Colors.with_opacity(0.5, ft.Colors.WHITE),
-            border_radius=ft.BorderRadius.all(20),
-        ),
-        left_axis=fch.ChartAxis(
-            label_size=40, title_size=40
-        ),
-        right_axis=fch.ChartAxis(show_labels=False),
-        bottom_axis=fch.ChartAxis(
-            label_size=40,
-            labels=[
-                fch.ChartAxisLabel(
-                    value=0, label=ft.Container(ft.Text("S", color=ft.Colors.WHITE), padding=10)
+    card_volume = ft.Container(
+        bgcolor="#0b1445",
+        padding=15,
+        border_radius=25,  # deixa o gráfico arredondado
+        clip_behavior=ft.ClipBehavior.ANTI_ALIAS,
+        content=fch.BarChart(
+            expand=True,
+            interactive=True,
+            max_y=110,
+            border=ft.Border.all(1, ft.Colors.INDIGO_900),
+            horizontal_grid_lines=fch.ChartGridLines(
+                color=ft.Colors.INDIGO_900, width=1
+            ),
+            tooltip=fch.BarChartTooltip(
+                bgcolor=ft.Colors.with_opacity(0.5, ft.Colors.WHITE),
+                border_radius=ft.BorderRadius.all(20),
+            ),
+            left_axis=fch.ChartAxis(
+                label_size=30,
+                labels=[
+                    fch.ChartAxisLabel(
+                        value=0,
+                        label=ft.Text("0", color=ft.Colors.WHITE)
+                    ),
+                    fch.ChartAxisLabel(
+                        value=20,
+                        label=ft.Text("20", color=ft.Colors.WHITE)
+                    ),
+                    fch.ChartAxisLabel(
+                        value=40,
+                        label=ft.Text("40", color=ft.Colors.WHITE)
+                    ),
+                    fch.ChartAxisLabel(
+                        value=60,
+                        label=ft.Text("60", color=ft.Colors.WHITE)
+                    ),
+                    fch.ChartAxisLabel(
+                        value=80,
+                        label=ft.Text("80", color=ft.Colors.WHITE)
+                    ),
+                    fch.ChartAxisLabel(
+                        value=100,
+                        label=ft.Text("100", color=ft.Colors.WHITE)
+                    ),
+                ],
+            ),
+            right_axis=fch.ChartAxis(show_labels=False),
+            bottom_axis=fch.ChartAxis(
+                label_size=40,
+                labels=[
+                    fch.ChartAxisLabel(
+                        value=0, label=ft.Container(ft.Text("S", color=ft.Colors.WHITE), padding=10)
+                    ),
+                    fch.ChartAxisLabel(
+                        value=1, label=ft.Container(ft.Text("T", color=ft.Colors.WHITE), padding=10)
+                    ),
+                    fch.ChartAxisLabel(
+                        value=2, label=ft.Container(ft.Text("Q", color=ft.Colors.WHITE), padding=10)
+                    ),
+                    fch.ChartAxisLabel(
+                        value=3, label=ft.Container(ft.Text("Q", color=ft.Colors.WHITE), padding=10)
+                    ),
+                    fch.ChartAxisLabel(
+                        value=4, label=ft.Container(ft.Text("S", color=ft.Colors.WHITE), padding=10)
+                    ),
+                ],
+            ),
+            groups=[
+                fch.BarChartGroup(
+                    x=0,
+                    rods=[
+                        fch.BarChartRod(
+                            from_y=0,
+                            to_y=40,
+                            width=40,
+                            color=ft.Colors.GREEN_ACCENT_400,
+                            border_radius=8,  # barras arredondadas
+                        ),
+                    ],
                 ),
-                fch.ChartAxisLabel(
-                    value=1, label=ft.Container(ft.Text("T", color=ft.Colors.WHITE), padding=10)
+                fch.BarChartGroup(
+                    x=1,
+                    rods=[
+                        fch.BarChartRod(
+                            from_y=0,
+                            to_y=100,
+                            width=40,
+                            color=ft.Colors.GREEN_ACCENT_400,
+                            border_radius=8,
+                        ),
+                    ],
                 ),
-                fch.ChartAxisLabel(
-                    value=2, label=ft.Container(ft.Text("Q", color=ft.Colors.WHITE), padding=10)
+                fch.BarChartGroup(
+                    x=2,
+                    rods=[
+                        fch.BarChartRod(
+                            from_y=0,
+                            to_y=30,
+                            width=40,
+                            color=ft.Colors.GREEN_ACCENT_400,
+                            border_radius=8,
+                        ),
+                    ],
                 ),
-                fch.ChartAxisLabel(
-                    value=3, label=ft.Container(ft.Text("Q", color=ft.Colors.WHITE), padding=10)
+                fch.BarChartGroup(
+                    x=3,
+                    rods=[
+                        fch.BarChartRod(
+                            from_y=0,
+                            to_y=60,
+                            width=40,
+                            color=ft.Colors.GREEN_ACCENT_400,
+                            border_radius=8,
+                        ),
+                    ],
                 ),
-                fch.ChartAxisLabel(
-                    value=4, label=ft.Container(ft.Text("S", color=ft.Colors.WHITE), padding=10)
+                fch.BarChartGroup(
+                    x=4,
+                    rods=[
+                        fch.BarChartRod(
+                            from_y=0,
+                            to_y=60,
+                            width=40,
+                            color=ft.Colors.GREEN_ACCENT_400,
+                            border_radius=8,
+                        ),
+                    ],
                 ),
             ],
-        ),
-        groups=[
-            fch.BarChartGroup(
-                x=0,
-                rods=[
-                    fch.BarChartRod(
-                        from_y=0,
-                        to_y=40,
-                        width=40,
-                        color=ft.Colors.GREEN_ACCENT_400,
-                        border_radius=0,
-                    ),
-                ],
-            ),
-            fch.BarChartGroup(
-                x=1,
-                rods=[
-                    fch.BarChartRod(
-                        from_y=0,
-                        to_y=100,
-                        width=40,
-                        color=ft.Colors.GREEN_ACCENT_400,
-                        border_radius=0,
-                    ),
-                ],
-            ),
-            fch.BarChartGroup(
-                x=2,
-                rods=[
-                    fch.BarChartRod(
-                        from_y=0,
-                        to_y=30,
-                        width=40,
-                        color=ft.Colors.GREEN_ACCENT_400,
-                        border_radius=0,
-                    ),
-                ],
-            ),
-            fch.BarChartGroup(
-                x=3,
-                rods=[
-                    fch.BarChartRod(
-                        from_y=0,
-                        to_y=60,
-                        width=40,
-                        color=ft.Colors.GREEN_ACCENT_400,
-                        border_radius=0,
-                    ),
-                ],
-            ),
-            fch.BarChartGroup(
-                x=4,
-                rods=[
-                    fch.BarChartRod(
-                        from_y=0,
-                        to_y=60,
-                        width=40,
-                        color=ft.Colors.GREEN_ACCENT_400,
-                        border_radius=0,
-                    ),
-                ],
-            ),
-        ],
+        )
     )
 
     # -------------------------
