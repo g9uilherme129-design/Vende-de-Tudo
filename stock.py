@@ -6,6 +6,7 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil):
     page.controls.clear()
     page.appbar = None
     page.bgcolor = ft.Colors.BLACK_45
+    page.vertical_alignment = ft.MainAxisAlignment.START
 
     header = ft.Row(
         controls=[
@@ -49,14 +50,15 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil):
             header,
             ft.Container(height=20),
             ft.Text(
-                "PRODUTO",
+                "PESQUISAR PRODUTO",
                 size=12,
                 color="grey",
                 weight=ft.FontWeight.BOLD
             ),
             search_field
         ],
-        spacing=10
+        spacing=10,
+        alignment=ft.MainAxisAlignment.START
     )
 
     page.add(conteudo)

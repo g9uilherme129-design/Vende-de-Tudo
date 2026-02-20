@@ -28,7 +28,7 @@ def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil):
         bgcolor="#0b1445",
         content=ft.Column(
             [
-                ft.Text("RECEITA DO MÊS", size=12, color=ft.Colors.WHITE70),
+                ft.Text("RECEITA DO MÊS", size=12, color=ft.Colors.WHITE_70),
                 ft.Row(
                     [
                         ft.Text("R$ 43.500,00",
@@ -43,7 +43,7 @@ def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil):
                 ),
                 ft.Text("Comparado ao mês anterior",
                         size=10,
-                        color=ft.Colors.WHITE54)
+                        color=ft.Colors.WHITE_54)
             ]
         )
     )
