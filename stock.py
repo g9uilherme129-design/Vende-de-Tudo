@@ -23,7 +23,6 @@ def estoque(page: ft.Page, on_logout):
                     height=35,
                 ),
                 on_click=lambda e: print("Botão adicionar clicado!"),
-                mouse_cursor=ft.MouseCursor.CLICK,
             )
         ],
         alignment=ft.MainAxisAlignment.SPACE_BETWEEN
