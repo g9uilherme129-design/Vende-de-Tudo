@@ -27,10 +27,13 @@ def login_view(page: ft.Page, on_login_sucesso):
         expand=True
     )
 
+    def toggle_password(e):
+        senha.password = not senha.password
+        senha.update()
+
     senha = ft.TextField(
         label="Senha",
         password=True,
-        can_reveal_password=True,
         height=45,
         on_submit=login,
         border_color=ft.Colors.BLUE_900,
@@ -39,7 +42,12 @@ def login_view(page: ft.Page, on_login_sucesso):
         border_radius=10,
         label_style=ft.TextStyle(color=ft.Colors.WHITE),
         color=ft.Colors.WHITE,
-        expand=True
+        expand=True,
+        suffix=ft.IconButton(
+            icon=ft.Icons.VISIBILITY,
+            icon_color=ft.Colors.WHITE,
+            on_click=toggle_password
+        )
     )
 
     def esqueci_senha(e):
@@ -77,20 +85,20 @@ def login_view(page: ft.Page, on_login_sucesso):
                 ft.Text(
                     "LOGIN",
                     size=22,
-                    weight=200,
+                    weight=ft.FontWeight.BOLD,
                     color=ft.Colors.WHITE
                 ),
 
                 usuario,
                 senha,
 
-                # 🔥 Centralizado
+                # Centralizado
                 ft.Row(
                     [link_senha],
                     alignment=ft.MainAxisAlignment.CENTER
                 ),
 
-                # 🔥 Botão centralizado
+                # Botão centralizado
                 ft.Row(
                     [botao_login],
                     alignment=ft.MainAxisAlignment.CENTER
