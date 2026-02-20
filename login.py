@@ -1,7 +1,7 @@
 # Importa a biblioteca Flet
 import flet as ft
 
-# Função que cria a tela de login
+# Função que cria a tela de loginw
 def login_view(page: ft.Page, on_login_sucesso):
     page.bgcolor = ft.Colors.BLACK_45 # Cor de fundo da página
 
