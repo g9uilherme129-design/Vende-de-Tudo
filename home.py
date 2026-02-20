@@ -1,7 +1,7 @@
 import flet as ft
 import flet_charts as fch
 
-def home_page(page: ft.Page, on_logout):
+def home_page(page: ft.Page, on_logout, on_stock):
 
     def sair_app(e):
         on_logout()
@@ -258,11 +258,14 @@ def home_page(page: ft.Page, on_logout):
         index = nav.selected_index
 
         if index == 0:
-            print("Home")
+            pass  # já está na home
+
         elif index == 1:
-            print("Produtos")
+            on_stock()  # chama estoque
+
         elif index == 2:
             print("Equipe")
+
         elif index == 3:
             print("Perfil")
 

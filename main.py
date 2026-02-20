@@ -35,7 +35,11 @@ def main(page: ft.Page):
     def carregar_home():
         # Aqui será chamada a tela home
         # Envia a página e a função de logout
-        home_page(page, on_logout=carregar_login)
+        home_page(
+        page,
+        on_logout=carregar_login,
+        on_stock=carregar_stock
+    )
 
     def carregar_stock():
         # Aqui será chamada a tela home
