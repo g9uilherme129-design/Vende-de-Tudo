@@ -37,6 +37,12 @@ def main(page: ft.Page):
         # Envia a página e a função de logout
         home_page(page, on_logout=carregar_login)
 
+    def carregar_stock():
+        # Aqui será chamada a tela home
+        # Envia a página e a função de logout
+        estoque(page, on_logout=carregar_home)
+
+
     # ---------------------------
     # Função para carregar LOGIN
     # ---------------------------
@@ -54,11 +60,6 @@ def main(page: ft.Page):
         
         # Atualiza a interface
         page.update()
-
-    def carregar_stock():
-        # Aqui será chamada a tela home
-        # Envia a página e a função de logout
-        estoque(page, on_logout=carregar_home)
 
     # ---------------------------
     # Inicia o app no LOGIN

@@ -86,7 +86,7 @@ def login_view(page: ft.Page, on_login_sucesso):
 
     return ft.Column(
         [
-            logo,  # 👈 Logo agora fica fora do container azul
+            logo,
 
             ft.Container(
                 content=ft.Column(
