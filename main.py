@@ -7,6 +7,9 @@ from login import login_view
 # Importa home_page do arquivo home.py
 from home import home_page
 
+# Importa estoque_page do arquivo stock.py
+from stock import estoque
+
 # Função principal do app (recebe a página do Flet)
 def main(page: ft.Page):
     # Define o título da janela/aplicação
@@ -52,10 +55,10 @@ def main(page: ft.Page):
         # Atualiza a interface
         page.update()
 
-    # def carregar_stock():
-    #     # Aqui será chamada a tela home
-    #     # Envia a página e a função de logout
-    #     estoque_page(page, on_logout=carregar_home)
+    def carregar_stock():
+        # Aqui será chamada a tela home
+        # Envia a página e a função de logout
+        estoque(page, on_logout=carregar_home)
 
     # ---------------------------
     # Inicia o app no LOGIN
