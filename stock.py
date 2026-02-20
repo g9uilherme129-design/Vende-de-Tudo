@@ -1,7 +1,8 @@
 # Importa a biblioteca Flet
 import flet as ft
 
-def estoque(page: ft.Page):
+
+def estoque(page: ft.Page, on_logout):  
     page.bgcolor = ft.Colors.BLACK_45
 
     
