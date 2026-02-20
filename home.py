@@ -16,6 +16,7 @@ def home_page(page: ft.Page, on_logout):
             ft.IconButton(ft.Icons.EXIT_TO_APP, on_click=sair_app)
         ]
     )
+    
 
     # -------------------------
     # CARD RECEITA DO MÊS
@@ -90,7 +91,7 @@ def home_page(page: ft.Page, on_logout):
             border_radius=ft.BorderRadius.all(20),
         ),
         left_axis=fch.ChartAxis(
-            label_size=40, title=ft.Text("Fruit supply", color=ft.Colors.WHITE), title_size=40
+            label_size=40, title_size=40
         ),
         right_axis=fch.ChartAxis(show_labels=False),
         bottom_axis=fch.ChartAxis(
@@ -134,7 +135,6 @@ def home_page(page: ft.Page, on_logout):
                         to_y=100,
                         width=40,
                         color=ft.Colors.GREEN_ACCENT_400,
-                        tooltip=fch.BarChartRodTooltip("Blueberry"),
                         border_radius=0,
                     ),
                 ],
@@ -159,7 +159,6 @@ def home_page(page: ft.Page, on_logout):
                         to_y=60,
                         width=40,
                         color=ft.Colors.GREEN_ACCENT_400,
-                        tooltip=fch.BarChartRodTooltip("Orange"),
                         border_radius=0,
                     ),
                 ],
@@ -172,7 +171,6 @@ def home_page(page: ft.Page, on_logout):
                         to_y=60,
                         width=40,
                         color=ft.Colors.GREEN_ACCENT_400,
-                        tooltip=fch.BarChartRodTooltip("Orange"),
                         border_radius=0,
                     ),
                 ],
@@ -228,26 +226,83 @@ def home_page(page: ft.Page, on_logout):
         )
     )
 
-    # -------------------------
+       # -------------------------
     # CONTEÚDO PRINCIPAL
     # -------------------------
 
-    page.add(
-        ft.Column(
-            [
-                ft.Text("Consolidação",
-                        size=22,
-                        weight=ft.FontWeight.BOLD,
-                        color=ft.Colors.WHITE),
+    conteudo_principal = ft.Column(
+        [
+            ft.Text("Consolidação",
+                    size=22,
+                    weight=ft.FontWeight.BOLD,
+                    color=ft.Colors.WHITE),
 
-                ft.Container(height=15),
-                card_receita,
-                ft.Container(height=15),
-                card_volume,
-                ft.Container(height=15),
-                ranking,
-            ],
-            scroll=ft.ScrollMode.AUTO
+            ft.Container(height=15),
+            card_receita,
+            ft.Container(height=15),
+            card_volume,
+            ft.Container(height=15),
+            ranking,
+        ],
+        scroll=ft.ScrollMode.AUTO,
+        expand=True 
+    )
+
+    page.add(conteudo_principal)
+
+        # -------------------------
+    # RODAPÉ PREMIUM ARREDONDADO
+    # -------------------------
+
+    def trocar_aba(e):
+        index = nav.selected_index
+
+        if index == 0:
+            print("Home")
+        elif index == 1:
+            print("Produtos")
+        elif index == 2:
+            print("Equipe")
+        elif index == 3:
+            print("Perfil")
+
+    nav = ft.NavigationBar(
+        bgcolor="#0b1445",
+        selected_index=0,
+        on_change=trocar_aba,
+        destinations=[
+            ft.NavigationBarDestination(
+                icon=ft.Icons.HOME_OUTLINED,
+                selected_icon=ft.Icons.HOME,
+                label=""
+            ),
+            ft.NavigationBarDestination(
+                icon=ft.Icons.INVENTORY_2_OUTLINED,
+                selected_icon=ft.Icons.INVENTORY_2,
+                label=""
+            ),
+            ft.NavigationBarDestination(
+                icon=ft.Icons.GROUP_OUTLINED,
+                selected_icon=ft.Icons.GROUP,
+                label=""
+            ),
+            ft.NavigationBarDestination(
+                icon=ft.Icons.PERSON_OUTLINE,
+                selected_icon=ft.Icons.PERSON,
+                label=""
+            ),
+        ]
+    )
+
+    page.navigation_bar = ft.Container(
+        content=nav,
+        margin=ft.margin.only(left=25, right=25, bottom=30),
+        border_radius=40, 
+        clip_behavior=ft.ClipBehavior.ANTI_ALIAS,
+        shadow=ft.BoxShadow(
+            blur_radius=20,
+            spread_radius=1,
+            color=ft.Colors.with_opacity(0.4, ft.Colors.BLACK)
         )
     )
 

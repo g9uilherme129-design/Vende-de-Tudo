@@ -28,7 +28,8 @@ def login_view(page: ft.Page, on_login_sucesso):
         border_color=ft.Colors.BLUE_900, # Cor da borda
         focused_border_color=ft.Colors.BLUE_500, # Cor da borda quando focado
         bgcolor=ft.Colors.BLUE_900, # Cor de fundo do campo de usuário
-        label_style=ft.TextStyle(color=ft.Colors.WHITE), # Cor do rótulo
+        border_radius=10,
+        label_style=ft.TextStyle(color=ft.Colors.WHITE) # Cor do rótulo
     )
 
 
@@ -42,6 +43,7 @@ def login_view(page: ft.Page, on_login_sucesso):
         border_color=ft.Colors.BLUE_900, # Cor da borda
         focused_border_color=ft.Colors.BLUE_500, # Cor da borda quando focado
         bgcolor=ft.Colors.BLUE_900, # Cor de fundo do campo de senha
+        border_radius=10,
         label_style=ft.TextStyle(color=ft.Colors.WHITE) # Cor do rótulo
     )
 
@@ -49,7 +51,7 @@ def login_view(page: ft.Page, on_login_sucesso):
     botao_login = ft.ElevatedButton(
         "ENTRAR",
         width=150,
-        height=45,
+        height=35,
         style=ft.ButtonStyle(
             bgcolor=ft.Colors.BLUE_900,
             color=ft.Colors.WHITE,
@@ -79,48 +81,45 @@ def login_view(page: ft.Page, on_login_sucesso):
         width=300,
         height=300,
         fit="contain",
+        margin=5
     )
 
-    return ft.Container(
-        content=ft.Column(
-            [
-               logo,
-            ft.Container(height=0),
-                ft.Text("LOGIN", size=20, weight=ft.FontWeight.BOLD, style=ft.TextStyle(color=ft.Colors.WHITE)), # Título de boas-vindas
-                usuario,
-                senha,
-                botao_login,
-                mensagem,
-                link_senha,
-            ],
-            alignment=ft.MainAxisAlignment.CENTER,
-            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-            spacing=20, # Espaçamento entre os elementos
-        ),
-        
-        # Estilização do Container de fundo
-        bgcolor="#12193D",       # Cor do fundo do container
-        padding=40,                    # Espaço interno entre borda e conteúdo
-        border_radius=20,              # Arredondamento das bordas
-        shadow=ft.BoxShadow(           # Adiciona uma sombra suave
-            spread_radius=1,
-            blur_radius=15,
-            color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK),
-        ),
-        width=400,                     # Largura do container branco
-        height=700
-    )
+    return ft.Column(
+        [
+            logo,  # 👈 Logo agora fica fora do container azul
 
-    # return ft.Column(
-    #     [
-    #         avatar,
-    #         ft.Text("Bem-vindo(a)!", size=20, weight=ft.FontWeight.BOLD),
-    #         usuario,
-    #         senha,
-    #         botao_login,
-    #         mensagem,
-    #         link_senha,
-    #     ],
-    #     alignment=ft.MainAxisAlignment.CENTER,
-    #     horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-    # )
+            ft.Container(
+                content=ft.Column(
+                    [
+                        ft.Text(
+                            "LOGIN",
+                            size=20,
+                            weight=ft.FontWeight.BOLD,
+                            style=ft.TextStyle(color=ft.Colors.WHITE)
+                        ),
+                        usuario,
+                        senha,
+                        botao_login,
+                        mensagem,
+                        link_senha,
+                    ],
+                    alignment=ft.MainAxisAlignment.CENTER,
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                    spacing=20,
+                ),
+                bgcolor="#12193D",
+                padding=40,
+                border_radius=20,
+                shadow=ft.BoxShadow(
+                    spread_radius=1,
+                    blur_radius=15,
+                    color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK),
+                ),
+                width=400,
+                height=500,
+            ),
+        ],
+        alignment=ft.MainAxisAlignment.CENTER,
+        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+        spacing=20,
+    )
