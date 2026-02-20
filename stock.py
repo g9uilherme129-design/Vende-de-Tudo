@@ -28,13 +28,25 @@ def estoque(page: ft.Page, on_logout):
         alignment=ft.MainAxisAlignment.SPACE_BETWEEN
     )
 
+    search_field = ft.TextField(
+        hint_text="Buscar...",
+        prefix_icon=ft.Icons.SEARCH, # Usando o Icons corrigido
+        border_radius=15,
+        width=400,          # Defina uma largura fixa para teste
+        height=50,          # Altura para garantir presença física
+        bgcolor="#0d1626",  # Cor de fundo azulada da imagem
+        border_color="#1e293b", # Cor da borda visível
+        hint_style=ft.TextStyle(color="grey"),
+        content_padding=10, # Espaçamento interno
+    )
 
+    page.add(
+        header,
+        ft.Text("PRODUTO", size=12, color="grey", weight="bold"), # Label igual à imagem
+        search_field
+        )
 
     page.add(header)
-
-        # -------------------------
-    # NAVIGATION BAR (ADICIONADO)
-    # -------------------------
 
     def trocar_aba(e):
         index = nav.selected_index
