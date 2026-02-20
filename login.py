@@ -62,16 +62,15 @@ def login_view(page: ft.Page, on_login_sucesso):
             shape=ft.RoundedRectangleBorder(radius=50),
         ),
         on_click=login,
-        expand=True
     )
 
     logo = ft.Image(
         src="imgs/icon.png",
-        width=280,  # menor para ficar melhor em mobile
+        width=280,
         fit="contain",
     )
 
-    # Container responsivo
+    # Card responsivo
     card_login = ft.Container(
         content=ft.Column(
             [
@@ -85,46 +84,22 @@ def login_view(page: ft.Page, on_login_sucesso):
                 usuario,
                 senha,
 
-                # Link agora abaixo da senha e alinhado à direita
+                # 🔥 Centralizado
                 ft.Row(
                     [link_senha],
-                    alignment=ft.MainAxisAlignment.END
+                    alignment=ft.MainAxisAlignment.CENTER
                 ),
 
-                botao_login,
+                # 🔥 Botão centralizado
+                ft.Row(
+                    [botao_login],
+                    alignment=ft.MainAxisAlignment.CENTER
+                ),
+
                 mensagem,
             ],
             spacing=15,
-
-        content=ft.Column(
-        [
-            ft.Text(
-                "LOGIN",
-                size=22,
-                weight=200,
-                color=ft.Colors.WHITE
-            ),
-
-            usuario,
-            senha,
-
-            # Centralizado agora
-            ft.Row(
-                [link_senha],
-                alignment=ft.MainAxisAlignment.CENTER
-            ),
-
-            # Botão também centralizado
-            ft.Row(
-                [botao_login],
-                alignment=ft.MainAxisAlignment.CENTER
-            ),
-
-            mensagem,
-        ],
-        spacing=15,
-        horizontal_alignment=ft.CrossAxisAlignment.CENTER  # 🔥 garante alinhamento geral
-    ),
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER
         ),
         bgcolor="#12193D",
         padding=30,
@@ -134,7 +109,7 @@ def login_view(page: ft.Page, on_login_sucesso):
             blur_radius=15,
             color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK),
         ),
-        width=page.width * 0.9 if page.width < 500 else 400  # 🔥 responsivo
+        width=page.width * 0.9 if page.width < 500 else 400
     )
 
     return ft.Column(
