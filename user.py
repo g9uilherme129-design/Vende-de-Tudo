@@ -2,7 +2,7 @@
 import flet as ft
 
 
-def estoque(page: ft.Page, on_home, on_users, on_perfil):
+def usuarios(page: ft.Page, on_home, on_stock, on_perfil):
 
     page.controls.clear()
     page.appbar = None
@@ -11,7 +11,7 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil):
     header = ft.Row(
         controls=[
             ft.Text(
-                "Consultar Estoque",
+                "Usuarios",
                 size=24,
                 weight=ft.FontWeight.BOLD,
                 color=ft.Colors.WHITE,
@@ -27,6 +27,8 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil):
         alignment=ft.MainAxisAlignment.SPACE_BETWEEN
     )
 
+
+
     page.add(header)
 
     def trocar_aba(e):
@@ -36,17 +38,17 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil):
             on_home()  # volta para Home
 
         elif index == 1:
-            pass  # já está no estoque
+            on_stock() # volta para estoque
 
         elif index == 2:
-            on_users()
+            pass  # já está nos usuarios
 
         elif index == 3:
-            on_perfil()
+            on_perfil() # perfil
 
     nav = ft.NavigationBar(
         bgcolor="#0b1445",
-        selected_index=1,  # Estoque está ativo
+        selected_index=2,  # Usuário está ativo
         on_change=trocar_aba,
         destinations=[
             ft.NavigationBarDestination(

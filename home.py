@@ -1,7 +1,7 @@
 import flet as ft
 import flet_charts as fch
 
-def home_page(page: ft.Page, on_logout, on_stock):
+def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil):
 
     def sair_app(e):
         on_logout()
@@ -250,9 +250,6 @@ def home_page(page: ft.Page, on_logout, on_stock):
 
     page.add(conteudo_principal)
 
-        # -------------------------
-    # RODAPÉ PREMIUM ARREDONDADO
-    # -------------------------
 
     def trocar_aba(e):
         index = nav.selected_index
@@ -264,10 +261,10 @@ def home_page(page: ft.Page, on_logout, on_stock):
             on_stock()  # chama estoque
 
         elif index == 2:
-            print("Equipe")
+            on_users() # chama usuarios
 
         elif index == 3:
-            print("Perfil")
+            on_perfil()
 
     nav = ft.NavigationBar(
         bgcolor="#0b1445",

@@ -10,6 +10,12 @@ from home import home_page
 # Importa estoque_page do arquivo stock.py
 from stock import estoque
 
+# Importa usuarios do arquivo user.py
+from user import usuarios
+
+# Importa perfil do arquivo perfil.py
+from perfil import perfil
+
 # Função principal do app (recebe a página do Flet)
 def main(page: ft.Page):
     # Define o título da janela/aplicação
@@ -38,13 +44,40 @@ def main(page: ft.Page):
         home_page(
         page,
         on_logout=carregar_login,
-        on_stock=carregar_stock
+        on_stock=carregar_stock,
+        on_users=carregar_usuarios,
+        on_perfil=carregar_perfil
     )
 
     def carregar_stock():
-        # Aqui será chamada a tela home
+        # Aqui será chamada a tela stock
         # Envia a página e a função de logout
-        estoque(page, on_logout=carregar_home)
+        estoque(
+            page,
+            on_home=carregar_home,
+            on_users=carregar_usuarios,
+            on_perfil=carregar_perfil
+    )
+
+    def carregar_usuarios():
+        # Aqui será chamada a tela usuarios
+        # Envia a página e a função de logout
+        usuarios(
+            page, 
+            on_home=carregar_home,
+            on_stock=carregar_stock,
+            on_perfil=carregar_perfil
+    )
+        
+    def carregar_perfil():
+        # Aqui será chamada a tela perfil
+        # Envia a página e a função de logout
+        perfil(
+            page, 
+            on_home=carregar_home,
+            on_stock=carregar_stock,
+            on_users=carregar_usuarios
+    )
 
 
     # ---------------------------
