@@ -338,5 +338,3 @@ def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil):
     )
 
     page.update()
-
-
