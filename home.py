@@ -1,3 +1,4 @@
+
 import flet as ft
 import flet_charts as fch
 
@@ -76,7 +77,6 @@ def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil):
     #         ]
     #     )
     # )
-
 
     card_volume = ft.Container(
         bgcolor="#0b1445",
@@ -282,7 +282,6 @@ def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil):
 
     page.add(conteudo_principal)
 
-
     def trocar_aba(e):
         index = nav.selected_index
 
@@ -339,3 +338,5 @@ def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil):
     )
 
     page.update()
+
+

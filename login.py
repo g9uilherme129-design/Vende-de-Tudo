@@ -1,5 +1,7 @@
 # Importa a biblioteca Flet
 import flet as ft
+import auth
+from models.usuario_model import verificar_login
 
 def login_view(page: ft.Page, on_login_sucesso):
 
@@ -8,13 +10,16 @@ def login_view(page: ft.Page, on_login_sucesso):
     mensagem = ft.Text(value="", color=ft.Colors.RED)
 
     def login(e):
-        if usuario.value == "admin" and senha.value == "1234":
+        usuario_db = verificar_login(usuario.value, senha.value)
+
+        if usuario_db:
+            auth.usuario_logado = usuario_db
             on_login_sucesso()
         else:
             mensagem.value = "Usuário ou senha inválidos."
             mensagem.color = ft.Colors.RED
             page.update()
-
+        
     usuario = ft.TextField(
         label="Usuário",
         height=45,
