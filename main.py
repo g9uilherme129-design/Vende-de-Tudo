@@ -16,6 +16,8 @@ from user import usuarios
 # Importa perfil do arquivo perfil.py
 from perfil import perfil
 
+from novo_produto import produto
+
 # Função principal do app (recebe a página do Flet)
 def main(page: ft.Page):
     # Define o título da janela/aplicação
@@ -56,7 +58,8 @@ def main(page: ft.Page):
             page,
             on_home=carregar_home,
             on_users=carregar_usuarios,
-            on_perfil=carregar_perfil
+            on_perfil=carregar_perfil,
+            on_adicionar_produto=carregar_novo_produto 
     )
 
     def carregar_usuarios():
@@ -78,6 +81,12 @@ def main(page: ft.Page):
             on_stock=carregar_stock,
             on_users=carregar_usuarios
     )
+        
+    def carregar_novo_produto():
+        produto(
+            page,
+            on_stock=carregar_stock
+        )
 
 
     # ---------------------------
