@@ -2,13 +2,15 @@ import flet as ft
 
 def main(page: ft.Page):
     page.title = "Cadastro de Novo Produto"
+    page.controls.clear()
     page.theme_mode = ft.ThemeMode.DARK
-    page.bgcolor = "#050505"  # Um preto quase puro
+    page.bgcolor = "#050505"  # Um preto quase puro(v junior)
     page.window_width = 400
     page.window_height = 800
     page.padding = 20
+    
 
-    # INPUT ESTILIZADO (CONTAINER)
+    # inputs no grau ta estilizado (CONTAINER)
     def estilo_input(label, hint="", value="", width=None, read_only=False, on_change=None):
         return ft.Column([
             ft.Text(label, size=11, color=ft.colors.TEAL_700, weight=ft.FontWeight.BOLD),
@@ -26,9 +28,9 @@ def main(page: ft.Page):
                 bgcolor="#0A122A",
                 border=ft.border.all(1, "#1E2B4E"),
                 border_radius=10,
-                width=width,
+                width=width if width else 360, # Vai garantir a largura se não for especifica certo jão
             )
-        ], spacing=5)
+        ], spacing=5, horizontal_alignment=ft.CrossAxisAlignment.START) # a label vai ficar alinhada á esquerda do input (agora vai dar certo menzinhoo)
 
     # depois de tudo dando errado mudei para hooks porque vi no GE que rodaria melhor 
     def editar_produto():
@@ -37,7 +39,7 @@ def main(page: ft.Page):
             "nome": "Moletom thundercats",
             "fornecedor": "He-Man Modas LTDA",
             "codigo": "SW-099",
-            "categoria": "Roupa de Heroi"
+            "categoria": "Roupa de Héroi"
         }
 
         nome, set_nome = ft.use_state(produto_inicial["nome"])
@@ -53,15 +55,15 @@ def main(page: ft.Page):
                     ft.Text("Editar Produto", size=28, weight="bold", color="white"),
             ]), 
             ft.Divider(height=10, color="transparent"),   
-                # Campos Largos
+                # inputs grandes 
                 estilo_input("NOME DO PRODUTO", value=nome, on_change=lambda e: set_nome(e.control.value)),
                 estilo_input("FORNECEDOR / DISTRIBUIDOR", value=fornecedor, on_change=lambda e: set_fornecedor(e.control.value)),
 
-                # Linha com campos pequenos
+                # inputs oequenos
                 ft.Row([
                     estilo_input("ID / CÓDIGO", value=codigo, width=170, read_only=True),
                     estilo_input("CATEGORIA", value=categoria, width=170, on_change=lambda e: set_categoria(e.control.value)),
-                ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
+                ], alignment=ft.MainAxisAlignment.CENTER, spacing=20),
 
                 ft.Divider(height=20, color="transparent"),
 
@@ -76,8 +78,6 @@ def main(page: ft.Page):
                         ),
                         on_click=lambda _: print(f"Salvando: {nome}, {fornecedor}, {categoria}"),
                     ),
-                    alignment=ft.alignment.center,
-                    height=50,
                 ),
                 ft.TextButton(
                     "Cancelar",
@@ -88,8 +88,7 @@ def main(page: ft.Page):
                 ft.Divider(height=10, color="transparente"),
                 ft.Text(f"Editar ID: {codigo}", size=10, color="grey")
             ],
-            spacing=15,
-            horizontal_alignment=ft.CrossAxisAlignment.CENTER
+            spacing=15
         )
 
     page.add(editar_produto())
