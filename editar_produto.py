@@ -2,13 +2,13 @@ import flet as ft
 
 def main(page: ft.Page):
     page.title = "Cadastro de Novo Produto"
+    page.controls.clear()
     page.theme_mode = ft.ThemeMode.DARK
     page.bgcolor = "#050505"  # Um preto quase puro(v junior)
     page.window_width = 400
     page.window_height = 800
     page.padding = 20
-    # Agora vai centralizar!
-    page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
+    
 
     # inputs no grau ta estilizado (CONTAINER)
     def estilo_input(label, hint="", value="", width=None, read_only=False, on_change=None):
@@ -78,8 +78,6 @@ def main(page: ft.Page):
                         ),
                         on_click=lambda _: print(f"Salvando: {nome}, {fornecedor}, {categoria}"),
                     ),
-                    alignment=ft.alignment.center,
-                    height=50,
                 ),
                 ft.TextButton(
                     "Cancelar",
@@ -90,8 +88,7 @@ def main(page: ft.Page):
                 ft.Divider(height=10, color="transparente"),
                 ft.Text(f"Editar ID: {codigo}", size=10, color="grey")
             ],
-            spacing=15,
-            horizontal_alignment=ft.CrossAxisAlignment.CENTER
+            spacing=15
         )
 
     page.add(editar_produto())

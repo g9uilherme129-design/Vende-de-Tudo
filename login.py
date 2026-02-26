@@ -1,10 +1,7 @@
-# Importa a biblioteca Flet
 import flet as ft
 
 def login_view(page: ft.Page, on_login_sucesso):
-
     page.bgcolor = ft.Colors.BLACK_45
-
     mensagem = ft.Text(value="", color=ft.Colors.RED)
 
     def login(e):
@@ -88,22 +85,18 @@ def login_view(page: ft.Page, on_login_sucesso):
                     weight=ft.FontWeight.BOLD,
                     color=ft.Colors.WHITE
                 ),
-
                 usuario,
                 senha,
-
                 # Centralizado
                 ft.Row(
                     [link_senha],
                     alignment=ft.MainAxisAlignment.CENTER
                 ),
-
                 # Botão centralizado
                 ft.Row(
                     [botao_login],
                     alignment=ft.MainAxisAlignment.CENTER
                 ),
-
                 mensagem,
             ],
             spacing=15,
