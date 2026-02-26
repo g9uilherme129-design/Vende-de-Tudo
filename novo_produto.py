@@ -7,6 +7,8 @@ def main(page: ft.Page):
     page.window_width = 400
     page.window_height = 800
     page.padding = 20
+    # Agora vai centralizar!
+    page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
 
     # INPUT ESTILIZADO (CONTAINER)
     def estilo_input(label, hint="", value="", width=None, read_only=False, on_change=None):
@@ -26,9 +28,9 @@ def main(page: ft.Page):
                 bgcolor="#0A122A",
                 border=ft.border.all(1, "#1E2B4E"),
                 border_radius=10,
-                width=width,
+                width=width if width else 360, # Vai garantir a largura se não for especifica certo jão
             )
-        ], spacing=5)
+        ], spacing=5, horizontal_alignment=ft.CrossAxisAlignment.START) # a label vai ficar alinhada á esquerda do input (agora vai dar certo menzinhoo)
 
     # depois de tudo dando errado mudei para hooks porque vi no GE que rodaria melhor 
     def novo_produto():
@@ -74,7 +76,8 @@ def main(page: ft.Page):
                 # Debug visual
                 ft.Text(f"Digitando: {nome}", size=10, color="grey")
             ],
-            spacing=15
+            spacing=15,
+            
         )
 
     page.add(novo_produto())
