@@ -95,6 +95,12 @@ def main(page: ft.Page):
             on_stock=carregar_stock
         )
 
+    def carregar_editar_produto():
+        produto(
+            page,
+            on_stock=carregar_stock
+        )
+        
 
     # ---------------------------
     # Função para carregar LOGIN
