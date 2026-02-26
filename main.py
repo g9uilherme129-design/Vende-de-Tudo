@@ -14,7 +14,7 @@ from stock import estoque
 from user import usuarios
 
 # Importa perfil do arquivo perfil.py
-from perfil import perfil
+from perfil import perfil_page
 
 from novo_produto import produto
 
@@ -45,7 +45,7 @@ def main(page: ft.Page):
         # Envia a página e a função de logout
         home_page(
         page,
-        on_logout=carregar_login,
+        on_logout=fazer_logout,
         on_stock=carregar_stock,
         on_users=carregar_usuarios,
         on_perfil=carregar_perfil
@@ -75,12 +75,19 @@ def main(page: ft.Page):
     def carregar_perfil():
         # Aqui será chamada a tela perfil
         # Envia a página e a função de logout
-        perfil(
+        perfil_page(
             page, 
             on_home=carregar_home,
             on_stock=carregar_stock,
-            on_users=carregar_usuarios
-    )
+            on_users=carregar_usuarios,
+            on_logout=fazer_logout
+        )
+
+    def fazer_logout():
+        page.navigation_bar = None   # remove a barra de navegação
+        page.controls.clear()        # limpa a tela
+        carregar_login()             # chama tela de login
+        page.update()
         
     def carregar_novo_produto():
         produto(
