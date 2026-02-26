@@ -186,4 +186,4 @@ def perfil_page(page: ft.Page, on_home, on_stock, on_users, on_logout):
         ),
     )
 
-    page.update()
+        
