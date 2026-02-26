@@ -117,6 +117,8 @@ def perfil_page(page: ft.Page, on_home, on_stock, on_users, on_logout):
             ft.Container(height=20),
             botao_sair,
         ],
+        alignment=ft.MainAxisAlignment.CENTER,          # Centraliza verticalmente
+        horizontal_alignment=ft.CrossAxisAlignment.CENTER,  # Centraliza horizontalmente
         scroll=ft.ScrollMode.AUTO,
         expand=True,
     )
