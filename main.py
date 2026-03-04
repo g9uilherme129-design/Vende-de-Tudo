@@ -14,7 +14,11 @@ from stock import estoque
 from user import usuarios
 
 # Importa perfil do arquivo perfil.py
-from perfil import perfil
+from perfil import perfil_page
+
+from novo_produto import produto
+
+from editar_produto import editar_produto
 
 # Função principal do app (recebe a página do Flet)
 def main(page: ft.Page):
@@ -43,7 +47,7 @@ def main(page: ft.Page):
         # Envia a página e a função de logout
         home_page(
         page,
-        on_logout=carregar_login,
+        on_logout=fazer_logout,
         on_stock=carregar_stock,
         on_users=carregar_usuarios,
         on_perfil=carregar_perfil
@@ -56,7 +60,9 @@ def main(page: ft.Page):
             page,
             on_home=carregar_home,
             on_users=carregar_usuarios,
-            on_perfil=carregar_perfil
+            on_perfil=carregar_perfil,
+            on_adicionar_produto=carregar_novo_produto,
+            on_editar_produto=carregar_editar_produto
     )
 
     def carregar_usuarios():
@@ -72,13 +78,32 @@ def main(page: ft.Page):
     def carregar_perfil():
         # Aqui será chamada a tela perfil
         # Envia a página e a função de logout
-        perfil(
+        perfil_page(
             page, 
             on_home=carregar_home,
             on_stock=carregar_stock,
-            on_users=carregar_usuarios
-    )
+            on_users=carregar_usuarios,
+            on_logout=fazer_logout
+        )
 
+    def fazer_logout():
+        page.navigation_bar = None   # remove a barra de navegação
+        page.controls.clear()        # limpa a tela
+        carregar_login()             # chama tela de login
+        page.update()
+        
+    def carregar_novo_produto():
+        produto(
+            page,
+            on_stock=carregar_stock
+        )
+
+    def carregar_editar_produto():
+        editar_produto(
+            page,
+            on_stock=carregar_stock
+        )
+        
 
     # ---------------------------
     # Função para carregar LOGIN

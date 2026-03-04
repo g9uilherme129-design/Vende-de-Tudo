@@ -1,7 +1,7 @@
 # Importa a biblioteca Flet
 import flet as ft
 
-def estoque(page: ft.Page, on_home, on_users, on_perfil):
+def estoque(page: ft.Page, on_home, on_users, on_perfil, on_adicionar_produto, on_editar_produto):
 
     page.controls.clear()
     page.appbar = None
@@ -16,6 +16,7 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil):
                 weight=ft.FontWeight.BOLD,
                 color=ft.Colors.WHITE,
             ),
+
             ft.Container(
                 content=ft.Image(
                     src="imgs/addicon.png",
