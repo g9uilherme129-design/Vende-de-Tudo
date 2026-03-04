@@ -35,16 +35,7 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_adicionar_produto, o
                     width=35,
                     height=35,
                 ),
-                on_click=lambda e: on_adicionar_produto(),
-            ),
-
-            ft.Container(
-                content=ft.Image(
-                    src="imgs/editar_icon.png",
-                    width=35,
-                    height=35,
-                ),
-                on_click=lambda e: on_editar_produto(),
+                on_click=lambda e: print("Adicionar novo produto")
             )
         ],
         alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
