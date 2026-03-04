@@ -1,14 +1,26 @@
 import flet as ft
 
-def main(page: ft.Page):
-
-
+def usuarios(page: ft.Page, on_home, on_stock, on_perfil, on_logout, on_adicionar_usuario):
 
     page.title = "Gerenciar Usuários"
     page.bgcolor = "black"
     page.theme_mode = ft.ThemeMode.DARK
     page.padding = 20
+    page.controls.clear()
 
+    def sair_app(e):
+        on_logout()
+
+
+    page.appbar = ft.AppBar(
+        title=ft.Text("Vende de Tudo"),
+        bgcolor="#0b1445",
+        actions=[
+            ft.IconButton(ft.Icons.EXIT_TO_APP, on_click=sair_app)
+        ]
+    )
+
+ 
     def status_badge(status):
         return ft.Container(
             content=ft.Text(
@@ -22,7 +34,7 @@ def main(page: ft.Page):
         )
     def user_card(codigo, nome, cargo, admissao, status, detalhes=None):
         return ft.Container(
-            bgcolor="#0F1C3F",
+            bgcolor="#0b1445",
             border_radius=15,
             padding=15,
             margin=ft.margin.only(bottom=15),
@@ -110,6 +122,7 @@ def main(page: ft.Page):
                             icon=ft.Icons.ADD,
                             bgcolor="#1B4F9C",
                             mini=True,
+                            on_click=lambda e: on_adicionar_usuario()
                         ),
                     ],
                 ),
@@ -124,15 +137,61 @@ def main(page: ft.Page):
             ],
         )
     )
-    page.navigation_bar = ft.NavigationBar(
+
+    #---------------- NAVEGAÇÃO ----------------
+    def trocar_aba(e):
+        index = nav.selected_index
+
+        if index == 0:
+            on_home()  # Chama home
+
+        elif index == 1:
+            on_stock()  # chama estoque
+
+        elif index == 2:
+            pass # Ja esta em usuarios
+
+        elif index == 3:
+            on_perfil()
+
+    nav = ft.NavigationBar(
+        bgcolor="#0b1445",
         selected_index=2,
-        bgcolor="#0F1C3F",
+        on_change=trocar_aba,
         destinations=[
-            ft.NavigationBarDestination(icon=ft.Icons.HOME, label="Home"),
-            ft.NavigationBarDestination(icon=ft.Icons.INVENTORY, label="Estoque"),
-            ft.NavigationBarDestination(icon=ft.Icons.GROUP, label="Usuários"),
-            ft.NavigationBarDestination(icon=ft.Icons.PERSON, label="Perfil"),
-        ],
+            ft.NavigationBarDestination(
+                icon=ft.Icons.HOME_OUTLINED,
+                selected_icon=ft.Icons.HOME,
+                label="Inicial"
+            ),
+            ft.NavigationBarDestination(
+                icon=ft.Icons.INVENTORY_2_OUTLINED,
+                selected_icon=ft.Icons.INVENTORY_2,
+                label="Estoque"
+            ),
+            ft.NavigationBarDestination(
+                icon=ft.Icons.GROUP_OUTLINED,
+                selected_icon=ft.Icons.GROUP,
+                label="Usuários"
+            ),
+            ft.NavigationBarDestination(
+                icon=ft.Icons.PERSON_OUTLINE,
+                selected_icon=ft.Icons.PERSON,
+                label="Perfil"
+            ),
+        ]
     )
 
-ft.app(target=main)
+    page.navigation_bar = ft.Container(
+        content=nav,
+        margin=ft.margin.only(left=25, right=25, bottom=30),
+        border_radius=40, 
+        clip_behavior=ft.ClipBehavior.ANTI_ALIAS,
+        shadow=ft.BoxShadow(
+            blur_radius=20,
+            spread_radius=1,
+            color=ft.Colors.with_opacity(0.4, ft.Colors.BLACK)
+        )
+    )
+
+    page.update()
