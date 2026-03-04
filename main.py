@@ -11,7 +11,7 @@ from home import home_page
 from stock import estoque
 
 # Importa usuarios do arquivo user.py
-from GerenciarUsuário import usuarios
+from user import usuarios
 
 # Importa perfil do arquivo perfil.py
 from perfil import perfil_page
@@ -19,8 +19,6 @@ from perfil import perfil_page
 from novo_produto import produto
 
 from editar_produto import editar_produto
-
-from NovoUsuario import novo_usuario
 
 # Função principal do app (recebe a página do Flet)
 def main(page: ft.Page):
@@ -60,7 +58,6 @@ def main(page: ft.Page):
         # Envia a página e a função de logout
         estoque(
             page,
-            on_logout=fazer_logout,
             on_home=carregar_home,
             on_users=carregar_usuarios,
             on_perfil=carregar_perfil,
@@ -73,11 +70,9 @@ def main(page: ft.Page):
         # Envia a página e a função de logout
         usuarios(
             page, 
-            on_logout=fazer_logout,
             on_home=carregar_home,
             on_stock=carregar_stock,
-            on_perfil=carregar_perfil,
-            on_adicionar_usuario=carregar_novo_usuario
+            on_perfil=carregar_perfil
     )
         
     def carregar_perfil():
@@ -108,13 +103,6 @@ def main(page: ft.Page):
             page,
             on_stock=carregar_stock
         )
-
-    def carregar_novo_usuario():
-        novo_usuario(
-            page,
-            on_users=carregar_usuarios
-        )
-        
         
 
     # ---------------------------

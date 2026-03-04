@@ -5,18 +5,15 @@ def perfil_page(page: ft.Page, on_home, on_stock, on_users, on_logout):
 
     page.controls.clear()
     page.bgcolor = "#000000"
-    page.theme_mode = ft.ThemeMode.DARK
     page.appbar = None
 
+    # -------------------------
+    # FUNÇÃO SAIR
+    # -------------------------
     def sair_app(e):
+        print("Logout clicado")
         on_logout()
 
-
-    page.appbar = ft.AppBar(
-        title=ft.Text("Vende de Tudo"),
-        bgcolor="#0b1445"
-    )
-    
     # -------------------------
     # HEADER
     # -------------------------
@@ -79,7 +76,7 @@ def perfil_page(page: ft.Page, on_home, on_stock, on_users, on_logout):
                 ft.Text("Sincronização Cloud", color=ft.Colors.WHITE),
                 ft.Icon(ft.Icons.CHEVRON_RIGHT, color=ft.Colors.WHITE54),
             ],
-            alignment=ft.MainAxisAlignment.CENTER
+            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
         ),
         on_click=lambda e: print("Sincronização Cloud clicado"),
     )
@@ -99,7 +96,6 @@ def perfil_page(page: ft.Page, on_home, on_stock, on_users, on_logout):
                     weight=ft.FontWeight.BOLD,
                 )
             ],
-            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
         ),
         on_click=sair_app,
     )
@@ -158,22 +154,22 @@ def perfil_page(page: ft.Page, on_home, on_stock, on_users, on_logout):
             ft.NavigationBarDestination(
                 icon=ft.Icons.HOME_OUTLINED,
                 selected_icon=ft.Icons.HOME,
-                label="Inicial",
+                label="",
             ),
             ft.NavigationBarDestination(
                 icon=ft.Icons.INVENTORY_2_OUTLINED,
                 selected_icon=ft.Icons.INVENTORY_2,
-                label="Estoque",
+                label="",
             ),
             ft.NavigationBarDestination(
                 icon=ft.Icons.GROUP_OUTLINED,
                 selected_icon=ft.Icons.GROUP,
-                label="Usuários",
+                label="",
             ),
             ft.NavigationBarDestination(
                 icon=ft.Icons.PERSON_OUTLINE,
                 selected_icon=ft.Icons.PERSON,
-                label="Perfil",
+                label="",
             ),
         ],
     )

@@ -9,7 +9,6 @@ def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil):
 
     page.controls.clear()
     page.bgcolor = "#000000"
-    page.theme_mode = ft.ThemeMode.DARK
 
     page.appbar = ft.AppBar(
         title=ft.Text("Vende de Tudo"),
@@ -306,22 +305,22 @@ def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil):
             ft.NavigationBarDestination(
                 icon=ft.Icons.HOME_OUTLINED,
                 selected_icon=ft.Icons.HOME,
-                label="Inicial"
+                label=""
             ),
             ft.NavigationBarDestination(
                 icon=ft.Icons.INVENTORY_2_OUTLINED,
                 selected_icon=ft.Icons.INVENTORY_2,
-                label="Estoque"
+                label=""
             ),
             ft.NavigationBarDestination(
                 icon=ft.Icons.GROUP_OUTLINED,
                 selected_icon=ft.Icons.GROUP,
-                label="Usuários"
+                label=""
             ),
             ft.NavigationBarDestination(
                 icon=ft.Icons.PERSON_OUTLINE,
                 selected_icon=ft.Icons.PERSON,
-                label="Perfil"
+                label=""
             ),
         ]
     )

@@ -1,24 +1,12 @@
 # Importa a biblioteca Flet
 import flet as ft
 
-def estoque(page: ft.Page, on_home, on_users, on_perfil, on_adicionar_produto, on_editar_produto, on_logout):
+def estoque(page: ft.Page, on_home, on_users, on_perfil, on_adicionar_produto, on_editar_produto):
 
     page.controls.clear()
     page.appbar = None
     page.bgcolor = ft.Colors.BLACK_45
-    page.theme_mode = ft.ThemeMode.DARK
     page.vertical_alignment = ft.MainAxisAlignment.START
-
-    def sair_app(e):
-        on_logout()
-
-    page.appbar = ft.AppBar(
-        title=ft.Text("Vende de Tudo"),
-        bgcolor="#0b1445",
-        actions=[
-            ft.IconButton(ft.Icons.EXIT_TO_APP, on_click=sair_app)
-        ]
-    )
 
     header = ft.Row(
         controls=[
@@ -35,7 +23,16 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_adicionar_produto, o
                     width=35,
                     height=35,
                 ),
-                on_click=lambda e: print("Adicionar novo produto")
+                on_click=lambda e: on_adicionar_produto(),
+            ),
+
+            ft.Container(
+                content=ft.Image(
+                    src="imgs/editar_icon.png",
+                    width=35,
+                    height=35,
+                ),
+                on_click=lambda e: on_editar_produto(),
             )
         ],
         alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
@@ -103,22 +100,22 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_adicionar_produto, o
             ft.NavigationBarDestination(
                 icon=ft.Icons.HOME_OUTLINED,
                 selected_icon=ft.Icons.HOME,
-                label="Inicial"
+                label=""
             ),
             ft.NavigationBarDestination(
                 icon=ft.Icons.INVENTORY_2_OUTLINED,
                 selected_icon=ft.Icons.INVENTORY_2,
-                label="Estoque"
+                label=""
             ),
             ft.NavigationBarDestination(
                 icon=ft.Icons.GROUP_OUTLINED,
                 selected_icon=ft.Icons.GROUP,
-                label="Usuários"
+                label=""
             ),
             ft.NavigationBarDestination(
                 icon=ft.Icons.PERSON_OUTLINE,
                 selected_icon=ft.Icons.PERSON,
-                label="Perfil"
+                label=""
             ),
         ]
     )
