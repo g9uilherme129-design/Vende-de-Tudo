@@ -13,10 +13,33 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_adicionar_produto, o
         on_logout()
 
     page.appbar = ft.AppBar(
-        title=ft.Text("Vende de Tudo"),
         bgcolor="#0b1445",
+        toolbar_height=70,
+
+        leading=ft.Container(width=40),
+
+        title=ft.Row(
+            [
+                ft.Text(
+                    "Vende de Tudo",
+                    size=18 if page.width < 600 else 22,
+                    weight=ft.FontWeight.BOLD,
+                    color="white"
+                ),
+            ],
+            alignment=ft.MainAxisAlignment.CENTER,
+            tight=True
+        ),
+
+        center_title=True,
+
         actions=[
-            ft.IconButton(ft.Icons.EXIT_TO_APP, on_click=sair_app)
+            ft.IconButton(
+                icon=ft.Icons.EXIT_TO_APP,
+                icon_color="white",
+                tooltip="Sair",
+                on_click=sair_app
+            )
         ]
     )
 

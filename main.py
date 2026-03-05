@@ -5,13 +5,13 @@ import flet as ft
 from login import login_view
 
 # Importa home_page do arquivo home.py
-from home import home_page
+from tela_inicial import home_page
 
 # Importa estoque_page do arquivo stock.py
-from stock import estoque
+from gerenciar_estoque import estoque
 
 # Importa usuarios do arquivo user.py
-from GerenciarUsuário import usuarios
+from gerenciar_usuario import usuarios
 
 # Importa perfil do arquivo perfil.py
 from perfil import perfil_page
@@ -20,7 +20,7 @@ from novo_produto import produto
 
 from editar_produto import editar_produto
 
-from NovoUsuario import novo_usuario
+from novo_usuario import novo_usuario
 
 # Função principal do app (recebe a página do Flet)
 def main(page: ft.Page):
@@ -134,6 +134,9 @@ def main(page: ft.Page):
         
         # Atualiza a interface
         page.update()
+
+        page.window_width = 400
+        page.window_height = 800
 
     # ---------------------------
     # Inicia o app no LOGIN

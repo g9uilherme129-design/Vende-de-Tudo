@@ -102,7 +102,7 @@ def login_view(page: ft.Page, on_login_sucesso):
             spacing=15,
             horizontal_alignment=ft.CrossAxisAlignment.CENTER
         ),
-        bgcolor="#12193D",
+        bgcolor="#081035",
         padding=30,
         border_radius=20,
         shadow=ft.BoxShadow(
