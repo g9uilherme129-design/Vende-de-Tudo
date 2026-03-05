@@ -1,0 +1,133 @@
+# Importa a biblioteca Flet
+import flet as ft
+
+# Importa login_view do arquivo login.py
+from login import login_view
+
+# Importa home_page do arquivo home.py
+from home import home_page
+
+# Importa estoque_page do arquivo stock.py
+from stock import estoque
+
+# Importa usuarios do arquivo user.py
+from user import usuarios
+
+# Importa perfil do arquivo perfil.py
+from perfil import perfil_page
+
+from novo_produto import produto
+
+from editar_produto import editar_produto
+
+# Função principal do app (recebe a página do Flet)
+def main(page: ft.Page):
+    # Define o título da janela/aplicação
+    page.title = "Vende de Tudo"
+    
+    # Define espaçamento interno da página
+    page.padding = 20
+    
+    # Define o tema como claro
+    page.theme_mode = "light"
+    
+    # Centraliza os elementos verticalmente
+    page.vertical_alignment = ft.MainAxisAlignment.CENTER
+    
+    # Centraliza os elementos horizontalmente
+    page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
+
+    # ---------------------------
+    # Função para carregar a HOME
+    # ---------------------------
+
+    # Função que abre a tela principal
+    def carregar_home():
+        # Aqui será chamada a tela home
+        # Envia a página e a função de logout
+        home_page(
+        page,
+        on_logout=fazer_logout,
+        on_stock=carregar_stock,
+        on_users=carregar_usuarios,
+        on_perfil=carregar_perfil
+    )
+
+    def carregar_stock():
+        # Aqui será chamada a tela stock
+        # Envia a página e a função de logout
+        estoque(
+            page,
+            on_home=carregar_home,
+            on_users=carregar_usuarios,
+            on_perfil=carregar_perfil,
+            on_adicionar_produto=carregar_novo_produto,
+            on_editar_produto=carregar_editar_produto
+    )
+
+    def carregar_usuarios():
+        # Aqui será chamada a tela usuarios
+        # Envia a página e a função de logout
+        usuarios(
+            page, 
+            on_home=carregar_home,
+            on_stock=carregar_stock,
+            on_perfil=carregar_perfil
+    )
+        
+    def carregar_perfil():
+        # Aqui será chamada a tela perfil
+        # Envia a página e a função de logout
+        perfil_page(
+            page, 
+            on_home=carregar_home,
+            on_stock=carregar_stock,
+            on_users=carregar_usuarios,
+            on_logout=fazer_logout
+        )
+
+    def fazer_logout():
+        page.navigation_bar = None   # remove a barra de navegação
+        page.controls.clear()        # limpa a tela
+        carregar_login()             # chama tela de login
+        page.update()
+        
+    def carregar_novo_produto():
+        produto(
+            page,
+            on_stock=carregar_stock
+        )
+
+    def carregar_editar_produto():
+        editar_produto(
+            page,
+            on_stock=carregar_stock
+        )
+        
+
+    # ---------------------------
+    # Função para carregar LOGIN
+    # ---------------------------
+
+    # Função que abre a tela de login
+    def carregar_login():
+        # Remove a barra superior (AppBar)
+        page.appbar = None
+        
+        # Limpa todos os elementos da tela
+        page.controls.clear()
+        
+        # Adiciona a tela de login passa a função para ir à home após logado no sistema
+        page.add(login_view(page, on_login_sucesso=carregar_home))
+        
+        # Atualiza a interface
+        page.update()
+
+    # ---------------------------
+    # Inicia o app no LOGIN
+    # ---------------------------
+    # Quando o aplicativo iniciar, ele abrirá diretamente a tela de login
+    carregar_login()
+
+# Executa a aplicação
+ft.run(main)

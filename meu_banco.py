@@ -1,6 +1,6 @@
 import sqlite3
 
-conexao = sqlite3.connect('meu_banco.db')
+conexao = sqlite3.connect('vende_tudo_db')
 cursor = conexao.cursor()
 
 def criar_tabelas():
@@ -12,6 +12,7 @@ def criar_tabelas():
             senha_user TEXT,
             status TEXT NOT NULL,
             perfil TEXT NOT NUL
+            vendas
         )
     ''')
 
@@ -43,10 +44,9 @@ def criar_tabelas():
 def venda():
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS vendas(
-            id_vendas INTEGER PRIMARY KEY AUTOINCREMENT,
-            data_venda DATETIME DEFAULT CURRENT_TIMESTAMP,
-            total REAL NOT NULL,
-            metodo_pagamento TEXT
+            id_intens INTEGER NOT NULL,
+            id_user INTEGER NOT NULL,
+            
             
             
         )
@@ -56,10 +56,11 @@ def itens_venda():
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS vendas(
             id_item INTEGER PRIMARY KEY AUTOINCREMENT,
-            id_venda INTEGER NOT NULL,
             id_produto INTEGER NOT NULL,
             quantidade INTEGER NOT NULL,
             preco_unitario REAL NOT NULL,
+            metodo_pagamento TEXT
+            data_venda DATETIME DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (id_venda) REFERENCES vendas (id_venda),
             FOREIGN KEY (id_produto) REFERENCES produto (id_venda)
             
