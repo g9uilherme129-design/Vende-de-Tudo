@@ -1,1 +1,0 @@
-usuario_logado = None

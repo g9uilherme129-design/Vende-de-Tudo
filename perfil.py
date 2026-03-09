@@ -13,8 +13,25 @@ def perfil_page(page: ft.Page, on_home, on_stock, on_users, on_logout):
 
 
     page.appbar = ft.AppBar(
-        title=ft.Text("Vende de Tudo"),
-        bgcolor="#0b1445"
+        bgcolor="#0b1445",
+        toolbar_height=70,
+
+        leading=ft.Container(width=40),
+
+        title=ft.Row(
+            [
+                ft.Text(
+                    "Vende de Tudo",
+                    size=18 if page.width < 600 else 22,
+                    weight=ft.FontWeight.BOLD,
+                    color="white"
+                ),
+            ],
+            alignment=ft.MainAxisAlignment.CENTER,
+            tight=True
+        ),
+
+        center_title=True,
     )
     
     # -------------------------
