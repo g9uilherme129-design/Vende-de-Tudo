@@ -55,7 +55,7 @@ def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil):
                 ft.Row(
                     [
                         ft.Text(
-                            "R$ 43.500,00",
+                            # f'R$ {'dados_dashboard'["receita_mes"]:,.2f}',
                             size=22,
                             weight=ft.FontWeight.BOLD,
                             color=ft.Colors.GREEN,

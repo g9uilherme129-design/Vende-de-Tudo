@@ -2,7 +2,6 @@ import flet as ft
 
 def novo_usuario(page: ft.Page, on_users):
     page.controls.clear()
-    page.title = "Cadastro de Novo Usuário"
     page.theme_mode = ft.ThemeMode.DARK
     page.bgcolor = "#050505"
     page.window_width = 400

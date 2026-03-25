@@ -2,7 +2,6 @@ import flet as ft
 
 def usuarios(page: ft.Page, on_home, on_stock, on_perfil, on_logout, on_adicionar_usuario):
 
-    page.title = "Gerenciar Usuários"
     page.bgcolor = "black"
     page.theme_mode = ft.ThemeMode.DARK
     page.padding = 20
@@ -56,6 +55,7 @@ def usuarios(page: ft.Page, on_home, on_stock, on_perfil, on_logout, on_adiciona
             border_radius=20,
         )
     def user_card(codigo, nome, cargo, admissao, status, detalhes=None):
+
         return ft.Container(
             bgcolor="#0b1445",
             border_radius=15,
@@ -152,9 +152,13 @@ def usuarios(page: ft.Page, on_home, on_stock, on_perfil, on_logout, on_adiciona
                 ft.TextField(
                     hint_text="Buscar...",
                     prefix_icon=ft.Icons.SEARCH,
-                    border_radius=20,
-                    bgcolor="#162447",
-                    border_color="transparent",
+                    border_radius=15,
+                    height=50,
+                    bgcolor="#0d1626",
+                    border_color="#1e293b",
+                    hint_style=ft.TextStyle(color="grey"),
+                    content_padding=10,
+                    color=ft.Colors.WHITE
                 ),
                 lista_usuarios, 
             ],
