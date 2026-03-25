@@ -24,6 +24,8 @@ from novo_usuario import novo_usuario
 
 from editar_usuario import editar_usuario
 
+from config import configuracoes_page
+
 # Função principal do app (recebe a página do Flet)
 def main(page: ft.Page):
     # Define o título da janela/aplicação
@@ -40,6 +42,16 @@ def main(page: ft.Page):
     
     # Centraliza os elementos horizontalmente
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
+
+    def mudar_tema(page: ft.Page, cor_escolhida: str, modo_claro: bool):
+        # Define se é Dark ou Light
+        page.theme_mode = ft.ThemeMode.LIGHT if modo_claro else ft.ThemeMode.DARK
+        
+        # A "Seed" faz a mágica: ela espalha a cor escolhida por todos os componentes
+        page.theme = ft.Theme(color_scheme_seed=cor_escolhida)
+        
+        # Atualiza a interface
+        page.update()
 
     # ---------------------------
     # Função para carregar a HOME
@@ -91,7 +103,8 @@ def main(page: ft.Page):
             on_home=carregar_home,
             on_stock=carregar_stock,
             on_users=carregar_usuarios,
-            on_logout=fazer_logout
+            on_logout=fazer_logout,
+            on_config=carregar_configuracoes
         )
 
     def fazer_logout():
@@ -123,6 +136,13 @@ def main(page: ft.Page):
             page,
             on_users=carregar_usuarios
         )
+
+    def carregar_configuracoes():
+        configuracoes_page(
+            page,
+            on_perfil=carregar_perfil
+        )
+
         
         
 
