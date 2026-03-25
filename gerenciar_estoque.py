@@ -56,92 +56,58 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_adicionar_produto, o
     # -----------------
 
     def card_produto(cod, nome, preco, marca, validade, quantidade):
+        # Lógica de cor para estoque baixo
+        qtd_num = int(quantidade)
+        cor_status = "#00b40d" if qtd_num > 10 else "#ff9800"
 
         return ft.Container(
             padding=15,
             border_radius=15,
             bgcolor="#0b1445",
-           
+            margin=ft.margin.only(bottom=5), # Espaçamento entre cards
             content=ft.Column(
                 spacing=10,
                 controls=[
-
                     ft.Row(
                         alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                         controls=[
-
-                            ft.Column(
-                                spacing=2,
-                                controls=[
-                                    ft.Text(cod, size=10, color="grey"),
-                                    ft.Text(
-                                        nome,
-                                        size=16,
-                                        weight=ft.FontWeight.BOLD
-                                    ),
-                                ],
-                            ),
-
-                            ft.Column(
-                                horizontal_alignment=ft.CrossAxisAlignment.END,
-                                controls=[
-                                    ft.Text(
-                                        f"R$ {preco}",
-                                        weight=ft.FontWeight.BOLD,
-                                        size=16
-                                    ),
-                                    ft.Text(
-                                        marca,
-                                        size=10,
-                                        color="grey"
-                                    ),
-                                ],
-                            ),
-                        ],
+                            ft.Column([
+                                ft.Text(cod, size=10, color="grey"),
+                                ft.Text(nome, size=18, weight="bold"),
+                            ], spacing=2),
+                            ft.Column([
+                                ft.Text(f"R$ {preco}", weight="bold", size=18, color="white"),
+                                ft.Text(marca, size=11, color="grey"),
+                            ], horizontal_alignment=ft.CrossAxisAlignment.END),
+                        ]
                     ),
-
                     ft.Row(
                         alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                         controls=[
-
-                            ft.Text(
-                                f"Val - {validade}",
-                                size=10,
-                                color="grey"
-                            ),
-
+                            ft.Text(f"Validade: {validade}", size=11, color="bluegrey200"),
                             ft.Container(
-                                padding=ft.padding.symmetric(
-                                    horizontal=10,
-                                    vertical=4
-                                ),
-                                bgcolor="#00b40d",
+                                content=ft.Text(f"{quantidade} UN", size=11, weight="bold"),
+                                bgcolor=cor_status,
+                                padding=ft.padding.symmetric(horizontal=12, vertical=4),
                                 border_radius=20,
-
-                                content=ft.Text(
-                                    f"{quantidade} UN",
-                                    size=11,
-                                    weight=ft.FontWeight.BOLD
-                                ),
+                            ),
+                        ]
+                    ),
+                    ft.Divider(height=1, color="white10"), # Linha sutil separadora
+                    ft.Row(
+                        alignment=ft.MainAxisAlignment.END,
+                        controls=[
+                            ft.TextButton(
+                                "Editar Produto",
+                                icon=ft.Icons.EDIT_NOTE,
+                                on_click=lambda e: on_editar_produto()
                             ),
                         ],
-                    ),
-
-                    ft.Container(
-                        width=60,  
-                        height=30,
-                        bgcolor="#002072",
-                        border_radius=20,
-                        padding=5,
-                        content=ft.Text(
-                            "Editar",
-                            weight=ft.FontWeight.BOLD,
-                        ),
-                        on_click=lambda e: on_editar_produto()
                     ),
                 ],
             ),
         )
+
 
     # -----------------
     # HEADER
@@ -149,23 +115,13 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_adicionar_produto, o
 
     header = ft.Row(
         controls=[
-
-            ft.Text(
-                "Consultar Estoque",
-                size=24,
-                weight=ft.FontWeight.BOLD,
-                color=ft.Colors.WHITE,
+            ft.Text("Consultar Estoque", size=22, weight="bold"),
+                        ft.FloatingActionButton(
+                            icon=ft.Icons.ADD,
+                            bgcolor="#1B4F9C",
+                            mini=True,
+                            on_click=lambda e: on_adicionar_produto()
             ),
-
-            ft.Container(
-                content=ft.Image(
-                    src="imgs/addicon.png",
-                    width=35,
-                    height=35,
-                ),
-                on_click=lambda e: on_adicionar_produto(),
-            ),
-
         ],
         alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
     )

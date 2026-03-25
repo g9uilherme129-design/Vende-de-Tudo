@@ -22,6 +22,8 @@ from editar_produto import editar_produto
 
 from novo_usuario import novo_usuario
 
+from editar_usuario import editar_usuario
+
 # Função principal do app (recebe a página do Flet)
 def main(page: ft.Page):
     # Define o título da janela/aplicação
@@ -77,7 +79,8 @@ def main(page: ft.Page):
             on_home=carregar_home,
             on_stock=carregar_stock,
             on_perfil=carregar_perfil,
-            on_adicionar_usuario=carregar_novo_usuario
+            on_adicionar_usuario=carregar_novo_usuario,
+            on_editar_usuario=carregar_editar_usuario
     )
         
     def carregar_perfil():
@@ -111,6 +114,12 @@ def main(page: ft.Page):
 
     def carregar_novo_usuario():
         novo_usuario(
+            page,
+            on_users=carregar_usuarios
+        )
+
+    def carregar_editar_usuario():
+        editar_usuario(
             page,
             on_users=carregar_usuarios
         )

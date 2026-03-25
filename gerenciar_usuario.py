@@ -1,6 +1,6 @@
 import flet as ft
 
-def usuarios(page: ft.Page, on_home, on_stock, on_perfil, on_logout, on_adicionar_usuario):
+def usuarios(page: ft.Page, on_home, on_stock, on_perfil, on_logout, on_adicionar_usuario, on_editar_usuario):
 
     page.bgcolor = "black"
     page.theme_mode = ft.ThemeMode.DARK
@@ -60,66 +60,78 @@ def usuarios(page: ft.Page, on_home, on_stock, on_perfil, on_logout, on_adiciona
             bgcolor="#0b1445",
             border_radius=15,
             padding=15,
-            margin=ft.margin.only(bottom=15),
+            margin=ft.margin.only(bottom=10),
+
             content=ft.Column(
-                spacing=8,
-                        alignment="spaceBetween",
+                spacing=10,
                 controls=[
+
                     ft.Row(
+                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                         controls=[
                             ft.Text(codigo, size=12, color="grey"),
                             ft.Text(f"ADMISSÃO: {admissao}", size=12, color="grey"),
                         ],
                     ),
+                    # Linha de Informações Principais
                     ft.Row(
-                        alignment="spaceBetween",
+                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                        vertical_alignment=ft.CrossAxisAlignment.CENTER,
                         controls=[
                             ft.Column(
                                 spacing=2,
                                 controls=[
-                                    ft.Text(nome, size=16, weight="bold"),
-                                    ft.Text(cargo, size=12, color="grey"),
+                                    ft.Text(nome, size=18, weight="bold", color="white"),
+                                    ft.Text(cargo, size=13, color="bluegrey200"),
                                 ],
                             ),
                             status_badge(status),
                         ],
                     ),
+                    # Detalhes de Desativação (se houver)
                     ft.Container(
                         visible=status == "INATIVO",
-                        bgcolor="#991f23",
+                        bgcolor=ft.Colors.with_opacity(0.1, "red"),
+                        border=ft.border.all(1, "#991f23"),
                         border_radius=10,
                         padding=10,
                         content=ft.Column(
                             spacing=5,
                             controls=[
-                                ft.Text(
-                                    "DETALHES DA DESATIVAÇÃO",
-                                    size=12,
-                                    color="#f60007",
-                                    weight="bold",
-                                ),
-                                ft.Text(
-                                    detalhes if detalhes else "",
-                                    size=12,
-                                    italic=True,
-                                ),
+                                ft.Text("MOTIVO DA INATIVIDADE", size=11, color="#ff4444", weight="bold"),
+                                ft.Text(detalhes if detalhes else "Não especificado", size=12, color="white", italic=True),
                             ],
                         ),
                     ),
-                    ft.Container(
-                        visible=status == "ATIVO",
-                        content=ft.ElevatedButton(
-                            "Desativar Acesso",
-                            icon=ft.Icons.BLOCK,
-                            style=ft.ButtonStyle(
-                                bgcolor="#002072",
-                                shape=ft.RoundedRectangleBorder(radius=20),
+                    # Ações
+                    ft.Divider(height=1, color="white10"),
+                    ft.Row(
+                        alignment=ft.MainAxisAlignment.END,
+                        spacing=10,
+                        controls=[
+                            ft.TextButton(
+                                "Editar Usuário",
+                                icon=ft.Icons.EDIT_NOTE,
+                                style=ft.ButtonStyle(color="white"),
+                                on_click=lambda e: on_editar_usuario()
                             ),
-                        ),
+                            ft.ElevatedButton(
+                                "Desativar",
+                                icon=ft.Icons.BLOCK,
+                                visible=status == "ATIVO",
+                                style=ft.ButtonStyle(
+                                    bgcolor="#002072",
+                                    color="white",
+                                    shape=ft.RoundedRectangleBorder(radius=8),
+                                ),
+                                on_click=lambda e: print(f"Desativando {codigo}") # Adicione sua lógica aqui
+                            ),
+                        ]
                     ),
                 ],
             ),
         )
+
     lista_usuarios = ft.Column(
         expand=True,
         scroll=ft.ScrollMode.AUTO,

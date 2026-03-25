@@ -1,8 +1,8 @@
 import flet as ft
 
-def editar_produto(page: ft.Page, on_stock):
+def editar_usuario(page: ft.Page, on_users):
     page.controls.clear()
-    page.title = "Editar Produto"
+    page.title = "Editar Usuário"
     page.theme_mode = ft.ThemeMode.DARK
     page.bgcolor = "#050505"
     page.window_width = 400
@@ -12,11 +12,11 @@ def editar_produto(page: ft.Page, on_stock):
 
     page.appbar = ft.AppBar(
         leading=ft.IconButton(
-            icon=ft.Icons.ARROW_BACK,
+            icon=ft.Icons.ARROW_BACK_IOS_NEW, # Ícone moderno
             icon_color="white",
-            on_click=lambda _: on_stock()
+            on_click=lambda _: on_users()
         ),
-        title=ft.Text("Editar Produto", size=20, weight="bold"),
+        title=ft.Text("Editar Usuário", size=20, weight="bold"),
         bgcolor="#0b1445",
         center_title=True,
     )
@@ -50,20 +50,43 @@ def editar_produto(page: ft.Page, on_stock):
         return container, input_field
 
     # Criando os campos responsivos para edição
-    nome_container, nome_input = estilo_input("EDITAR PRODUTO", hint="Nome do produto", col=12)
-    fornecedor_container, fornecedor_input = estilo_input("FORNECEDOR", hint="Fornecedor", col=12)
-    codigo_container, codigo_input = estilo_input("ID / CÓDIGO", value="CL-263", read_only=True, col=6)
-    categoria_container, categoria_input = estilo_input("CATEGORIA", value="Moda", col=6)
+    nome_container, nome_input = estilo_input("NOME COMPLETO", hint="Vitor Irlândes", col=12)
+    salario_container, salario_input = estilo_input("SALÁRIO", hint="R$ 1.500,00", col=12)
+    data_container, data_input = estilo_input("DATA DE CONTRATAÇÃO", hint="01/02/2026", col=12)
+
+    cargo_dropdown = ft.Dropdown(
+        hint_text="Selecione o cargo",
+        hint_style=ft.TextStyle(color=ft.Colors.GREY_700),
+        options=[ft.dropdown.Option("ADMINISTRADOR"), ft.dropdown.Option("VENDEDOR")],
+        border=ft.InputBorder.NONE,
+        text_style=ft.TextStyle(color="white"),
+        content_padding=ft.padding.only(left=15, right=0),
+    )
+
+    cargo_container = ft.Column(
+        [
+            ft.Text("CARGO", size=11, color=ft.Colors.TEAL_700, weight=ft.FontWeight.BOLD),
+            ft.Container(
+                content=cargo_dropdown,
+                bgcolor="#0A122A",
+                border=ft.border.all(1, "#1E2B4E"),
+                border_radius=10,
+                height=55,
+            )
+        ],
+        spacing=5,
+        col=6 # Responsivo 50%
+    )
 
     def salvar(e):
-        print("Alterações do produto salvas com sucesso!")
+        print("Usuário salvo com sucesso!")
 
     layout_campos = ft.ResponsiveRow(
         controls=[
             nome_container,
-            fornecedor_container,
-            codigo_container, # Responsivo 50%
-            categoria_container, # Responsivo 50%
+            salario_container,
+            data_container,
+            cargo_container, # Responsivo 50%
         ],
         spacing=15,
         run_spacing=15,
@@ -77,7 +100,7 @@ def editar_produto(page: ft.Page, on_stock):
                 layout_campos,
                 ft.Divider(height=20, color="transparent"),
                 ft.ElevatedButton(
-                    "Salvar Alterações", 
+                    "Salvar", 
                     on_click=salvar, 
                     width=200,
                     style=ft.ButtonStyle(
