@@ -1,6 +1,6 @@
 import flet as ft
 
-def perfil_page(page: ft.Page, on_home, on_stock, on_users, on_logout, on_config):
+def perfil_page(page: ft.Page, on_home, on_stock, on_users, on_logout):
     page.controls.clear()
     page.bgcolor = "#000000"
     page.theme_mode = ft.ThemeMode.DARK
@@ -79,7 +79,7 @@ def perfil_page(page: ft.Page, on_home, on_stock, on_users, on_logout, on_config
     btn_config = criar_item_menu(
         ft.Icons.SETTINGS_OUTLINED, 
         "Configurações do App", 
-        on_click=lambda e: on_config()
+        on_click=lambda _: print("Config clicado")
     )
 
     # Botão Sair - Estilo diferenciado
