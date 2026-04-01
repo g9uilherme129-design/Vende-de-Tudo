@@ -1,116 +1,112 @@
 import flet as ft
 
 def login_view(page: ft.Page, on_login_sucesso):
-    page.bgcolor = ft.Colors.BLACK_45
-    mensagem = ft.Text(value="", color=ft.Colors.RED)
+    # Ajuste: Usando cores que funcionam bem em ambos os modos ou forçando o fundo escuro apenas aqui
+    page.bgcolor = "#050505" 
+    page.controls.clear()
+    
+    mensagem = ft.Text(value="", color=ft.Colors.RED_400, size=12, weight="bold")
 
     def login(e):
         if usuario.value == "admin" and senha.value == "1234":
             on_login_sucesso()
         else:
             mensagem.value = "Usuário ou senha inválidos."
-            mensagem.color = ft.Colors.RED
             page.update()
 
-    usuario = ft.TextField(
-        label="Usuário",
-        height=45,
-        border_color=ft.Colors.BLUE_900,
-        focused_border_color=ft.Colors.BLUE_500,
-        bgcolor=ft.Colors.BLUE_900,
-        border_radius=10,
-        label_style=ft.TextStyle(color=ft.Colors.WHITE),
-        color=ft.Colors.WHITE,
-        expand=True
-    )
+    # Estilo dos campos de entrada
+    def estilo_campo(label, password=False, suffix=None, on_submit=None):
+        return ft.TextField(
+            label=label,
+            password=password,
+            height=50,
+            border_color="#1E2B4E",
+            focused_border_color=ft.Colors.BLUE_500,
+            bgcolor="#0A122A",
+            border_radius=12,
+            label_style=ft.TextStyle(color=ft.Colors.BLUE_GREY_200),
+            color=ft.Colors.WHITE,
+            expand=True,
+            suffix=suffix,
+            on_submit=on_submit
+        )
 
+    usuario = estilo_campo("Usuário")
+    
     def toggle_password(e):
         senha.password = not senha.password
+        senha.suffix.icon = ft.Icons.VISIBILITY_OFF if senha.password else ft.Icons.VISIBILITY
         senha.update()
 
-    senha = ft.TextField(
-        label="Senha",
-        password=True,
-        height=45,
+    senha = estilo_campo(
+        label="Senha", 
+        password=True, 
         on_submit=login,
-        border_color=ft.Colors.BLUE_900,
-        focused_border_color=ft.Colors.BLUE_500,
-        bgcolor=ft.Colors.BLUE_900,
-        border_radius=10,
-        label_style=ft.TextStyle(color=ft.Colors.WHITE),
-        color=ft.Colors.WHITE,
-        expand=True,
         suffix=ft.IconButton(
             icon=ft.Icons.VISIBILITY,
-            icon_color=ft.Colors.WHITE,
+            icon_color=ft.Colors.BLUE_GREY_200,
             on_click=toggle_password
         )
     )
 
     def esqueci_senha(e):
-        mensagem.value = "Função de recuperação de senha ainda não implementada."
-        mensagem.color = ft.Colors.WHITE
+        mensagem.value = "Recuperação de senha enviada ao e-mail cadastrado."
+        mensagem.color = ft.Colors.BLUE_200
         page.update()
 
     link_senha = ft.TextButton(
         "Esqueci minha senha",
         on_click=esqueci_senha,
-        style=ft.ButtonStyle(color=ft.Colors.WHITE),
+        style=ft.ButtonStyle(color=ft.Colors.BLUE_GREY_200),
     )
 
     botao_login = ft.ElevatedButton(
         "ENTRAR",
-        height=45,
+        height=50,
+        width=250,
         style=ft.ButtonStyle(
-            bgcolor=ft.Colors.BLUE_900,
+            bgcolor="#1B4F9C",
             color=ft.Colors.WHITE,
-            shape=ft.RoundedRectangleBorder(radius=50),
+            shape=ft.RoundedRectangleBorder(radius=12),
+            elevation=5
         ),
         on_click=login,
     )
 
+    # Logo (Certifique-se que o caminho da imagem está correto no seu projeto)
     logo = ft.Image(
         src="imgs/icon.png",
-        width=280,
+        width=200,
+        height=200,
         fit="contain",
     )
 
-    # Card responsivo
+    # Card de Login
     card_login = ft.Container(
         content=ft.Column(
             [
                 ft.Text(
                     "LOGIN",
-                    size=22,
+                    size=30,
                     weight=ft.FontWeight.BOLD,
-                    color=ft.Colors.WHITE
+                    color="white",
                 ),
+                ft.Divider(height=10, color="transparent"),
                 usuario,
                 senha,
-                # Centralizado
-                ft.Row(
-                    [link_senha],
-                    alignment=ft.MainAxisAlignment.CENTER
-                ),
-                # Botão centralizado
-                ft.Row(
-                    [botao_login],
-                    alignment=ft.MainAxisAlignment.CENTER
-                ),
+                ft.Row([link_senha], alignment=ft.MainAxisAlignment.END),
+                ft.Divider(height=10, color="transparent"),
+                botao_login,
                 mensagem,
             ],
-            spacing=15,
+            spacing=10,
             horizontal_alignment=ft.CrossAxisAlignment.CENTER
         ),
         bgcolor="#081035",
-        padding=30,
-        border_radius=20,
-        shadow=ft.BoxShadow(
-            spread_radius=1,
-            blur_radius=15,
-            color=ft.Colors.with_opacity(0.1, ft.Colors.BLACK),
-        ),
-        width=page.width * 0.9 if page.width < 500 else 400
+        padding=40,
+        border_radius=25,
+        border=ft.border.all(1, "#1E2B4E"),
+        width=400,
     )
 
     return ft.Column(

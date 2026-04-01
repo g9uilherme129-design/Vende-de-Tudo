@@ -2,36 +2,32 @@ import flet as ft
 
 def usuarios(page: ft.Page, on_home, on_stock, on_perfil, on_logout, on_adicionar_usuario, on_editar_usuario):
 
-    page.bgcolor = "black"
-    page.theme_mode = ft.ThemeMode.DARK
-    page.padding = 20
     page.controls.clear()
+    # REMOVIDO: page.bgcolor e page.theme_mode fixos
+    page.padding = 20
+
+    # Lógica de cores adaptáveis
+    is_dark = page.theme_mode == ft.ThemeMode.DARK
+    cor_container_bg = "#111B3D" if is_dark else "#F0F2F8"
+    cor_texto_principal = ft.Colors.WHITE if is_dark else ft.Colors.BLACK
+    cor_texto_secundario = ft.Colors.GREY_500
+    cor_fundo_busca = "#0d1626" if is_dark else "#FFFFFF"
+    cor_borda_busca = "#1e293b" if is_dark else "#D1D5DB"
 
     def sair_app(e):
         on_logout()
 
-
     page.appbar = ft.AppBar(
         bgcolor="#0b1445",
         toolbar_height=70,
-
         leading=ft.Container(width=40),
-
-        title=ft.Row(
-            [
-                ft.Text(
-                    "Vende de Tudo",
-                    size=18 if page.width < 600 else 22,
-                    weight=ft.FontWeight.BOLD,
-                    color="white"
-                ),
-            ],
-            alignment=ft.MainAxisAlignment.CENTER,
-            tight=True
+        title=ft.Text(
+            "Vende de Tudo",
+            size=18 if page.width < 600 else 22,
+            weight=ft.FontWeight.BOLD,
+            color="white"
         ),
-
         center_title=True,
-
         actions=[
             ft.IconButton(
                 icon=ft.Icons.EXIT_TO_APP,
@@ -42,38 +38,35 @@ def usuarios(page: ft.Page, on_home, on_stock, on_perfil, on_logout, on_adiciona
         ]
     )
 
- 
     def status_badge(status):
         return ft.Container(
             content=ft.Text(
                 status,
                 size=12,
                 weight="bold",
+                color="white" # Texto sempre branco no selo colorido
             ),
             bgcolor="#00b40d" if status == "ATIVO" else "#ff0008",
             padding=ft.padding.symmetric(horizontal=10, vertical=5),
             border_radius=20,
         )
-    def user_card(codigo, nome, cargo, admissao, status, detalhes=None):
 
+    def user_card(codigo, nome, cargo, admissao, status, detalhes=None):
         return ft.Container(
-            bgcolor="#0b1445",
+            bgcolor=cor_container_bg, # Dinâmico
             border_radius=15,
             padding=15,
             margin=ft.margin.only(bottom=10),
-
             content=ft.Column(
                 spacing=10,
                 controls=[
-
                     ft.Row(
                         alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                         controls=[
-                            ft.Text(codigo, size=12, color="grey"),
-                            ft.Text(f"ADMISSÃO: {admissao}", size=12, color="grey"),
+                            ft.Text(codigo, size=12, color=cor_texto_secundario),
+                            ft.Text(f"ADMISSÃO: {admissao}", size=12, color=cor_texto_secundario),
                         ],
                     ),
-                    # Linha de Informações Principais
                     ft.Row(
                         alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                         vertical_alignment=ft.CrossAxisAlignment.CENTER,
@@ -81,14 +74,14 @@ def usuarios(page: ft.Page, on_home, on_stock, on_perfil, on_logout, on_adiciona
                             ft.Column(
                                 spacing=2,
                                 controls=[
-                                    ft.Text(nome, size=18, weight="bold", color="white"),
-                                    ft.Text(cargo, size=13, color="bluegrey200"),
+                                    ft.Text(nome, size=18, weight="bold", color=cor_texto_principal),
+                                    ft.Text(cargo, size=13, color=ft.Colors.BLUE_GREY_400),
                                 ],
                             ),
                             status_badge(status),
                         ],
                     ),
-                    # Detalhes de Desativação (se houver)
+                    # Detalhes de Desativação
                     ft.Container(
                         visible=status == "INATIVO",
                         bgcolor=ft.Colors.with_opacity(0.1, "red"),
@@ -99,12 +92,11 @@ def usuarios(page: ft.Page, on_home, on_stock, on_perfil, on_logout, on_adiciona
                             spacing=5,
                             controls=[
                                 ft.Text("MOTIVO DA INATIVIDADE", size=11, color="#ff4444", weight="bold"),
-                                ft.Text(detalhes if detalhes else "Não especificado", size=12, color="white", italic=True),
+                                ft.Text(detalhes if detalhes else "Não especificado", size=12, color=cor_texto_principal, italic=True),
                             ],
                         ),
                     ),
-                    # Ações
-                    ft.Divider(height=1, color="white10"),
+                    ft.Divider(height=1, color=ft.Colors.with_opacity(0.1, cor_texto_principal)),
                     ft.Row(
                         alignment=ft.MainAxisAlignment.END,
                         spacing=10,
@@ -112,7 +104,7 @@ def usuarios(page: ft.Page, on_home, on_stock, on_perfil, on_logout, on_adiciona
                             ft.TextButton(
                                 "Editar Usuário",
                                 icon=ft.Icons.EDIT_NOTE,
-                                style=ft.ButtonStyle(color="white"),
+                                icon_color="#2196f3",
                                 on_click=lambda e: on_editar_usuario()
                             ),
                             ft.ElevatedButton(
@@ -124,7 +116,7 @@ def usuarios(page: ft.Page, on_home, on_stock, on_perfil, on_logout, on_adiciona
                                     color="white",
                                     shape=ft.RoundedRectangleBorder(radius=8),
                                 ),
-                                on_click=lambda e: print(f"Desativando {codigo}") # Adicione sua lógica aqui
+                                on_click=lambda e: print(f"Desativando {codigo}")
                             ),
                         ]
                     ),
@@ -145,14 +137,15 @@ def usuarios(page: ft.Page, on_home, on_stock, on_perfil, on_logout, on_adiciona
             user_card("VT-638", "Gabriel Santos", "VENDEDOR", "2023/05/16", "ATIVO"),
         ],
     )
+
     page.add(
         ft.Column(
             expand=True,
             controls=[
                 ft.Row(
-                    alignment="spaceBetween",
+                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                     controls=[
-                        ft.Text("Gerenciar Usuários", size=22, weight="bold"),
+                        ft.Text("Gerenciar Usuários", size=22, weight="bold", color=cor_texto_principal),
                         ft.FloatingActionButton(
                             icon=ft.Icons.ADD,
                             bgcolor="#1B4F9C",
@@ -166,11 +159,11 @@ def usuarios(page: ft.Page, on_home, on_stock, on_perfil, on_logout, on_adiciona
                     prefix_icon=ft.Icons.SEARCH,
                     border_radius=15,
                     height=50,
-                    bgcolor="#0d1626",
-                    border_color="#1e293b",
-                    hint_style=ft.TextStyle(color="grey"),
+                    bgcolor=cor_fundo_busca,
+                    border_color=cor_borda_busca,
+                    hint_style=ft.TextStyle(color=cor_texto_secundario),
                     content_padding=10,
-                    color=ft.Colors.WHITE
+                    color=cor_texto_principal
                 ),
                 lista_usuarios, 
             ],
@@ -180,44 +173,20 @@ def usuarios(page: ft.Page, on_home, on_stock, on_perfil, on_logout, on_adiciona
     #---------------- NAVEGAÇÃO ----------------
     def trocar_aba(e):
         index = nav.selected_index
-
-        if index == 0:
-            on_home()  # Chama home
-
-        elif index == 1:
-            on_stock()  # chama estoque
-
-        elif index == 2:
-            pass # Ja esta em usuarios
-
-        elif index == 3:
-            on_perfil()
+        if index == 0: on_home()
+        elif index == 1: on_stock()
+        elif index == 2: pass
+        elif index == 3: on_perfil()
 
     nav = ft.NavigationBar(
         bgcolor="#0b1445",
         selected_index=2,
         on_change=trocar_aba,
         destinations=[
-            ft.NavigationBarDestination(
-                icon=ft.Icons.HOME_OUTLINED,
-                selected_icon=ft.Icons.HOME,
-                label="Inicial"
-            ),
-            ft.NavigationBarDestination(
-                icon=ft.Icons.INVENTORY_2_OUTLINED,
-                selected_icon=ft.Icons.INVENTORY_2,
-                label="Estoque"
-            ),
-            ft.NavigationBarDestination(
-                icon=ft.Icons.GROUP_OUTLINED,
-                selected_icon=ft.Icons.GROUP,
-                label="Usuários"
-            ),
-            ft.NavigationBarDestination(
-                icon=ft.Icons.PERSON_OUTLINE,
-                selected_icon=ft.Icons.PERSON,
-                label="Perfil"
-            ),
+            ft.NavigationBarDestination(icon=ft.Icons.HOME_OUTLINED, selected_icon=ft.Icons.HOME, label="Inicial"),
+            ft.NavigationBarDestination(icon=ft.Icons.INVENTORY_2_OUTLINED, selected_icon=ft.Icons.INVENTORY_2, label="Estoque"),
+            ft.NavigationBarDestination(icon=ft.Icons.GROUP_OUTLINED, selected_icon=ft.Icons.GROUP, label="Usuários"),
+            ft.NavigationBarDestination(icon=ft.Icons.PERSON_OUTLINE, selected_icon=ft.Icons.PERSON, label="Perfil"),
         ]
     )
 
@@ -226,11 +195,6 @@ def usuarios(page: ft.Page, on_home, on_stock, on_perfil, on_logout, on_adiciona
         margin=ft.margin.only(left=25, right=25, bottom=30),
         border_radius=40, 
         clip_behavior=ft.ClipBehavior.ANTI_ALIAS,
-        shadow=ft.BoxShadow(
-            blur_radius=20,
-            spread_radius=1,
-            color=ft.Colors.with_opacity(0.4, ft.Colors.BLACK)
-        )
     )
 
     page.update()

@@ -3,20 +3,26 @@ import flet as ft
 def editar_usuario(page: ft.Page, on_users):
     page.controls.clear()
     page.title = "Editar Usuário"
-    page.theme_mode = ft.ThemeMode.DARK
-    page.bgcolor = "#050505"
+    
+    # REMOVIDO: page.theme_mode e page.bgcolor fixos para respeitar o global
     page.window_width = 400
     page.window_height = 800
     page.padding = 20
     page.scroll = ft.ScrollMode.AUTO
 
+    # Lógica de cores adaptáveis
+    is_dark = page.theme_mode == ft.ThemeMode.DARK
+    cor_texto = ft.Colors.WHITE if is_dark else ft.Colors.BLACK
+    cor_input_fundo = "#0A122A" if is_dark else "#F0F2F5"
+    cor_borda = "#1E2B4E" if is_dark else "#D1D5DB"
+
     page.appbar = ft.AppBar(
         leading=ft.IconButton(
-            icon=ft.Icons.ARROW_BACK_IOS_NEW, # Ícone moderno
-            icon_color="white",
+            icon=ft.Icons.ARROW_BACK_IOS_NEW,
+            icon_color="white", # AppBar escura fixa
             on_click=lambda _: on_users()
         ),
-        title=ft.Text("Editar Usuário", size=20, weight="bold"),
+        title=ft.Text("Editar Usuário", size=20, weight="bold", color="white"),
         bgcolor="#0b1445",
         center_title=True,
     )
@@ -25,11 +31,11 @@ def editar_usuario(page: ft.Page, on_users):
         input_field = ft.TextField(
             value=value,
             hint_text=hint,
-            hint_style=ft.TextStyle(color=ft.Colors.GREY_700),
+            hint_style=ft.TextStyle(color=ft.Colors.GREY_600),
             border=ft.InputBorder.NONE,
             content_padding=15,
             read_only=read_only,
-            text_style=ft.TextStyle(color="white"),
+            text_style=ft.TextStyle(color=cor_texto), # Dinâmico
             expand=True,
         )
         
@@ -38,28 +44,29 @@ def editar_usuario(page: ft.Page, on_users):
                 ft.Text(label, size=11, color=ft.Colors.TEAL_700, weight=ft.FontWeight.BOLD),
                 ft.Container(
                     content=input_field,
-                    bgcolor="#0A122A",
-                    border=ft.border.all(1, "#1E2B4E"),
+                    bgcolor=cor_input_fundo, # Dinâmico
+                    border=ft.border.all(1, cor_borda), # Dinâmico
                     border_radius=10,
                     padding=ft.padding.only(right=10),
                 )
             ],
             spacing=5,
-            col=col # Responsivo (1 a 12)
+            col=col 
         )
         return container, input_field
 
-    # Criando os campos responsivos para edição
+    # Criando os campos responsivos
     nome_container, nome_input = estilo_input("NOME COMPLETO", hint="Vitor Irlândes", col=12)
     salario_container, salario_input = estilo_input("SALÁRIO", hint="R$ 1.500,00", col=12)
     data_container, data_input = estilo_input("DATA DE CONTRATAÇÃO", hint="01/02/2026", col=12)
 
+    # Dropdown ajustado para o tema
     cargo_dropdown = ft.Dropdown(
         hint_text="Selecione o cargo",
-        hint_style=ft.TextStyle(color=ft.Colors.GREY_700),
+        hint_style=ft.TextStyle(color=ft.Colors.GREY_600),
         options=[ft.dropdown.Option("ADMINISTRADOR"), ft.dropdown.Option("VENDEDOR")],
         border=ft.InputBorder.NONE,
-        text_style=ft.TextStyle(color="white"),
+        text_style=ft.TextStyle(color=cor_texto), # Dinâmico
         content_padding=ft.padding.only(left=15, right=0),
     )
 
@@ -68,14 +75,14 @@ def editar_usuario(page: ft.Page, on_users):
             ft.Text("CARGO", size=11, color=ft.Colors.TEAL_700, weight=ft.FontWeight.BOLD),
             ft.Container(
                 content=cargo_dropdown,
-                bgcolor="#0A122A",
-                border=ft.border.all(1, "#1E2B4E"),
+                bgcolor=cor_input_fundo, # Dinâmico
+                border=ft.border.all(1, cor_borda), # Dinâmico
                 border_radius=10,
                 height=55,
             )
         ],
         spacing=5,
-        col=6 # Responsivo 50%
+        col=6 
     )
 
     def salvar(e):
@@ -86,7 +93,7 @@ def editar_usuario(page: ft.Page, on_users):
             nome_container,
             salario_container,
             data_container,
-            cargo_container, # Responsivo 50%
+            cargo_container, 
         ],
         spacing=15,
         run_spacing=15,
