@@ -181,7 +181,7 @@ def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil):
         indices = {0: None, 1: on_stock, 2: on_users, 3: on_perfil}
         if indices[nav.selected_index]:
             indices[nav.selected_index]()
-
+    
     nav = ft.NavigationBar(
         bgcolor="#0b1445",
         selected_index=0,
@@ -191,6 +191,7 @@ def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil):
             ft.NavigationBarDestination(icon=ft.Icons.INVENTORY_2_OUTLINED, label="Estoque"),
             ft.NavigationBarDestination(icon=ft.Icons.GROUP_OUTLINED, label="Usuários"),
             ft.NavigationBarDestination(icon=ft.Icons.PERSON_OUTLINE, label="Perfil"),
+            
         ],
     )
 

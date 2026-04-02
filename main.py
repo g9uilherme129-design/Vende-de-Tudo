@@ -42,6 +42,7 @@ def main(page: ft.Page):
                 page.client_storage.set("app_theme", modo)
         except:
             pass
+        
 
         page.update()
         
@@ -133,4 +134,4 @@ def main(page: ft.Page):
 
 # EXECUÇÃO ÚNICA:
 # Se der erro de "Deprecated", troque ft.app por ft.run
-ft.app(target=main)
+ft.run(main)
