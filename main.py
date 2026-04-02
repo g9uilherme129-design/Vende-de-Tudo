@@ -1,63 +1,68 @@
-# Importa a biblioteca Flet
 import flet as ft
-
-# Importa login_view do arquivo login.py
 from login import login_view
-
-# Importa home_page do arquivo home.py
 from tela_inicial import home_page
-
-# Importa estoque_page do arquivo stock.py
 from gerenciar_estoque import estoque
-
-# Importa usuarios do arquivo user.py
 from gerenciar_usuario import usuarios
-
-# Importa perfil do arquivo perfil.py
 from perfil import perfil_page
-
 from novo_produto import produto
-
 from editar_produto import editar_produto
-
 from novo_usuario import novo_usuario
+from editar_usuario import editar_usuario
+from configuracoes import configuracoes_page
 
-# Função principal do app (recebe a página do Flet)
 def main(page: ft.Page):
-    # Define o título da janela/aplicação
     page.title = "Vende de Tudo"
-    
-    # Define espaçamento interno da página
     page.padding = 20
     
-    # Define o tema como claro
-    page.theme_mode = "light"
+    # --- CONFIGURAÇÃO INICIAL DE TEMA ---
+    try:
+        if hasattr(page, "client_storage") and page.client_storage:
+            tema_salvo = page.client_storage.get("app_theme")
+        else:
+            tema_salvo = None
+    except Exception:
+        tema_salvo = None
+
+    page.theme_mode = tema_salvo if tema_salvo else ft.ThemeMode.DARK
     
-    # Centraliza os elementos verticalmente
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
-    
-    # Centraliza os elementos horizontalmente
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
 
+    # --- FUNÇÃO GLOBAL PARA ALTERAR TEMA ---
+    def alterar_tema(modo):
+        if modo == "dark":
+            page.theme_mode = ft.ThemeMode.DARK
+            page.bgcolor = "#000000"  # Fundo escuro global
+        else:
+            page.theme_mode = ft.ThemeMode.LIGHT
+            page.bgcolor = "#F0F4FF"  # Fundo claro global (o branco azulado)
+        
+        try:
+            if hasattr(page, "client_storage") and page.client_storage:
+                page.client_storage.set("app_theme", modo)
+        except:
+            pass
+        
+
+        page.update()
+        
+        # Recarrega a tela de configurações para atualizar os ícones e textos nela
+        carregar_config()
+
     # ---------------------------
-    # Função para carregar a HOME
+    # Funções de Navegação
     # ---------------------------
 
-    # Função que abre a tela principal
     def carregar_home():
-        # Aqui será chamada a tela home
-        # Envia a página e a função de logout
         home_page(
-        page,
-        on_logout=fazer_logout,
-        on_stock=carregar_stock,
-        on_users=carregar_usuarios,
-        on_perfil=carregar_perfil
-    )
+            page,
+            on_logout=fazer_logout,
+            on_stock=carregar_stock,
+            on_users=carregar_usuarios,
+            on_perfil=carregar_perfil
+        )
 
     def carregar_stock():
-        # Aqui será chamada a tela stock
-        # Envia a página e a função de logout
         estoque(
             page,
             on_logout=fazer_logout,
@@ -66,83 +71,67 @@ def main(page: ft.Page):
             on_perfil=carregar_perfil,
             on_adicionar_produto=carregar_novo_produto,
             on_editar_produto=carregar_editar_produto
-    )
+        )
 
     def carregar_usuarios():
-        # Aqui será chamada a tela usuarios
-        # Envia a página e a função de logout
         usuarios(
             page, 
             on_logout=fazer_logout,
             on_home=carregar_home,
             on_stock=carregar_stock,
             on_perfil=carregar_perfil,
-            on_adicionar_usuario=carregar_novo_usuario
-    )
+            on_adicionar_usuario=carregar_novo_usuario,
+            on_editar_usuario=carregar_editar_usuario
+        )
         
     def carregar_perfil():
-        # Aqui será chamada a tela perfil
-        # Envia a página e a função de logout
         perfil_page(
             page, 
             on_home=carregar_home,
             on_stock=carregar_stock,
             on_users=carregar_usuarios,
-            on_logout=fazer_logout
+            on_logout=fazer_logout,
+            on_config=carregar_config
+        )
+
+    def carregar_config():
+        configuracoes_page(
+            page,
+            on_back=carregar_perfil,
+            on_change_theme=alterar_tema
         )
 
     def fazer_logout():
-        page.navigation_bar = None   # remove a barra de navegação
-        page.controls.clear()        # limpa a tela
-        carregar_login()             # chama tela de login
+        page.navigation_bar = None
+        page.controls.clear()
+        carregar_login()
         page.update()
         
     def carregar_novo_produto():
-        produto(
-            page,
-            on_stock=carregar_stock
-        )
+        produto(page, on_stock=carregar_stock)
 
     def carregar_editar_produto():
-        editar_produto(
-            page,
-            on_stock=carregar_stock
-        )
+        editar_produto(page, on_stock=carregar_stock)
 
     def carregar_novo_usuario():
-        novo_usuario(
-            page,
-            on_users=carregar_usuarios
-        )
-        
-        
+        novo_usuario(page, on_users=carregar_usuarios)
 
-    # ---------------------------
-    # Função para carregar LOGIN
-    # ---------------------------
+    def carregar_editar_usuario():
+        editar_usuario(page, on_users=carregar_usuarios)
 
-    # Função que abre a tela de login
     def carregar_login():
-        # Remove a barra superior (AppBar)
         page.appbar = None
-        
-        # Limpa todos os elementos da tela
+        page.navigation_bar = None
         page.controls.clear()
-        
-        # Adiciona a tela de login passa a função para ir à home após logado no sistema
         page.add(login_view(page, on_login_sucesso=carregar_home))
-        
-        # Atualiza a interface
         page.update()
 
-        page.window_width = 400
-        page.window_height = 800
-
-    # ---------------------------
-    # Inicia o app no LOGIN
-    # ---------------------------
-    # Quando o aplicativo iniciar, ele abrirá diretamente a tela de login
+    # Configurações de janela
+    page.window_width = 400
+    page.window_height = 800
+    
     carregar_login()
 
-# Executa a aplicação
+# EXECUÇÃO ÚNICA:
+# Se der erro de "Deprecated", troque ft.app por ft.run
 ft.run(main)
