@@ -7,8 +7,9 @@ from perfil import perfil_page
 from novo_produto import produto
 from editar_produto import editar_produto
 from novo_usuario import novo_usuario
-from editar_usuario import editar_usuario
+from editar_usuario import editar_usuario   
 from configuracoes import configuracoes_page
+from desativar_usuario import tela_desativar_usuario
 
 def main(page: ft.Page):
     page.title = "Vende de Tudo"
@@ -35,7 +36,7 @@ def main(page: ft.Page):
             page.bgcolor = "#000000"  # Fundo escuro global
         else:
             page.theme_mode = ft.ThemeMode.LIGHT
-            page.bgcolor = "#F0F4FF"  # Fundo claro global (o branco azulado)
+            page.bgcolor = "#F0F4FF"  # Fundo claro global
         
         try:
             if hasattr(page, "client_storage") and page.client_storage:
@@ -43,10 +44,7 @@ def main(page: ft.Page):
         except:
             pass
         
-
         page.update()
-        
-        # Recarrega a tela de configurações para atualizar os ícones e textos nela
         carregar_config()
 
     # ---------------------------
@@ -81,7 +79,8 @@ def main(page: ft.Page):
             on_stock=carregar_stock,
             on_perfil=carregar_perfil,
             on_adicionar_usuario=carregar_novo_usuario,
-            on_editar_usuario=carregar_editar_usuario
+            on_editar_usuario=carregar_editar_usuario,
+            on_desativar_usuario=carregar_desativar_usuario
         )
         
     def carregar_perfil():
@@ -119,6 +118,15 @@ def main(page: ft.Page):
     def carregar_editar_usuario():
         editar_usuario(page, on_users=carregar_usuarios)
 
+    # --- CORREÇÃO AQUI ---
+    def carregar_desativar_usuario(dados_usuario):
+        # Invertendo a ordem e usando nomes para garantir que o Python não se confunda
+        tela_desativar_usuario(
+            page=page, 
+            user_data=dados_usuario, 
+            on_voltar=carregar_usuarios
+        )
+
     def carregar_login():
         page.appbar = None
         page.navigation_bar = None
@@ -132,6 +140,4 @@ def main(page: ft.Page):
     
     carregar_login()
 
-# EXECUÇÃO ÚNICA:
-# Se der erro de "Deprecated", troque ft.app por ft.run
-ft.run(main)
+ft.app(target=main)

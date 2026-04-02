@@ -1,8 +1,11 @@
 import flet as ft
+from database import cadastrar_usuario_db
 
 def novo_usuario(page: ft.Page, on_users):
     page.controls.clear()
-    # Cores dinâmicas baseadas no tema
+    page.padding = 20
+
+    # Lógica de cores adaptáveis
     is_dark = page.theme_mode == ft.ThemeMode.DARK
     cor_fundo_input = "#0A122A" if is_dark else "#FFFFFF"
     cor_borda_input = "#1E2B4E" if is_dark else "#D1D5DB"
@@ -20,21 +23,20 @@ def novo_usuario(page: ft.Page, on_users):
         center_title=True,
     )
 
-    def estilo_input(label, hint="", value="", read_only=False, col=None):
+    def estilo_input(label, hint="", password=False, col=None):
         input_field = ft.TextField(
-            value=value,
             hint_text=hint,
-            hint_style=ft.TextStyle(color=ft.Colors.GREY_500),
+            password=password,
+            can_reveal_password=password,
             border=ft.InputBorder.NONE,
             content_padding=15,
-            read_only=read_only,
             text_style=ft.TextStyle(color=cor_texto_input),
             expand=True,
         )
         
         container = ft.Column(
             [
-                ft.Text(label, size=11, color=cor_label, weight=ft.FontWeight.BOLD),
+                ft.Text(label, size=11, color=cor_label, weight="bold"),
                 ft.Container(
                     content=input_field,
                     bgcolor=cor_fundo_input,
@@ -48,27 +50,28 @@ def novo_usuario(page: ft.Page, on_users):
         )
         return container, input_field
 
-    # Nome Completo
-    nome_container, nome_input = estilo_input("NOME COMPLETO", hint="Nome do funcionário", col=12)
+    # --- CAMPOS DO FORMULÁRIO ---
+    nome_c, nome_in = estilo_input("NOME COMPLETO", hint="Ex: Neymar Jr", col=12)
+    cpf_c, cpf_in = estilo_input("CPF (Apenas números)", hint="12345678900", col=12)
+    email_c, email_in = estilo_input("E-MAIL", hint="usuario@email.com", col=12)
+    senha_c, senha_in = estilo_input("SENHA", hint="******", password=True, col=12)
     
-    # Dropdown de Cargo adaptado
-    cargo_dropdown = ft.Dropdown(
-        hint_text="Selecione o cargo",
-        hint_style=ft.TextStyle(color=ft.Colors.GREY_500),
+    # Perfil (Cargo)
+    perfil_dropdown = ft.Dropdown(
         options=[
-            ft.dropdown.Option("ADMINISTRADOR"),
-            ft.dropdown.Option("VENDEDOR"),
+            ft.dropdown.Option("admin", "ADMINISTRADOR"),
+            ft.dropdown.Option("vendedor", "VENDEDOR"),
         ],
         border=ft.InputBorder.NONE,
         text_style=ft.TextStyle(color=cor_texto_input),
-        content_padding=ft.padding.only(left=15, right=0),
+        content_padding=ft.padding.only(left=15),
     )
 
-    cargo_container = ft.Column(
+    perfil_c = ft.Column(
         [
-            ft.Text("CARGO", size=11, color=cor_label, weight=ft.FontWeight.BOLD),
+            ft.Text("PERFIL / CARGO", size=11, color=cor_label, weight="bold"),
             ft.Container(
-                content=cargo_dropdown,
+                content=perfil_dropdown,
                 bgcolor=cor_fundo_input,
                 border=ft.border.all(1, cor_borda_input),
                 border_radius=10,
@@ -76,25 +79,34 @@ def novo_usuario(page: ft.Page, on_users):
             )
         ],
         spacing=5,
-        col=6 
+        col=12 
     )
 
-    salario_container, salario_input = estilo_input("SALÁRIO", hint="R$ 0,00", col=12)
-    data_container, data_input = estilo_input("DATA DE CONTRATAÇÃO", hint="dd/mm/aaaa", col=12)
-
     def salvar_usuario(e):
-        # Aqui você pode adicionar a lógica do banco depois
-        page.snack_bar = ft.SnackBar(ft.Text("Usuário cadastrado com sucesso!"), bgcolor="green")
-        page.snack_bar.open = True
+        if not nome_in.value or not email_in.value or not perfil_dropdown.value:
+            page.snack_bar = ft.SnackBar(ft.Text("Preencha todos os campos!"), bgcolor="red")
+            page.snack_bar.open = True
+            page.update()
+            return
+
+        try:
+            cadastrar_usuario_db(
+                nome=nome_in.value,
+                cpf=cpf_in.value,
+                email=email_in.value,
+                senha=senha_in.value,
+                perfil=perfil_dropdown.value
+            )
+            page.snack_bar = ft.SnackBar(ft.Text("Usuário cadastrado no MySQL!"), bgcolor="green")
+            page.snack_bar.open = True
+            on_users() # Volta para a lista
+        except Exception as ex:
+            page.snack_bar = ft.SnackBar(ft.Text(f"Erro: {ex}"), bgcolor="red")
+            page.snack_bar.open = True
         page.update()
 
     layout_campos = ft.ResponsiveRow(
-        controls=[
-            nome_container,
-            cargo_container,
-            salario_container,
-            data_container,
-        ],
+        controls=[nome_c, cpf_c, email_c, senha_c, perfil_c],
         spacing=15,
         run_spacing=15,
     )
@@ -108,7 +120,7 @@ def novo_usuario(page: ft.Page, on_users):
                 layout_campos,
                 ft.Divider(height=20, color="transparent"),
                 ft.ElevatedButton(
-                    "Adicionar",
+                    "Cadastrar Usuário",
                     on_click=salvar_usuario,
                     width=250,
                     height=50,
@@ -118,6 +130,7 @@ def novo_usuario(page: ft.Page, on_users):
                         shape=ft.RoundedRectangleBorder(radius=12),
                     )
                 ),
+                ft.Container(height=40)
             ],
             spacing=10
         )
