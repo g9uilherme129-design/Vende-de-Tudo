@@ -1,5 +1,7 @@
 import flet as ft
-import sqlite3
+from database import Database
+
+db = Database()
 
 def produto(page: ft.Page, on_stock):
     page.controls.clear()
@@ -10,24 +12,6 @@ def produto(page: ft.Page, on_stock):
     page.window_height = 800
     page.padding = 20
 
-    # --- FUNÇÃO AUXILIAR DE BANCO DE DADOS ---
-    def cadastrar_banco(nome, codigo, id_fornecedor, id_categoria):
-        try:
-            conn = sqlite3.connect('meu_banco.db')
-            cursor = conn.cursor()
-            cursor.execute("PRAGMA foreign_keys = ON")
-
-            cursor.execute('''
-                INSERT INTO produto (nome_produto, codigo_barra, id_fornecedor, id_categoria)
-                VALUES (?, ?, ?, ?)
-            ''', (nome, codigo, id_fornecedor, id_categoria))
-
-            conn.commit()
-            conn.close()
-            return True
-        except Exception as e:
-            print(f"Erro ao salvar: {e}")
-            return False
 
     # --- UI HELPER ---
     def estilo_input(label, hint="", value="", width=None, read_only=False):
@@ -68,72 +52,59 @@ def produto(page: ft.Page, on_stock):
     # --- FUNÇÃO DE CLIQUE (Apenas uma!) ---
     def salvar_clique(e):
         nome = nome_input.value
-        codigo = codigo_input.value
-        # Por enquanto usando IDs fixos, ate nozes criamos os Dropdowns
         fornecedor_id = 1
-        categoria_id = 1
+        categoria_id =1
+        codigo = codigo_input.value
+        validade = "2026-12-31"
+        custo = custo_input.value.replace("R$", "").replace(",", ".")
+        venda = venda_input.value.replace("R$", "").replace(",", ".")
+        embalagem = "unidade"
+        try:  
+            qtd = int(quantidade_input.value)
+        except:
+            qdt = 0
+            
+        lote = "L-001"
 
-        if nome == "":
-            nome_input.error_text = "Por favor, digite o nome"
-            page.update() 
+        if not nome:
+            nome_input.error_text = "Digite o nome do produto"
+            page.update()
             return
-        
-        # Chama a função de banco definida lá em cima
-        sucesso = cadastrar_banco(nome, codigo, fornecedor_id, categoria_id)
+
+        sucesso = db.inserir_estoque(
+            fornecedor_id,
+            categoria_id,
+            codigo,
+            validade,
+            custo,
+            venda,
+            embalagem,
+            qtd,
+            lote,
+        )
 
         if sucesso:
-            # Limpa o campo e avisa o usuário
             nome_input.value = ""
-            nome_input.error_text = None
-            page.snack_bar = ft.SnackBar(ft.Text("Produto salvo com sucesso!"), bgcolor="green")
+            page.snack_bar = ft.SnackBar(ft.Text("produto salvo com susseso"), bgcolor="green")
             page.snack_bar.open = True
+
         else:
-            page.snack_bar = ft.SnackBar(ft.Text("Erro ao salvar no banco."), bgcolor="red")
+            page.snack_bar = ft.SnackBar(ft.Text("erro ao conectar ao Banco"), bgcolor="red")
             page.snack_bar.open = True
-        
+       
         page.update()
 
-    # --- MONTAGEM DA PÁGINA ---
     page.add(
-        ft.Column(
+        ft.Colunm(
             scroll=ft.ScrollMode.AUTO,
-            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            horizontal_aligment=ft.CrossAxisAlignment.CENTER,
             controls=[
-                ft.Text("Novo Produto", size=28, weight=ft.FontWeight.BOLD, color="white"),
-                ft.Divider(height=10, color="transparent"),
-
+                ft.Text("novo produto", size=28, weight=ft.FontWeight.BOLD, color="white"),
                 nome_container,
                 fornecedor_container,
-
-                ft.Row(
-                    controls=[
-                        codigo_container,
-                        categoria_container,
-                    ],
-                    alignment=ft.MainAxisAlignment.CENTER,
-                    spacing=20
-                ),
-
-                quantidade_container,
-
-                ft.Row(
-                    controls=[
-                        venda_container,
-                        custo_container,
-                    ],
-                    alignment=ft.MainAxisAlignment.CENTER,
-                    spacing=20
-                ),
-
-                ft.Divider(height=20, color="transparent"),
-
-                ft.ElevatedButton(
-                    "Adicionar",
-                    on_click=salvar_clique, 
-                    width=200,
-                ),
-
-                ft.TextButton("Voltar", on_click=lambda _: on_stock()),
+                ft.Row([codigo_container, categoria_container], alignment=ft.MainAxisAlignment.CENTER),
+                ft.ElevatedButton("Adicionar", on_click=salvar_clique, width=200),
+                ft.TextButton("voltar", on_click=lambda _: on_stock()),
             ],
             spacing=15
         )
