@@ -144,12 +144,3 @@ def atualizar_usuario_db(id_user, nome, cpf, email, perfil):
     conn.commit()
     conn.close()
 
-def verificar_login_db(email, senha):
-    conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
-    # Buscando usuário ativo com e-mail e senha correspondentes
-    query = "SELECT * FROM usuario WHERE email_user = %s AND senha_user = %s AND status_user = TRUE"
-    cursor.execute(query, (email, senha))
-    usuario = cursor.fetchone()
-    conn.close()
-    return usuario
