@@ -4,11 +4,11 @@ from database import buscar_produtos_estoque, buscar_categorias
 def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar_produto, on_editar_produto, on_logout):
 
     page.controls.clear()
-    page.padding = 20
+    page.appbar = None
     
     # --- CORES E TEMA ---
     is_dark = page.theme_mode == ft.ThemeMode.DARK
-    cor_container_bg = "#0b1445" if is_dark else "#F0F2F8"
+    cor_container_bg = "#111B3D" if is_dark else "#F0F2F8"
     cor_texto_principal = ft.Colors.WHITE if is_dark else ft.Colors.BLACK
     cor_texto_secundario = ft.Colors.GREY_500
     cor_fundo_busca = "#0d1626" if is_dark else "#FFFFFF"

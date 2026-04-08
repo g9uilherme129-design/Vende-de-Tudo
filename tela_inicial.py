@@ -20,21 +20,41 @@ def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil, on_venda,
 
     page.controls.clear()
     
-    # --- LÓGICA DE CORES ADAPTÁVEIS ---
+    # --- LÓGICA DE CORES ADAPTÁVEIS (O SEGREDO PARA MUDAR O FUNDO) ---
     is_dark = page.theme_mode == ft.ThemeMode.DARK
+    
+    # 1. Cor de Fundo da PÁGINA (Preto no Dark, Branco Azulado no Light)
     page.bgcolor = "#000000" if is_dark else "#F0F4FF" 
+    
+    # 2. Cor de Fundo dos CONTAINERS (Azul Escuro no Dark, Azul Claro no Light)
     cor_fundo_container = "#0b1445" if is_dark else "#E1E8FA" 
+    
+    # 3. Cor do Texto (Branco no Dark, Preto/Azul Escuro no Light)
     cor_texto_principal = ft.Colors.WHITE if is_dark else "#0b1445"
     cor_texto_secundario = ft.Colors.WHITE_70 if is_dark else ft.Colors.GREY_700
+    
+    # 4. Cor das Bordas (Azul Profundo no Dark, Azul Suave no Light)
     cor_borda = "#1E2B4E" if is_dark else "#BCCAE3"
 
-    # AppBar
+    # AppBar (Mantendo o azul escuro padrão para contraste)
     page.appbar = ft.AppBar(
         bgcolor="#0b1445",
         toolbar_height=70,
-        title=ft.Text("Vende de Tudo", size=20, weight="bold", color="white"),
+        title=ft.Text(
+            "Vende de Tudo",
+            size=20,
+            weight=ft.FontWeight.BOLD,
+            color="white"
+        ),
         center_title=True,
-        actions=[ft.IconButton(icon=ft.Icons.EXIT_TO_APP, icon_color="white", on_click=sair_app)]
+        actions=[
+            ft.IconButton(
+                icon=ft.Icons.EXIT_TO_APP,
+                icon_color="white",
+                tooltip="Sair",
+                on_click=sair_app
+            )
+        ]
     )
 
     # --- BOTÃO DE REGISTRAR VENDA (AÇÃO RÁPIDA) ---
@@ -54,26 +74,31 @@ def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil, on_venda,
     card_receita = ft.Container(
         padding=20,
         border_radius=20,
-        bgcolor=cor_fundo_container,
-        border=ft.border.all(1, cor_borda),
-        content=ft.Column([
-            ft.Text("RECEITA DO MÊS", size=12, color=cor_texto_secundario, weight="bold"),
-            ft.Row([
-                ft.Text(
-                    f"R$ {dados['receita']:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."),
-                    size=26,
-                    weight=ft.FontWeight.BOLD,
-                    color=ft.Colors.GREEN_ACCENT_400 if is_dark else ft.Colors.GREEN_700,
+        bgcolor=cor_fundo_container, # Usa a variável dinâmica
+        border=ft.border.all(1, cor_borda), # Usa a variável dinâmica
+        content=ft.Column(
+            [
+                ft.Text("RECEITA DO MÊS", size=12, color=cor_texto_secundario, weight="bold"),
+                ft.Row(
+                    [
+                        ft.Text(
+                            "R$ 15.420,00",
+                            size=26,
+                            weight=ft.FontWeight.BOLD,
+                            color=ft.Colors.GREEN_ACCENT_400 if is_dark else ft.Colors.GREEN_700,
+                        ),
+                        ft.Container(
+                            content=ft.Text("+8.8%", size=12, color=ft.Colors.GREEN, weight="bold"),
+                            bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.GREEN),
+                            padding=5,
+                            border_radius=5
+                        ),
+                    ],
+                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                 ),
-                ft.Container(
-                    content=ft.Text("LIVE", size=12, color=ft.Colors.GREEN, weight="bold"),
-                    bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.GREEN),
-                    padding=5,
-                    border_radius=5
-                ),
-            ], alignment="spaceBetween"),
-            ft.Text("Dados reais do banco de dados", size=10, color=cor_texto_secundario),
-        ]),
+                ft.Text("Comparado ao mês anterior", size=10, color=cor_texto_secundario),
+            ]
+        ),
     )
 
     # --- CARD VOLUME SEMANAL ---
@@ -84,17 +109,20 @@ def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil, on_venda,
             valores_grafico[index] = v['qtd']
 
     card_volume = ft.Container(
-        bgcolor=cor_fundo_container,
+        bgcolor=cor_fundo_container, # Usa a variável dinâmica
         padding=20,
         border_radius=25,
-        border=ft.border.all(1, cor_borda),
+        border=ft.border.all(1, cor_borda), # Usa a variável dinâmica
         content=ft.Column([
-            ft.Text("VOLUME DE VENDAS (SEG-SEX)", size=12, color=cor_texto_secundario, weight="bold"),
+            ft.Text("VOLUME DE VENDAS", size=12, color=cor_texto_secundario, weight="bold"),
             ft.Container(
                 height=200,
                 content=fch.BarChart(
                     interactive=True,
-                    max_y=max(valores_grafico) + 5 if valores_grafico else 10,
+                    max_y=110,
+                    left_axis=fch.ChartAxis(
+                        labels=[fch.ChartAxisLabel(value=v, label=ft.Text(str(v), color=cor_texto_principal, size=10)) for v in [0, 50, 100]]
+                    ),
                     bottom_axis=fch.ChartAxis(
                         labels=[
                             fch.ChartAxisLabel(value=0, label=ft.Text("S", color=cor_texto_principal)),
@@ -106,7 +134,7 @@ def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil, on_venda,
                     ),
                     groups=[
                         fch.BarChartGroup(x=i, rods=[fch.BarChartRod(from_y=0, to_y=v, width=30, color="#4FC3F7", border_radius=5)]) 
-                        for i, v in enumerate(valores_grafico)
+                        for i, v in enumerate([40, 100, 30, 60, 80])
                     ],
                 )
             )
@@ -118,40 +146,45 @@ def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil, on_venda,
         return ft.Container(
             padding=12,
             border_radius=15,
+            # No Light, o fundo do vendedor fica branco puro para destacar do card azul claro
             bgcolor=cor_fundo_container if is_dark else "#FFFFFF",
             border=ft.border.all(1, ft.Colors.with_opacity(0.1, cor_texto_principal)),
-            content=ft.Row([
-                ft.Column([
-                    ft.Text(nome, weight="bold", color=cor_texto_principal),
-                    ft.Text(f"{vendas} VENDAS", size=11, color=cor_texto_secundario),
-                ], spacing=2),
-                ft.Text(f"R$ {valor:,.2f}", weight="bold", color=ft.Colors.GREEN),
-            ], alignment="spaceBetween"),
-        )
-
-    coluna_ranking = ft.Column(spacing=10)
-    for v in dados['ranking']:
-        coluna_ranking.controls.append(
-            item_vendedor(v['nome_user'], v['qtd_vendas'], v['valor_total'] or 0.0)
+            content=ft.Row(
+                [
+                    ft.Column(
+                        [
+                            ft.Text(nome, weight=ft.FontWeight.BOLD, color=cor_texto_principal),
+                            ft.Text(f"{vendas} VENDAS", size=11, color=cor_texto_secundario),
+                        ],
+                        spacing=2
+                    ),
+                    ft.Text(valor, weight=ft.FontWeight.BOLD, color=cor),
+                ],
+                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+            ),
         )
 
     ranking = ft.Container(
         padding=20,
         border_radius=20,
-        bgcolor=cor_fundo_container,
-        border=ft.border.all(1, cor_borda),
-        content=ft.Column([
-            ft.Text("RANKING DO MÊS", size=12, color=cor_texto_secundario, weight="bold"),
-            ft.Divider(height=10, color="transparent"),
-            coluna_ranking
-        ]),
+        bgcolor=cor_fundo_container, # Usa a variável dinâmica
+        border=ft.border.all(1, cor_borda), # Usa a variável dinâmica
+        content=ft.Column(
+            [
+                ft.Text("RANKING DO MÊS", size=12, color=cor_texto_secundario, weight="bold"),
+                ft.Divider(height=10, color="transparent"),
+                vendedor("Gabriel Santos", "199", "R$ 2.230,00", ft.Colors.GREEN),
+                vendedor("Alicia Antonella", "176", "R$ 2.000,00", ft.Colors.GREEN),
+                vendedor("Luan Gabriel", "156", "R$ 1.898,00", ft.Colors.RED_400),
+            ],
+            spacing=10
+        ),
     )
 
-    # Montagem da lista principal
     conteudo_principal = ft.ListView(
         controls=[
             ft.Text("Consolidação", size=28, weight="bold", color=cor_texto_principal),
-            ft.Text("Confira os resultados reais do sistema", size=14, color=cor_texto_secundario),
+            ft.Text("Confira os resultados de hoje", size=14, color=cor_texto_secundario),
             ft.Container(height=15),
             btn_registrar_venda, # Botão adicionado aqui
             ft.Container(height=15),
@@ -168,7 +201,9 @@ def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil, on_venda,
 
     page.add(conteudo_principal)
 
-    # --- NAVEGAÇÃO ---
+    # -------------------------
+    # NAVIGATION BAR
+    # -------------------------
     def trocar_aba(e):
         idx = e.control.selected_index
         if idx == 0: pass # Já está na Home
@@ -194,8 +229,8 @@ def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil, on_venda,
 
     page.navigation_bar = ft.Container(
         content=nav,
-        margin=ft.margin.only(left=25, right=25, bottom=30),
-        border_radius=40, 
+        margin=ft.margin.only(left=20, right=20, bottom=20),
+        border_radius=30,
         clip_behavior=ft.ClipBehavior.ANTI_ALIAS,
     )
 

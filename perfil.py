@@ -14,11 +14,18 @@ def perfil_page(page: ft.Page, on_home, on_stock, on_vendas, on_users, on_logout
     page.appbar = ft.AppBar(
         bgcolor="#0b1445",
         toolbar_height=70,
-        title=ft.Text("Vende de Tudo", size=20, weight="bold", color="white"),
+        title=ft.Text(
+            "Vende de Tudo",
+            size=20,
+            weight=ft.FontWeight.BOLD,
+            color="white"
+        ),
         center_title=True,
     )
 
-    # --- AVATAR E INFO PRINCIPAL ---
+    # -------------------------
+    # AVATAR E INFO PRINCIPAL
+    # -------------------------
     avatar = ft.Container(
         content=ft.Icon(
             ft.Icons.PERSON,
@@ -76,8 +83,9 @@ def perfil_page(page: ft.Page, on_home, on_stock, on_vendas, on_users, on_logout
     btn_config = criar_item_menu(
         ft.Icons.SETTINGS_OUTLINED, 
         "Configurações do App", 
-        on_click=lambda _: on_config()
+        on_click=lambda _: on_config() # <-- Agora ele abre a tela de config!
     )
+    
 
     # Botão Sair
     botao_sair = ft.Container(

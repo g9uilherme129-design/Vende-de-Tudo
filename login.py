@@ -1,6 +1,7 @@
 import flet as ft
 
 def login_view(page: ft.Page, on_login_sucesso):
+    # Ajuste: Usando cores que funcionam bem em ambos os modos ou forçando o fundo escuro apenas aqui
     page.bgcolor = "#050505" 
     page.controls.clear()
     
@@ -8,13 +9,12 @@ def login_view(page: ft.Page, on_login_sucesso):
 
     def login(e):
         if usuario.value == "admin" and senha.value == "1234":
-            
             on_login_sucesso()
         else:
-            mensagem.value = "E-mail ou senha incorretos ou usuário inativo."
+            mensagem.value = "Usuário ou senha inválidos."
             page.update()
 
-    # Reaproveitando seu estilo de campo
+    # Estilo dos campos de entrada
     def estilo_campo(label, password=False, suffix=None, on_submit=None):
         return ft.TextField(
             label=label,
@@ -81,10 +81,10 @@ def login_view(page: ft.Page, on_login_sucesso):
         fit="contain",
     )
 
-
+    # Card de Login
     card_login = ft.Container(
         content=ft.Column(
-           [
+            [
                 ft.Text(
                     "LOGIN",
                     size=30,
