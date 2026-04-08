@@ -112,6 +112,22 @@ def buscar_produto_por_id(id_prod):
     conn.close()
     return produto
 
+
+def buscar_categorias():
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    # Busca apenas os nomes únicos das categorias
+    query = "SELECT DISTINCT nome_categoria FROM categoria ORDER BY nome_categoria ASC"
+    
+    cursor.execute(query)
+    # Transforma a lista de tuplas em uma lista simples de strings
+    categorias = [linha[0] for linha in cursor.fetchall()]
+    
+    cursor.close()
+    conn.close()
+    return categorias
+
 def atualizar_produto_db(id_prod, nome, custo, venda, qtd):
     conn = get_connection()
     cursor = conn.cursor()

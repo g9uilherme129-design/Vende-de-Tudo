@@ -172,4 +172,4 @@ def main(page: ft.Page):
     
     carregar_login()
 
-ft.app(target=main)
+ft.app(main)
