@@ -1,7 +1,7 @@
 import flet as ft
 from database import buscar_produtos_estoque # Importando a nova função
 
-def estoque(page: ft.Page, on_home, on_users, on_perfil, on_adicionar_produto, on_editar_produto, on_logout):
+def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar_produto, on_editar_produto, on_logout):
 
     page.controls.clear()
     page.padding = 20
@@ -101,12 +101,27 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_adicionar_produto, o
         ])
     )
 
-    # Navbar
+    def trocar_aba(e):
+        idx = e.control.selected_index
+        if idx == 0:
+            on_home()
+        elif idx == 1:
+            on_vendas()
+        elif idx == 2:
+            pass # Já estamos no Estoque, não faz nada
+        elif idx == 3:
+            on_users()
+        elif idx == 4:
+            on_perfil()
+
+    # --- WIDGET DA NAVBAR ---
     nav = ft.NavigationBar(
-        bgcolor="#0b1445", selected_index=1,
-        on_change=lambda e: [on_home(), None, on_users(), on_perfil()][e.control.selected_index],
+        bgcolor="#0b1445",
+        selected_index=2, # Define o ícone de Estoque como ativo
+        on_change=trocar_aba,
         destinations=[
             ft.NavigationBarDestination(icon=ft.Icons.HOME_OUTLINED, label="Inicial"),
+            ft.NavigationBarDestination(icon=ft.Icons.LIST_ALT_OUTLINED, label="Vendas"),
             ft.NavigationBarDestination(icon=ft.Icons.INVENTORY_2, label="Estoque"),
             ft.NavigationBarDestination(icon=ft.Icons.GROUP_OUTLINED, label="Usuários"),
             ft.NavigationBarDestination(icon=ft.Icons.PERSON_OUTLINE, label="Perfil"),

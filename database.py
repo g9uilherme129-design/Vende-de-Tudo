@@ -144,3 +144,38 @@ def atualizar_usuario_db(id_user, nome, cpf, email, perfil):
     conn.commit()
     conn.close()
 
+def desativar_usuario_db(id_usuario, motivo, senha_protocolo):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        # Exemplo: Atualiza o status e salva o motivo/senha de reativação
+        sql = "UPDATE usuarios SET ativo = 0, motivo_saida = %s, senha_reativacao = %s WHERE id_user = %s"
+        cursor.execute(sql, (motivo, senha_protocolo, id_usuario))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"Erro ao desativar: {e}")
+        return False
+    finally:
+        cursor.close()
+        conn.close()
+
+
+def registrar_venda_db(id_user, id_estoque, metodo_pagamento, data_venda):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        # Insere a venda
+        query = "INSERT INTO venda (id_user, id_estoque, metodo_pagamento, data_venda) VALUES (%s, %s, %s, %s)"
+        cursor.execute(query, (id_user, id_estoque, metodo_pagamento, data_venda))
+        
+        # Baixa automática no estoque
+        cursor.execute("UPDATE estoque SET quantidade = quantidade - 1 WHERE id_estoque = %s", (id_estoque,))
+        
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"Erro: {e}")
+        return False
+    finally:
+        conn.close()

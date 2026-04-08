@@ -1,7 +1,7 @@
 import flet as ft
 from database import buscar_usuarios_db # Importando a nova função
 
-def usuarios(page: ft.Page, on_home, on_stock, on_perfil, on_logout, on_adicionar_usuario, on_editar_usuario, on_desativar_usuario):
+def usuarios(page: ft.Page, on_home, on_stock, on_vendas, on_perfil, on_logout, on_adicionar_usuario, on_editar_usuario, on_desativar_usuario):
 
     page.controls.clear()
     page.padding = 20
@@ -23,30 +23,59 @@ def usuarios(page: ft.Page, on_home, on_stock, on_perfil, on_logout, on_adiciona
 
     # --- CARD USUÁRIO ---
     def user_card(u):
-        # Converte o status do banco (1/0 ou True/False) para texto
         status_texto = "ATIVO" if u["status_user"] else "INATIVO"
         cor_status = "#00b40d" if u["status_user"] else "#ff0008"
         
+        # --- LÓGICA DO AVATAR POR PERFIL ---
+        if u["perfil"].lower() == "admin":
+            icone_perfil = ft.Icons.SECURITY # Ícone de escudo/segurança para Admin
+            cor_perfil = ft.Colors.BLUE_800
+        else:
+            icone_perfil = ft.Icons.PERSON # Ícone de pessoa comum para Vendedor
+            cor_perfil = ft.Colors.ORANGE_700
+
         return ft.Container(
-            bgcolor=cor_container_bg, border_radius=15, padding=15,
+            bgcolor=cor_container_bg, 
+            border_radius=15, 
+            padding=15,
             content=ft.Column(spacing=10, controls=[
+                # Linha ID e CPF
                 ft.Row(alignment="spaceBetween", controls=[
                     ft.Text(f"ID: {u['id_user']}", size=12, color=cor_texto_secundario),
                     ft.Text(f"CPF: {u['cpf']}", size=12, color=cor_texto_secundario),
                 ]),
-                ft.Row(alignment="spaceBetween", vertical_alignment="center", controls=[
-                    ft.Column([
-                        ft.Text(u["nome_user"], size=18, weight="bold", color=cor_texto_principal),
-                        ft.Text(u["perfil"].upper(), size=13, color=ft.Colors.BLUE_GREY_400)
-                    ], spacing=2),
-                    ft.Container(
-                        content=ft.Text(status_texto, size=12, weight="bold", color="white"),
-                        bgcolor=cor_status, padding=ft.padding.symmetric(horizontal=10, vertical=5),
-                        border_radius=20
-                    )
-                ]),
+                
+                # Linha Principal (Avatar + Nome + Status)
+                ft.Row(
+                    alignment="spaceBetween", 
+                    vertical_alignment="center", 
+                    controls=[
+                        ft.Row([
+                            # AVATAR GENÉRICO
+                            ft.CircleAvatar(
+                                content=ft.Icon(icone_perfil, color="white", size=25),
+                                bgcolor=cor_perfil,
+                                radius=25,
+                            ),
+                            ft.Column([
+                                ft.Text(u["nome_user"], size=18, weight="bold", color=cor_texto_principal),
+                                ft.Text(u["perfil"].upper(), size=13, color=ft.Colors.BLUE_GREY_400)
+                            ], spacing=2),
+                        ], spacing=15),
+                        
+                        ft.Container(
+                            content=ft.Text(status_texto, size=12, weight="bold", color="white"),
+                            bgcolor=cor_status, 
+                            padding=ft.padding.symmetric(horizontal=10, vertical=5),
+                            border_radius=20
+                        )
+                    ]
+                ),
+                
                 ft.Text(f"E-mail: {u['email_user']}", size=12, color=cor_texto_secundario),
                 ft.Divider(height=1, color=ft.Colors.with_opacity(0.1, cor_texto_principal)),
+                
+                # Botões
                 ft.Row(alignment="end", spacing=10, controls=[
                     ft.TextButton("Editar", icon=ft.Icons.EDIT_NOTE, on_click=lambda _: on_editar_usuario(u['id_user'])),
                     ft.ElevatedButton(
@@ -104,12 +133,23 @@ def usuarios(page: ft.Page, on_home, on_stock, on_perfil, on_logout, on_adiciona
         lista_usuarios_ui
     ]))
 
-    # Navigation Bar
+    def trocar_aba(e):
+        idx = e.control.selected_index
+        if idx == 0: on_home()
+        elif idx == 1: on_vendas()
+        elif idx == 2: on_stock()
+        elif idx == 3: pass # Já está em Usuários
+        elif idx == 4: on_perfil()
+
     nav = ft.NavigationBar(
-        bgcolor="#0b1445", selected_index=2,
-        on_change=lambda e: [on_home(), on_stock(), None, on_perfil()][e.control.selected_index],
+        bgcolor="#0b1445",
+        selected_index=3,
+        on_change=trocar_aba,
+        # ... destinations iguais
+    
         destinations=[
             ft.NavigationBarDestination(icon=ft.Icons.HOME_OUTLINED, label="Inicial"),
+            ft.NavigationBarDestination(icon=ft.Icons.LIST_ALT_OUTLINED, label="Vendas"),
             ft.NavigationBarDestination(icon=ft.Icons.INVENTORY_2_OUTLINED, label="Estoque"),
             ft.NavigationBarDestination(icon=ft.Icons.GROUP, label="Usuários"),
             ft.NavigationBarDestination(icon=ft.Icons.PERSON_OUTLINE, label="Perfil"),
