@@ -160,3 +160,22 @@ def desativar_usuario_db(id_usuario, motivo, senha_protocolo):
         cursor.close()
         conn.close()
 
+
+def registrar_venda_db(id_user, id_estoque, metodo_pagamento, data_venda):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        # Insere a venda
+        query = "INSERT INTO venda (id_user, id_estoque, metodo_pagamento, data_venda) VALUES (%s, %s, %s, %s)"
+        cursor.execute(query, (id_user, id_estoque, metodo_pagamento, data_venda))
+        
+        # Baixa automática no estoque
+        cursor.execute("UPDATE estoque SET quantidade = quantidade - 1 WHERE id_estoque = %s", (id_estoque,))
+        
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"Erro: {e}")
+        return False
+    finally:
+        conn.close()

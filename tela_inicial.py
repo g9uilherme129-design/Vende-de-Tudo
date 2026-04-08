@@ -1,15 +1,14 @@
 import flet as ft
 import flet_charts as fch
-from database import buscar_dados_home  # Certifique-se que o arquivo database.py existe
+from database import buscar_dados_home
 
-def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil):
+def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil, on_venda, on_vendas):
 
     # --- BUSCA DE DADOS REAIS DO MYSQL ---
     try:
         dados = buscar_dados_home()
     except Exception as ex:
         print(f"Erro ao conectar no banco: {ex}")
-        # Dados de backup caso o banco esteja offline
         dados = {
             "receita": 0.0, 
             "ranking": [{"nome_user": "Erro Banco", "qtd_vendas": 0, "valor_total": 0}], 
@@ -38,7 +37,20 @@ def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil):
         actions=[ft.IconButton(icon=ft.Icons.EXIT_TO_APP, icon_color="white", on_click=sair_app)]
     )
 
-    # --- CARD RECEITA DO MÊS (DINÂMICO) ---
+    # --- BOTÃO DE REGISTRAR VENDA (AÇÃO RÁPIDA) ---
+    btn_registrar_venda = ft.Container(
+        content=ft.Row([
+            ft.Icon(ft.Icons.ADD_SHOPPING_CART_ROUNDED, color="white", size=24),
+            ft.Text("REGISTRAR NOVA VENDA", color="white", weight="bold", size=16),
+        ], alignment="center", spacing=10),
+        bgcolor="#1B4F9C",
+        padding=15,
+        border_radius=15,
+        on_click=lambda _: on_venda(),
+        ink=True,
+    )
+
+    # --- CARD RECEITA DO MÊS ---
     card_receita = ft.Container(
         padding=20,
         border_radius=20,
@@ -64,11 +76,10 @@ def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil):
         ]),
     )
 
-    # --- CARD VOLUME SEMANAL (GRÁFICO DINÂMICO) ---
-    # Mapeia os dias (MySQL 1=Dom, 2=Seg...) para o gráfico (0 a 4)
+    # --- CARD VOLUME SEMANAL ---
     valores_grafico = [0, 0, 0, 0, 0]
     for v in dados['vendas_semanais']:
-        index = v['dia'] - 2 # Ajusta Segunda(2) para index 0
+        index = v['dia'] - 2 
         if 0 <= index <= 4:
             valores_grafico[index] = v['qtd']
 
@@ -102,7 +113,7 @@ def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil):
         ])
     )
 
-    # --- RANKING VENDEDORES (LOOP DINÂMICO) ---
+    # --- RANKING VENDEDORES ---
     def item_vendedor(nome, vendas, valor):
         return ft.Container(
             padding=12,
@@ -142,6 +153,8 @@ def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil):
             ft.Text("Consolidação", size=28, weight="bold", color=cor_texto_principal),
             ft.Text("Confira os resultados reais do sistema", size=14, color=cor_texto_secundario),
             ft.Container(height=15),
+            btn_registrar_venda, # Botão adicionado aqui
+            ft.Container(height=15),
             card_receita,
             ft.Container(height=15),
             card_volume,
@@ -157,18 +170,22 @@ def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil):
 
     # --- NAVEGAÇÃO ---
     def trocar_aba(e):
-        index = nav.selected_index
-        if index == 0: pass
-        elif index == 1: on_stock()
-        elif index == 2: on_users()
-        elif index == 3: on_perfil()
+        idx = e.control.selected_index
+        if idx == 0: pass # Já está na Home
+        elif idx == 1: on_vendas()
+        elif idx == 2: on_stock()
+        elif idx == 3: on_users()
+        elif idx == 4: on_perfil()
 
     nav = ft.NavigationBar(
         bgcolor="#0b1445",
         selected_index=0,
         on_change=trocar_aba,
+        # ... destinations iguais aos outros
+    
         destinations=[
             ft.NavigationBarDestination(icon=ft.Icons.HOME_OUTLINED, selected_icon=ft.Icons.HOME, label="Inicial"),
+            ft.NavigationBarDestination(icon=ft.Icons.LIST_ALT_OUTLINED, label="Vendas"),
             ft.NavigationBarDestination(icon=ft.Icons.INVENTORY_2_OUTLINED, selected_icon=ft.Icons.INVENTORY_2, label="Estoque"),
             ft.NavigationBarDestination(icon=ft.Icons.GROUP_OUTLINED, selected_icon=ft.Icons.GROUP, label="Usuários"),
             ft.NavigationBarDestination(icon=ft.Icons.PERSON_OUTLINE, selected_icon=ft.Icons.PERSON, label="Perfil"),

@@ -99,7 +99,7 @@ def novo_usuario(page: ft.Page, on_users):
             page.snack_bar.open = True
             page.update()
             
-            time.sleep(1)
+            # time.sleep(1)
             on_users() 
 
         except Exception as ex:
