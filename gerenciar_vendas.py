@@ -1,32 +1,70 @@
 import flet as ft
 from database import buscar_usuarios_db # Importando a nova função
 
-def vendas(page: ft.Page, on_home, on_stock, on_users, on_perfil, on_logout):
+def vendas(page: ft.Page, on_home, on_users, on_perfil, on_stock, on_nova_venda, on_detalhes_venda, on_logout):
 
     page.controls.clear()
     page.padding = 20
-
+    
+    # Lógica de cores adaptáveis (Mantida do original)
     is_dark = page.theme_mode == ft.ThemeMode.DARK
     cor_container_bg = "#0b1445" if is_dark else "#F0F2F8"
     cor_texto_principal = ft.Colors.WHITE if is_dark else ft.Colors.BLACK
     cor_texto_secundario = ft.Colors.GREY_500
+    cor_borda_busca = "#1e293b" if is_dark else "#D1D5DB"
     cor_fundo_busca = "#0d1626" if is_dark else "#FFFFFF"
 
-    # --- BUSCA DADOS REAIS ---
+    # --- BUSCA DADOS REAIS DE VENDAS ---
     try:
-        usuarios_db = buscar_usuarios_db()
+        # Substitua pela sua função real de busca de vendas
+        vendas_db = buscar_historico_vendas() 
     except Exception as ex:
-        print(f"Erro ao carregar usuários: {ex}")
-        usuarios_db = []
+        print(f"Erro ao carregar histórico de vendas: {ex}")
+        vendas_db = []
 
-    lista_vendas_ui = ft.Column(expand=True, scroll=ft.ScrollMode.AUTO, spacing=10)
+    lista_vendas_ui = ft.Column(scroll=ft.ScrollMode.AUTO, expand=True, spacing=15)
 
-# Faz os containers ai
-    def vendas_card():
-        pass
+    # --- CARD DE VENDA ---
+    def card_venda(id_venda, cliente, valor_total, forma_pagamento, data, status):
+        # Lógica de cor baseada no status da venda
+        if status.lower() == "concluída":
+            cor_status = "#00b40d" # Verde
+        elif status.lower() == "cancelada":
+            cor_status = "#d32f2f" # Vermelho
+        else:
+            cor_status = "#ff9800" # Laranja (Pendente, etc)
 
-
-
+        return ft.Container(
+            padding=15, border_radius=15, bgcolor=cor_container_bg,
+            content=ft.Column(spacing=10, controls=[
+                ft.Row(alignment="spaceBetween", controls=[
+                    ft.Column([
+                        ft.Text(f"Pedido: #{id_venda}", size=10, color=cor_texto_secundario),
+                        ft.Text(cliente, size=18, weight="bold", color=cor_texto_principal),
+                    ], spacing=2),
+                    ft.Column([
+                        ft.Text(f"R$ {valor_total:.2f}", weight="bold", size=18, color=cor_texto_principal),
+                        ft.Text(forma_pagamento, size=11, color=cor_texto_secundario),
+                    ], horizontal_alignment="end"),
+                ]),
+                ft.Row(alignment="spaceBetween", controls=[
+                    ft.Text(f"Data: {data}", size=11, color=ft.Colors.BLUE_GREY_400),
+                    ft.Container(
+                        content=ft.Text(status.upper(), size=11, weight="bold", color="white"),
+                        bgcolor=cor_status, padding=ft.padding.symmetric(horizontal=12, vertical=4), border_radius=20,
+                    ),
+                ]),
+                ft.Divider(height=1, color=ft.Colors.with_opacity(0.1, cor_texto_principal)),
+                ft.Row(alignment="end", controls=[
+                    # Botão adaptado para ver detalhes da venda ou emitir recibo
+                    ft.TextButton(
+                        "Ver Detalhes", 
+                        icon=ft.Icons.RECEIPT_LONG, 
+                        on_click=lambda _: on_detalhes_venda(id_venda)
+                    ),
+                ]),
+            ])
+        )
 
 
 #---- dps termino

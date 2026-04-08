@@ -11,7 +11,7 @@ from editar_usuario import editar_usuario
 from configuracoes import configuracoes_page
 from desativar_usuario import tela_desativar_usuario
 from registrar_venda import tela_registrar_venda
-from vendas import vendas
+from gerenciar_vendas import vendas
 
 def main(page: ft.Page):
     page.title = "Vende de Tudo"
