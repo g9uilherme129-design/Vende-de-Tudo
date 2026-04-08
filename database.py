@@ -92,6 +92,9 @@ def cadastrar_produto_db(id_fornecedor, id_categoria, nome, codigo, validade, en
     conn.close()
 
 def cadastrar_usuario_db(nome, cpf, email, senha, perfil):
+
+    novo_id = gerar_id_unico("usuario", "id_user")
+
     conn = get_connection()
     cursor = conn.cursor()
     # status_user entra como TRUE por padrão no seu SQL
@@ -99,10 +102,11 @@ def cadastrar_usuario_db(nome, cpf, email, senha, perfil):
         INSERT INTO usuario (nome_user, cpf, email_user, senha_user, perfil, status_user)
         VALUES (%s, %s, %s, %s, %s, TRUE)
     """
-    valores = (nome, cpf, email, senha, perfil)
+    valores = (novo_id, nome, cpf, email, senha, perfil)
     cursor.execute(query, valores)
     conn.commit()
     conn.close()
+
 
 def buscar_produto_por_id(id_prod):
     conn = get_connection()
