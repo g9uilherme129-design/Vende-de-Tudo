@@ -1,16 +1,13 @@
 import flet as ft
-from database import cadastrar_usuario_db
-import time
 
 def novo_usuario(page: ft.Page, on_users):
     page.controls.clear()
-    page.scroll = ft.ScrollMode.AUTO
-
+    # Cores dinâmicas baseadas no tema
     is_dark = page.theme_mode == ft.ThemeMode.DARK
     cor_fundo_input = "#0A122A" if is_dark else "#FFFFFF"
     cor_borda_input = "#1E2B4E" if is_dark else "#D1D5DB"
     cor_texto_input = "white" if is_dark else "black"
-    cor_label = ft.Colors.TEAL_400 if is_dark else ft.Colors.TEAL_900
+    cor_label = ft.Colors.TEAL_700 if is_dark else ft.Colors.TEAL_900
 
     page.appbar = ft.AppBar(
         leading=ft.IconButton(
@@ -23,68 +20,73 @@ def novo_usuario(page: ft.Page, on_users):
         center_title=True,
     )
 
-    def estilo_input(label, hint="", password=False):
+    def estilo_input(label, hint="", value="", read_only=False, col=None):
         input_field = ft.TextField(
+            value=value,
             hint_text=hint,
-            password=password,
-            can_reveal_password=password,
+            hint_style=ft.TextStyle(color=ft.Colors.GREY_500),
             border=ft.InputBorder.NONE,
             content_padding=15,
+            read_only=read_only,
             text_style=ft.TextStyle(color=cor_texto_input),
             expand=True,
         )
         
         container = ft.Column(
             [
-                ft.Text(f"  {label}", size=12, color=cor_label, weight="bold"),
+                ft.Text(label, size=11, color=cor_label, weight=ft.FontWeight.BOLD),
                 ft.Container(
                     content=input_field,
                     bgcolor=cor_fundo_input,
                     border=ft.border.all(1, cor_borda_input),
-                    border_radius=12,
+                    border_radius=10,
                     padding=ft.padding.only(right=10),
                 )
             ],
             spacing=5,
+            col=col 
         )
         return container, input_field
 
-    nome_c, nome_in = estilo_input("NOME COMPLETO", hint="Ex: Neymar Jr")
-    cpf_c, cpf_in = estilo_input("CPF (Apenas números)", hint="12345678900")
-    email_c, email_in = estilo_input("E-MAIL", hint="usuario@email.com")
-    senha_c, senha_in = estilo_input("SENHA", hint="******", password=True)
+    # Nome Completo
+    nome_container, nome_input = estilo_input("NOME COMPLETO", hint="Nome do funcionário", col=12)
     
-    perfil_dropdown = ft.Dropdown(
+    # Dropdown de Cargo adaptado
+    cargo_dropdown = ft.Dropdown(
+        hint_text="Selecione o cargo",
+        hint_style=ft.TextStyle(color=ft.Colors.GREY_500),
         options=[
-            ft.dropdown.Option("admin", "ADMINISTRADOR"),
-            ft.dropdown.Option("vendedor", "VENDEDOR"),
+            ft.dropdown.Option("ADMINISTRADOR"),
+            ft.dropdown.Option("VENDEDOR"),
         ],
         border=ft.InputBorder.NONE,
         text_style=ft.TextStyle(color=cor_texto_input),
-        content_padding=ft.padding.only(left=15),
-        expand=True,
+        content_padding=ft.padding.only(left=15, right=0),
     )
 
-    perfil_c = ft.Column(
+    cargo_container = ft.Column(
         [
-            ft.Text("  PERFIL / CARGO", size=12, color=cor_label, weight="bold"),
+            ft.Text("CARGO", size=11, color=cor_label, weight=ft.FontWeight.BOLD),
             ft.Container(
-                content=perfil_dropdown,
+                content=cargo_dropdown,
                 bgcolor=cor_fundo_input,
                 border=ft.border.all(1, cor_borda_input),
-                border_radius=12,
+                border_radius=10,
                 height=55,
             )
         ],
         spacing=5,
+        col=6 
     )
 
+    salario_container, salario_input = estilo_input("SALÁRIO", hint="R$ 0,00", col=12)
+    data_container, data_input = estilo_input("DATA DE CONTRATAÇÃO", hint="dd/mm/aaaa", col=12)
+
     def salvar_usuario(e):
-        if not nome_in.value or not email_in.value or not perfil_dropdown.value or not senha_in.value:
-            page.snack_bar = ft.SnackBar(ft.Text("Erro: Preencha todos os campos!"), bgcolor="red")
-            page.snack_bar.open = True
-            page.update()
-            return
+        # Aqui você pode adicionar a lógica do banco depois
+        page.snack_bar = ft.SnackBar(ft.Text("Usuário cadastrado com sucesso!"), bgcolor="green")
+        page.snack_bar.open = True
+        page.update()
 
         try:
             cadastrar_usuario_db(
@@ -129,15 +131,31 @@ def novo_usuario(page: ft.Page, on_users):
                 )
             ),
         ],
-        spacing=18,
-        width=400, # Aqui controlamos a largura de forma segura
+        spacing=15,
+        run_spacing=15,
     )
 
     page.add(
-        ft.Container(
-            content=form_content,
-            padding=20,
+        ft.Column(
+            scroll=ft.ScrollMode.AUTO,
+            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+            controls=[
+                ft.Divider(height=10, color="transparent"),
+                layout_campos,
+                ft.Divider(height=20, color="transparent"),
+                ft.ElevatedButton(
+                    "Adicionar",
+                    on_click=salvar_usuario,
+                    width=250,
+                    height=50,
+                    style=ft.ButtonStyle(
+                        bgcolor="#1B4F9C",
+                        color="white",
+                        shape=ft.RoundedRectangleBorder(radius=12),
+                    )
+                ),
+            ],
+            spacing=10
         )
     )
-    
     page.update()

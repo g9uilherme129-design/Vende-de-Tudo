@@ -1,37 +1,29 @@
 import mysql.connector
+from datetime import datetime
 
-def get_connection():
-    return mysql.connector.connect(
-        host="localhost",
-        user="root",      # Seu usuário do MySQL
-        password="",      # Sua senha do MySQL
-        database="sistema_vendas"
-    )
+class Database:
+    def __init__(self):
+        self.config ={
+            'host':"localhost",
+            'user':"root",
+            'password':"",
+            'database':"sistema_vendas"
+        }
 
-def buscar_dados_home():
-    conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
-    
-    # 1. Receita Total do Mês Atual
-    cursor.execute("""
-        SELECT SUM(e.preco_venda) as total 
-        FROM venda v
-        JOIN estoque e ON v.id_estoque = e.id_estoque
-        WHERE MONTH(v.data_venda) = MONTH(CURRENT_DATE())
-    """)
-    receita = cursor.fetchone()['total'] or 0.0
+    def conectar(self):
+        return mysql.connector.connect(**self.config)
 
-    # 2. Ranking de Vendedores (Top 3)
-    cursor.execute("""
-        SELECT u.nome_user, COUNT(v.id_venda) as qtd_vendas, SUM(e.preco_venda) as valor_total
-        FROM usuario u
-        LEFT JOIN venda v ON u.id_user = v.id_user
-        LEFT JOIN estoque e ON v.id_estoque = e.id_estoque
-        GROUP BY u.id_user
-        ORDER BY valor_total DESC
-        LIMIT 3
-    """)
-    ranking = cursor.fetchall()
+    def inserir_estoque(self, nome, codigo, id_fornecedor, id_categoria, validade, data_entrada, preco_custo, preco_venda, embalagem, qtd, lote):
+        try:
+            conn = self.conectar()
+            cursor = conn.cursor()
+            sql = """
+                INSERT INTO estoque 
+                (id_fornecedor, id_categoria, nome_estoque, codigo_barras, data_validade, 
+                data_entrada, preco_unitario, preco_venda, embalagem, quantidade, lote) 
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """
+            data_entrada = datetime.now().strftime('%Y-%M-%D')
 
     # 3. Volume Semanal (Vendas por dia da semana atual)
     # Retorna uma lista de 5 dias (Seg a Sex por exemplo)
@@ -92,6 +84,9 @@ def cadastrar_produto_db(id_fornecedor, id_categoria, nome, codigo, validade, en
     conn.close()
 
 def cadastrar_usuario_db(nome, cpf, email, senha, perfil):
+
+    novo_id = gerar_id_unico("usuario", "id_user")
+
     conn = get_connection()
     cursor = conn.cursor()
     # status_user entra como TRUE por padrão no seu SQL
@@ -99,10 +94,11 @@ def cadastrar_usuario_db(nome, cpf, email, senha, perfil):
         INSERT INTO usuario (nome_user, cpf, email_user, senha_user, perfil, status_user)
         VALUES (%s, %s, %s, %s, %s, TRUE)
     """
-    valores = (nome, cpf, email, senha, perfil)
+    valores = (novo_id, nome, cpf, email, senha, perfil)
     cursor.execute(query, valores)
     conn.commit()
     conn.close()
+
 
 def buscar_produto_por_id(id_prod):
     conn = get_connection()
@@ -111,6 +107,22 @@ def buscar_produto_por_id(id_prod):
     produto = cursor.fetchone()
     conn.close()
     return produto
+
+
+def buscar_categorias():
+    conn = get_connection()
+    cursor = conn.cursor()
+    
+    # Busca apenas os nomes únicos das categorias
+    query = "SELECT DISTINCT nome_categoria FROM categoria ORDER BY nome_categoria ASC"
+    
+    cursor.execute(query)
+    # Transforma a lista de tuplas em uma lista simples de strings
+    categorias = [linha[0] for linha in cursor.fetchall()]
+    
+    cursor.close()
+    conn.close()
+    return categorias
 
 def atualizar_produto_db(id_prod, nome, custo, venda, qtd):
     conn = get_connection()
