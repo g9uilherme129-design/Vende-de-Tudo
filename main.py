@@ -109,14 +109,22 @@ def main(page: ft.Page):
     def carregar_novo_produto():
         produto(page, on_stock=carregar_stock)
 
-    def carregar_editar_produto():
-        editar_produto(page, on_stock=carregar_stock)
+    def carregar_editar_produto(id_prod):
+        editar_produto(
+            page, 
+            id_produto=id_prod, 
+            on_stock=carregar_stock
+        )
 
     def carregar_novo_usuario():
         novo_usuario(page, on_users=carregar_usuarios)
 
-    def carregar_editar_usuario():
-        editar_usuario(page, on_users=carregar_usuarios)
+    def carregar_editar_usuario(id_user): # <--- Adicionei o id_user aqui
+        editar_usuario(
+            page, 
+            id_usuario=id_user, # <--- Passa o ID para a tela de editar
+            on_users=carregar_usuarios
+        )
 
     # --- CORREÇÃO AQUI ---
     def carregar_desativar_usuario(dados_usuario):
