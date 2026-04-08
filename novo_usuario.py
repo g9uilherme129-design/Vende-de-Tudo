@@ -88,12 +88,48 @@ def novo_usuario(page: ft.Page, on_users):
         page.snack_bar.open = True
         page.update()
 
-    layout_campos = ft.ResponsiveRow(
-        controls=[
-            nome_container,
-            cargo_container,
-            salario_container,
-            data_container,
+        try:
+            cadastrar_usuario_db(
+                nome=nome_in.value,
+                cpf=cpf_in.value,
+                email=email_in.value,
+                senha=senha_in.value,
+                perfil=perfil_dropdown.value
+            )
+            
+            page.snack_bar = ft.SnackBar(ft.Text("Usuário cadastrado com sucesso!"), bgcolor="green")
+            page.snack_bar.open = True
+            page.update()
+            
+            # time.sleep(1)
+            on_users() 
+
+        except Exception as ex:
+            page.snack_bar = ft.SnackBar(ft.Text(f"Erro ao salvar: {ex}"), bgcolor="red")
+            page.snack_bar.open = True
+            page.update()
+
+    # Arrumando o problema do max_width: 
+    # Usamos um Column com width fixo (400) que funciona bem em mobile e desktop
+    form_content = ft.Column(
+        [
+            nome_c,
+            cpf_c,
+            email_c,
+            senha_c,
+            perfil_c,
+            ft.Container(height=10),
+            ft.ElevatedButton(
+                "CADASTRAR USUÁRIO",
+                on_click=salvar_usuario,
+                width=400,
+                height=55,
+                style=ft.ButtonStyle(
+                    bgcolor="#1B4F9C",
+                    color="white",
+                    shape=ft.RoundedRectangleBorder(radius=12),
+                )
+            ),
         ],
         spacing=15,
         run_spacing=15,

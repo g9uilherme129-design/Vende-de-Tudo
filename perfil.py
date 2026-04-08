@@ -1,6 +1,6 @@
 import flet as ft
 
-def perfil_page(page: ft.Page, on_home, on_stock, on_users, on_logout, on_config):
+def perfil_page(page: ft.Page, on_home, on_stock, on_vendas, on_users, on_logout, on_config):
     page.controls.clear()
     
     # Lógica de cores adaptáveis
@@ -137,28 +137,53 @@ def perfil_page(page: ft.Page, on_home, on_stock, on_users, on_logout, on_config
     # -------------------------
     # NAVIGATION BAR
     # -------------------------
+    # def trocar_aba(e):
+    #     indices = {0: on_home, 1: on_vendas, 2: on_stock, 3: on_users, 4: None}
+    #     if indices[nav.selected_index]:
+    #         indices[nav.selected_index]()
+
+    # nav = ft.NavigationBar(
+    #     bgcolor="#0b1445",
+    #     selected_index=3,
+    #     on_change=trocar_aba,
+    #     destinations=[
+    #         ft.NavigationBarDestination(icon=ft.Icons.HOME_OUTLINED, selected_icon=ft.Icons.HOME, label="Home"),
+    #         ft.NavigationBarDestination(icon=ft.Icons.LIST_ALT_OUTLINED, label="Vendas"),
+    #         ft.NavigationBarDestination(icon=ft.Icons.INVENTORY_2_OUTLINED, selected_icon=ft.Icons.INVENTORY_2, label="Estoque"),
+    #         ft.NavigationBarDestination(icon=ft.Icons.GROUP_OUTLINED, selected_icon=ft.Icons.GROUP, label="Usuários"),
+    #         ft.NavigationBarDestination(icon=ft.Icons.PERSON_OUTLINE, selected_icon=ft.Icons.PERSON, label="Perfil"),
+    #     ]
+    # )
+
+    # page.navigation_bar = ft.Container(
+    #     content=nav,
+    #     margin=ft.margin.only(left=20, right=20, bottom=20),
+    #     border_radius=30,
+    #     clip_behavior=ft.ClipBehavior.ANTI_ALIAS,
+    # )
+
     def trocar_aba(e):
-        indices = {0: on_home, 1: on_stock, 2: on_users, 3: None}
-        if indices[nav.selected_index]:
-            indices[nav.selected_index]()
+        idx = e.control.selected_index
+        if idx == 0: on_home()
+        elif idx == 1: on_vendas()
+        elif idx == 2: on_stock()
+        elif idx == 3: on_users()
+        elif idx == 4: pass # Já está no Perfil
 
     nav = ft.NavigationBar(
         bgcolor="#0b1445",
-        selected_index=3,
-        on_change=trocar_aba,
+        selected_index=4,
+        on_change=trocar_aba,  
         destinations=[
-            ft.NavigationBarDestination(icon=ft.Icons.HOME_OUTLINED, selected_icon=ft.Icons.HOME, label="Home"),
-            ft.NavigationBarDestination(icon=ft.Icons.INVENTORY_2_OUTLINED, selected_icon=ft.Icons.INVENTORY_2, label="Estoque"),
-            ft.NavigationBarDestination(icon=ft.Icons.GROUP_OUTLINED, selected_icon=ft.Icons.GROUP, label="Usuários"),
-            ft.NavigationBarDestination(icon=ft.Icons.PERSON_OUTLINE, selected_icon=ft.Icons.PERSON, label="Perfil"),
-        ],
+            ft.NavigationBarDestination(icon=ft.Icons.HOME_OUTLINED, label="Inicial"),
+            ft.NavigationBarDestination(icon=ft.Icons.LIST_ALT_OUTLINED, label="Vendas"),
+            ft.NavigationBarDestination(icon=ft.Icons.INVENTORY_2_OUTLINED, label="Estoque"),
+            ft.NavigationBarDestination(icon=ft.Icons.GROUP, label="Usuários"),
+            ft.NavigationBarDestination(icon=ft.Icons.PERSON_OUTLINE, label="Perfil"),
+        ]
     )
-
-    page.navigation_bar = ft.Container(
-        content=nav,
-        margin=ft.margin.only(left=20, right=20, bottom=20),
-        border_radius=30,
-        clip_behavior=ft.ClipBehavior.ANTI_ALIAS,
-    )
+    page.navigation_bar = ft.Container(content=nav, margin=ft.margin.only(left=25, right=25, bottom=30), border_radius=40, clip_behavior="antiAlias")
     
+    # filtrar_usuarios()
+
     page.update()

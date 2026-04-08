@@ -9,6 +9,9 @@ from editar_produto import editar_produto
 from novo_usuario import novo_usuario
 from editar_usuario import editar_usuario
 from configuracoes import configuracoes_page
+from desativar_usuario import tela_desativar_usuario
+from registrar_venda import tela_registrar_venda
+from gerenciar_vendas import vendas
 
 def main(page: ft.Page):
     page.title = "Vende de Tudo"
@@ -59,7 +62,15 @@ def main(page: ft.Page):
             on_logout=fazer_logout,
             on_stock=carregar_stock,
             on_users=carregar_usuarios,
-            on_perfil=carregar_perfil
+            on_perfil=carregar_perfil,
+            on_venda=carregar_registrar_venda,
+            on_vendas=carregar_vendas,
+        )
+
+    def carregar_registrar_venda():
+        tela_registrar_venda(
+            page,
+            on_voltar=carregar_home
         )
 
     def carregar_stock():
@@ -67,17 +78,30 @@ def main(page: ft.Page):
             page,
             on_logout=fazer_logout,
             on_home=carregar_home,
+            on_vendas=carregar_vendas,
             on_users=carregar_usuarios,
             on_perfil=carregar_perfil,
             on_adicionar_produto=carregar_novo_produto,
             on_editar_produto=carregar_editar_produto
         )
 
+    def carregar_vendas():
+        vendas(
+            page,
+            on_logout=fazer_logout,
+            on_home=carregar_home,
+            on_users=carregar_usuarios,
+            on_stock=carregar_stock,
+            on_perfil=carregar_perfil,
+        )
+
+
     def carregar_usuarios():
         usuarios(
             page, 
             on_logout=fazer_logout,
             on_home=carregar_home,
+            on_vendas=carregar_vendas,
             on_stock=carregar_stock,
             on_perfil=carregar_perfil,
             on_adicionar_usuario=carregar_novo_usuario,
@@ -89,6 +113,7 @@ def main(page: ft.Page):
             page, 
             on_home=carregar_home,
             on_stock=carregar_stock,
+            on_vendas=carregar_vendas,
             on_users=carregar_usuarios,
             on_logout=fazer_logout,
             on_config=carregar_config
@@ -132,6 +157,4 @@ def main(page: ft.Page):
     
     carregar_login()
 
-# EXECUÇÃO ÚNICA:
-# Se der erro de "Deprecated", troque ft.app por ft.run
-ft.run(main)
+ft.app(main)
