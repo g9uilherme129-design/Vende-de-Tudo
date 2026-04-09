@@ -12,8 +12,11 @@ def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil, on_venda,
     meta_valor = receita_atual * 1.08 
 
     def formatar_moeda(valor):
-        if valor is None: valor = 0.0
-        return f"R$ {float(valor):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+        try:
+            val = float(valor) if valor is not None else 0.0
+            return f"R$ {val:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+        except:
+            return "R$ 0,00"
 
     page.controls.clear()
     is_dark = page.theme_mode == ft.ThemeMode.DARK
@@ -24,14 +27,13 @@ def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil, on_venda,
     cor_borda = "#1E2B4E" if is_dark else "#BCCAE3"
 
     # --- LÓGICA DE QUANTIDADE DE PRODUTOS ---
-    qtd_produtos = [0] * 5
+    qtd_produtos = [0] * 5  # Representa Seg, Ter, Qua, Qui, Sex
     dias_semana = ["S", "T", "Q", "Q", "S"]
-    dias_map = {2: 0, 3: 1, 4: 2, 5: 3, 6: 4} 
     
     for v in dados.get('vendas_semanais', []):
-        if v.get('dia') in dias_map: 
-            idx = dias_map[v['dia']]
-            qtd_produtos[idx] = v.get('qtd') or v.get('qtd_itens') or 0
+        idx = v.get('dia_num')
+        if idx is not None and 0 <= idx <= 4: # Pega apenas de segunda a sexta
+            qtd_produtos[idx] = v.get('qtd') or 0
 
     valor_max_grafico = max(qtd_produtos) if max(qtd_produtos) > 0 else 2500
     limite_y = valor_max_grafico + 500

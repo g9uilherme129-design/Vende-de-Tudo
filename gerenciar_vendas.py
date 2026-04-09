@@ -1,7 +1,7 @@
 import flet as ft
 from database import buscar_vendas_detalhadas
 
-def gerenciar_vendas(page: ft.Page, on_home, on_users, on_perfil, on_stock, on_logout):
+def gerenciar_vendas(page: ft.Page, on_home, on_users, on_perfil, on_stock, on_registrar_venda, on_logout):
     page.controls.clear()
     page.padding = 20
     
@@ -83,8 +83,25 @@ def gerenciar_vendas(page: ft.Page, on_home, on_users, on_perfil, on_stock, on_l
     page.add(
         ft.Column(
             expand=True, 
+            spacing=15, 
             controls=[
+                # Linha de Cabeçalho: Título + Botão
+                ft.Row([
+                    ft.Text("Histórico de Vendas", size=22, weight="bold"),
+                    
+                    ft.FloatingActionButton(
+                        icon=ft.Icons.ADD,
+                        bgcolor="#1B4F9C",
+                        mini=True,
+                        tooltip="Nova Venda",
+                        on_click=lambda _: on_registrar_venda()
+                    ),
+                ], alignment="spaceBetween"),
+
+                # Linha de Filtros
                 ft.Row([search_field, btn_filtro]), 
+                
+                # Lista de Vendas (Ocupa o resto da tela)
                 lista_vendas_ui
             ]
         )

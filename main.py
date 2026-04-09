@@ -12,6 +12,8 @@ from configuracoes import configuracoes_page
 from desativar_usuario import tela_desativar_usuario
 from registrar_venda import tela_registrar_venda
 from gerenciar_vendas import gerenciar_vendas
+from gerenciar_fornecedores import tela_fornecedores
+from novo_fornecedor import novo_fornecedor
 
 def main(page: ft.Page):
     page.title = "Vende de Tudo"
@@ -64,6 +66,21 @@ def main(page: ft.Page):
             on_vendas=carregar_vendas,
         )
 
+    def carregar_fornecedores():
+        tela_fornecedores(
+            page,
+            on_home=carregar_home,
+            on_vendas=carregar_vendas,
+            on_stock=carregar_stock,
+            on_usuarios=carregar_usuarios,
+            on_adicionar_fornecedor=carregar_novo_fornecedor
+        )
+
+    def carregar_novo_fornecedor():
+        novo_fornecedor(
+            page,
+            on_voltar=carregar_fornecedores)
+
     def carregar_registrar_venda():
         tela_registrar_venda(
             page,
@@ -79,7 +96,8 @@ def main(page: ft.Page):
             on_users=carregar_usuarios,
             on_perfil=carregar_perfil,
             on_adicionar_produto=carregar_novo_produto,
-            on_editar_produto=carregar_editar_produto
+            on_editar_produto=carregar_editar_produto,
+            on_fornecedores=carregar_fornecedores
         )
 
     def carregar_vendas():
@@ -90,6 +108,7 @@ def main(page: ft.Page):
             on_users=carregar_usuarios,
             on_stock=carregar_stock,
             on_perfil=carregar_perfil,
+            on_registrar_venda=carregar_registrar_venda
         )
 
 

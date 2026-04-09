@@ -1,7 +1,8 @@
 import flet as ft
 from database import buscar_produtos_estoque, buscar_categorias 
 
-def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar_produto, on_editar_produto, on_logout):
+# 1. ADICIONADO on_fornecedores nos parâmetros
+def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar_produto, on_editar_produto, on_logout, on_fornecedores):
 
     page.controls.clear()
     page.padding = 20
@@ -90,7 +91,7 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar
         btn_filtro.data = c
         filtrar_estoque()
 
-    # --- MONTAGEM DO MENU (CORRIGIDA) ---
+    # --- MONTAGEM DO MENU ---
     menu_items = [
         ft.PopupMenuItem(content=ft.Text("Todos os Produtos"), on_click=lambda _: mudar_f("todos")),
         ft.PopupMenuItem(content=ft.Text("Mais Caro"), on_click=lambda _: mudar_f("caro")),
@@ -98,9 +99,7 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar
         ft.PopupMenuItem(content=ft.Text("Estoque Baixo"), on_click=lambda _: mudar_f("estoque_baixo")),
     ]
 
-    # Adiciona categorias dinâmicas
     if categorias_reais:
-        # Usamos um texto simples como divisor para evitar erro de versão
         menu_items.append(ft.PopupMenuItem(content=ft.Text("----------", text_align="center"), disabled=True))
         for cat in categorias_reais:
             menu_items.append(
@@ -120,7 +119,7 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar
 
     page.appbar = ft.AppBar(
         bgcolor="#0b1445", 
-        title=ft.Text("Estoque Real", color="white", weight="bold"),
+        title=ft.Text("Estoque", color="white", weight="bold"),
         center_title=True, 
         actions=[ft.IconButton(ft.Icons.EXIT_TO_APP, icon_color="white", on_click=lambda _: on_logout())]
     )
@@ -129,7 +128,22 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar
         ft.Column(expand=True, spacing=15, controls=[
             ft.Row([
                 ft.Text("Consultar Produtos", size=22, weight="bold"),
-                ft.FloatingActionButton(icon=ft.Icons.ADD, bgcolor="#1B4F9C", mini=True, on_click=lambda _: on_adicionar_produto()),
+                # --- BOTÕES DE AÇÃO ---
+                ft.Row([
+                    # NOVO BOTÃO DE FORNECEDORES
+                    ft.ElevatedButton(
+                        "Fornecedores", 
+                        icon=ft.Icons.BUSINESS,
+                        on_click=lambda _: on_fornecedores(),
+                        style=ft.ButtonStyle(bgcolor="#0b1445", color="white")
+                    ),
+                    ft.FloatingActionButton(
+                        icon=ft.Icons.ADD, 
+                        bgcolor="#1B4F9C", 
+                        mini=True, 
+                        on_click=lambda _: on_adicionar_produto()
+                    ),
+                ], spacing=10)
             ], alignment="spaceBetween"),
             ft.Row([search_field, btn_filtro]),
             lista_produtos_ui

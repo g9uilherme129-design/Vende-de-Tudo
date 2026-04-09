@@ -1,6 +1,5 @@
 import flet as ft
-from database import cadastrar_usuario_db
-import time
+from database import cadastrar_usuario_db, gerar_id_char
 
 def novo_usuario(page: ft.Page, on_users):
     page.controls.clear()
@@ -23,7 +22,8 @@ def novo_usuario(page: ft.Page, on_users):
         center_title=True,
     )
 
-    def estilo_input(label, hint="", password=False):
+    # Função auxiliar para manter seu estilo visual
+    def estilo_input(label, hint="", password=False, keyboard_type=ft.KeyboardType.TEXT):
         input_field = ft.TextField(
             hint_text=hint,
             password=password,
@@ -32,6 +32,7 @@ def novo_usuario(page: ft.Page, on_users):
             content_padding=15,
             text_style=ft.TextStyle(color=cor_texto_input),
             expand=True,
+            keyboard_type=keyboard_type
         )
         
         container = ft.Column(
@@ -49,10 +50,13 @@ def novo_usuario(page: ft.Page, on_users):
         )
         return container, input_field
 
+    # Criando os campos
     nome_c, nome_in = estilo_input("NOME COMPLETO", hint="Ex: Neymar Jr")
-    cpf_c, cpf_in = estilo_input("CPF (Apenas números)", hint="12345678900")
-    email_c, email_in = estilo_input("E-MAIL", hint="usuario@email.com")
+    cpf_c, cpf_in = estilo_input("CPF (Apenas números)", hint="12345678900", keyboard_type=ft.KeyboardType.NUMBER)
+    email_c, email_in = estilo_input("E-MAIL", hint="usuario@email.com", keyboard_type=ft.KeyboardType.EMAIL)
     senha_c, senha_in = estilo_input("SENHA", hint="******", password=True)
+    # Novo campo de Salário
+    salario_c, salario_in = estilo_input("SALÁRIO BASE", hint="Ex: 2500.00", keyboard_type=ft.KeyboardType.NUMBER)
     
     perfil_dropdown = ft.Dropdown(
         options=[
@@ -80,41 +84,59 @@ def novo_usuario(page: ft.Page, on_users):
     )
 
     def salvar_usuario(e):
-        if not nome_in.value or not email_in.value or not perfil_dropdown.value or not senha_in.value:
-            page.snack_bar = ft.SnackBar(ft.Text("Erro: Preencha todos os campos!"), bgcolor="red")
+        # 1. Limpa espaços e valida
+        nome = nome_in.value.strip() if nome_in.value else ""
+        email = email_in.value.strip() if email_in.value else ""
+        senha = senha_in.value.strip() if senha_in.value else ""
+        cpf = cpf_in.value.strip() if cpf_in.value else ""
+        salario = salario_in.value.strip() if salario_in.value else "0"
+        perfil = perfil_dropdown.value
+
+        if not nome or not email or not senha or not perfil:
+            page.snack_bar = ft.SnackBar(ft.Text("Preencha os campos obrigatórios!"), bgcolor="red")
             page.snack_bar.open = True
             page.update()
             return
 
         try:
-            cadastrar_usuario_db(
-                nome=nome_in.value,
-                cpf=cpf_in.value,
-                email=email_in.value,
-                senha=senha_in.value,
-                perfil=perfil_dropdown.value
+            # Gerar ID único (ex: U10005)
+            novo_id = gerar_id_char("usuario", "id_user", "U")
+
+            # Chama o banco
+            sucesso, msg = cadastrar_usuario_db(
+                id_user=novo_id,
+                nome=nome,
+                cpf=cpf,
+                email=email,
+                senha=senha,
+                perfil=perfil,
+                salario=salario
             )
             
-            page.snack_bar = ft.SnackBar(ft.Text("Usuário cadastrado com sucesso!"), bgcolor="green")
-            page.snack_bar.open = True
-            page.update()
-            
-            # time.sleep(1)
-            on_users() 
+            if sucesso:
+                page.snack_bar = ft.SnackBar(ft.Text(msg), bgcolor="green")
+                page.snack_bar.open = True
+                page.update()
+                # Pequena pausa para o usuário ver a mensagem antes de mudar de tela
+                on_users() 
+            else:
+                page.snack_bar = ft.SnackBar(ft.Text(f"Erro: {msg}"), bgcolor="red")
+                page.snack_bar.open = True
+                page.update()
 
         except Exception as ex:
-            page.snack_bar = ft.SnackBar(ft.Text(f"Erro ao salvar: {ex}"), bgcolor="red")
+            print(f"Erro na UI: {ex}") # Isso aparece no seu terminal do VS Code
+            page.snack_bar = ft.SnackBar(ft.Text(f"Erro inesperado: {ex}"), bgcolor="red")
             page.snack_bar.open = True
             page.update()
 
-    # Arrumando o problema do max_width: 
-    # Usamos um Column com width fixo (400) que funciona bem em mobile e desktop
     form_content = ft.Column(
         [
             nome_c,
             cpf_c,
             email_c,
             senha_c,
+            salario_c, # Adicionado no layout
             perfil_c,
             ft.Container(height=10),
             ft.ElevatedButton(
@@ -130,13 +152,18 @@ def novo_usuario(page: ft.Page, on_users):
             ),
         ],
         spacing=18,
-        width=400, # Aqui controlamos a largura de forma segura
+        width=400,
     )
 
     page.add(
-        ft.Container(
-            content=form_content,
-            padding=20,
+        ft.Row(
+            [
+                ft.Container(
+                    content=form_content,
+                    padding=20,
+                )
+            ],
+            alignment="center" # Centraliza o formulário na tela
         )
     )
     

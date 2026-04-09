@@ -21,14 +21,15 @@ def tela_registrar_venda(page: ft.Page, on_voltar):
     mapa_produtos = {f"{p['nome_estoque']} (R$ {p['preco_venda']})": p for p in produtos_db if p['quantidade'] > 0}
 
     # --- CORREÇÃO DA SESSÃO ---
-    # Tenta de um jeito, se não der, tenta de outro.
     try:
-        user_id_inicial = str(page.session.get("user_id") or "1")
+        # Tenta pegar o ID de quem logou, se não houver ninguém, 
+        # usa um ID que EXISTE no banco (u789521) em vez de "1"
+        user_id_inicial = str(page.session.get("user_id") or "u789521")
     except:
         try:
-            user_id_inicial = str(page.session.get_item("user_id") or "1")
+            user_id_inicial = str(page.session.get_item("user_id") or "u789521")
         except:
-            user_id_inicial = "1"
+            user_id_inicial = "u789521"
 
     data_agora = datetime.now().strftime("%d/%m/%Y")
     hora_agora = datetime.now().strftime("%H:%M")
@@ -104,6 +105,7 @@ def tela_registrar_venda(page: ft.Page, on_voltar):
         carrinho.pop(index)
         atualizar_resumo()
 
+    
     def finalizar_venda(e):
         if not carrinho:
             page.snack_bar = ft.SnackBar(ft.Text("Carrinho vazio!"), bgcolor="orange")
@@ -111,14 +113,13 @@ def tela_registrar_venda(page: ft.Page, on_voltar):
             page.update()
             return
 
-        # Pegar ID do vendedor do campo
-        vendedor_id = int(input_user_id.value) if input_user_id.value.isdigit() else 1
+        # REMOVIDO O int() -> O ID no banco é VARCHAR (ex: u789521)
+        vendedor_id = input_user_id.value if input_user_id.value else "u789521"
         
         erros = []
         for item in carrinho:
-            # Agora a função retorna (Sucesso, Mensagem)
             sucesso, msg = registrar_venda_db(
-                id_user=vendedor_id,
+                id_user=vendedor_id,        # Agora passa a string correta
                 id_estoque=item['id'],
                 qtd=item['qtd'],
                 metodo=drop_pagamento.value or "Dinheiro",
@@ -126,18 +127,21 @@ def tela_registrar_venda(page: ft.Page, on_voltar):
             )
             
             if not sucesso:
-                erros.append(msg)
+                erros.append(f"Erro no item {item['nome']}: {msg}")
 
         if erros:
-            # Se deu erro de estoque, mostra a lista de avisos em vermelho
             page.snack_bar = ft.SnackBar(
                 content=ft.Text("\n".join(erros)),
                 bgcolor=ft.Colors.RED_ACCENT_700,
-                duration=5000 # Fica 5 segundos na tela pro cara ler
+                duration=5000
             )
         else:
             page.snack_bar = ft.SnackBar(ft.Text("Venda concluída com sucesso!"), bgcolor="green")
-            on_voltar() # Volta pra home só se tudo der certo
+            # Pequeno delay para o user ver o feedback antes de voltar
+            page.update()
+            import time
+            time.sleep(1) 
+            on_voltar()
             
         page.snack_bar.open = True
         page.update()

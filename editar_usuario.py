@@ -7,6 +7,12 @@ def editar_usuario(page: ft.Page, on_users, id_usuario):
     # Busca dados reais do banco
     u = buscar_usuario_por_id(id_usuario)
     
+    if not u:
+        page.snack_bar = ft.SnackBar(ft.Text("Erro: Usuário não encontrado!"), bgcolor="red")
+        page.snack_bar.open = True
+        on_users()
+        return
+
     is_dark = page.theme_mode == ft.ThemeMode.DARK
     cor_texto = ft.Colors.WHITE if is_dark else ft.Colors.BLACK
     cor_input_fundo = "#0A122A" if is_dark else "#F0F2F5"
@@ -23,7 +29,7 @@ def editar_usuario(page: ft.Page, on_users, id_usuario):
         center_title=True,
     )
 
-    def estilo_input(label, value="", read_only=False, col=None):
+    def estilo_input(label, value="", read_only=False, col=None, keyboard_type=ft.KeyboardType.TEXT):
         input_field = ft.TextField(
             value=str(value),
             border=ft.InputBorder.NONE,
@@ -31,6 +37,7 @@ def editar_usuario(page: ft.Page, on_users, id_usuario):
             read_only=read_only,
             text_style=ft.TextStyle(color=cor_texto),
             expand=True,
+            keyboard_type=keyboard_type
         )
         container = ft.Column([
             ft.Text(label, size=11, color=ft.Colors.TEAL_700, weight="bold"),
@@ -44,8 +51,16 @@ def editar_usuario(page: ft.Page, on_users, id_usuario):
 
     # Campos preenchidos com dados do MySQL
     nome_c, nome_in = estilo_input("NOME COMPLETO", value=u['nome_user'], col=12)
-    cpf_c, cpf_in = estilo_input("CPF", value=u['cpf'], col=12)
-    email_c, email_in = estilo_input("E-MAIL", value=u['email_user'], col=12)
+    cpf_c, cpf_in = estilo_input("CPF", value=u['cpf'], col=12, keyboard_type=ft.KeyboardType.NUMBER)
+    email_c, email_in = estilo_input("E-MAIL", value=u['email_user'], col=12, keyboard_type=ft.KeyboardType.EMAIL)
+    
+    # Novo campo de Salário (Puxando u['salario'])
+    salario_c, salario_in = estilo_input(
+        "SALÁRIO BASE", 
+        value=f"{u['salario']:.2f}", 
+        col=12, 
+        keyboard_type=ft.KeyboardType.NUMBER
+    )
 
     # Dropdown de Perfil
     perfil_dropdown = ft.Dropdown(
@@ -69,42 +84,56 @@ def editar_usuario(page: ft.Page, on_users, id_usuario):
 
     def salvar_clique(e):
         try:
-            atualizar_usuario_db(
+            # Passando todos os parâmetros para a função do database.py
+            sucesso, msg = atualizar_usuario_db(
                 id_user=id_usuario,
                 nome=nome_in.value,
                 cpf=cpf_in.value,
                 email=email_in.value,
-                perfil=perfil_dropdown.value
+                perfil=perfil_dropdown.value,
+                salario=salario_in.value # Adicionado o salário no update
             )
-            page.snack_bar = ft.SnackBar(ft.Text("Usuário atualizado!"), bgcolor="green")
-            page.snack_bar.open = True
-            on_users()
+            
+            if sucesso:
+                page.snack_bar = ft.SnackBar(ft.Text("Usuário atualizado com sucesso!"), bgcolor="green")
+                page.snack_bar.open = True
+                on_users()
+            else:
+                page.snack_bar = ft.SnackBar(ft.Text(f"Erro: {msg}"), bgcolor="red")
+                page.snack_bar.open = True
+                
         except Exception as ex:
-            page.snack_bar = ft.SnackBar(ft.Text(f"Erro: {ex}"), bgcolor="red")
+            page.snack_bar = ft.SnackBar(ft.Text(f"Erro inesperado: {ex}"), bgcolor="red")
             page.snack_bar.open = True
         page.update()
 
     layout_campos = ft.ResponsiveRow(
-        controls=[nome_c, cpf_c, email_c, perfil_c],
+        controls=[nome_c, cpf_c, email_c, salario_c, perfil_c],
         spacing=15, run_spacing=15,
     )
 
     page.add(
-        ft.Column(
-            horizontal_alignment="center",
-            scroll=ft.ScrollMode.AUTO,
-            controls=[
-                ft.Divider(height=10, color="transparent"),
-                layout_campos,
-                ft.Divider(height=20, color="transparent"),
-                ft.ElevatedButton(
-                    "Salvar Alterações", 
-                    on_click=salvar_clique, 
-                    width=250, height=50,
-                    style=ft.ButtonStyle(bgcolor="#1B4F9C", color="white", shape=ft.RoundedRectangleBorder(radius=10))
-                ),
-            ],
-            spacing=10
+        ft.Container(
+            padding=20,
+            content=ft.Column(
+                horizontal_alignment="center",
+                scroll=ft.ScrollMode.AUTO,
+                controls=[
+                    layout_campos,
+                    ft.Divider(height=20, color="transparent"),
+                    ft.ElevatedButton(
+                        "Salvar Alterações", 
+                        on_click=salvar_clique, 
+                        width=400, height=55,
+                        style=ft.ButtonStyle(
+                            bgcolor="#1B4F9C", 
+                            color="white", 
+                            shape=ft.RoundedRectangleBorder(radius=12)
+                        )
+                    ),
+                ],
+                spacing=10
+            )
         )
     )
     page.update()
