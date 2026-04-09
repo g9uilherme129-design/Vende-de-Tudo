@@ -3,24 +3,19 @@ import flet_charts as fch
 from database import buscar_dados_home
 
 def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil, on_venda, on_vendas):
-
-    # --- BUSCA DE DADOS REAIS DO MYSQL ---
     try:
         dados = buscar_dados_home()
-    except Exception as ex:
-        print(f"Erro ao conectar no banco: {ex}")
-        dados = {
-            "receita": 0.0, 
-            "ranking": [{"nome_user": "Erro Banco", "qtd_vendas": 0, "valor_total": 0}], 
-            "vendas_semanais": []
-        }
+    except Exception:
+        dados = {"receita": 0.0, "ranking": [], "vendas_semanais": []}
 
-    def sair_app(e):
-        on_logout()
+    receita_atual = float(dados.get('receita', 0.0))
+    meta_valor = receita_atual * 1.08 
+
+    def formatar_moeda(valor):
+        if valor is None: valor = 0.0
+        return f"R$ {float(valor):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
     page.controls.clear()
-    
-    # --- LÓGICA DE CORES ADAPTÁVEIS ---
     is_dark = page.theme_mode == ft.ThemeMode.DARK
     page.bgcolor = "#000000" if is_dark else "#F0F4FF" 
     cor_fundo_container = "#0b1445" if is_dark else "#E1E8FA" 
@@ -28,175 +23,139 @@ def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil, on_venda,
     cor_texto_secundario = ft.Colors.WHITE_70 if is_dark else ft.Colors.GREY_700
     cor_borda = "#1E2B4E" if is_dark else "#BCCAE3"
 
-    # AppBar
-    page.appbar = ft.AppBar(
-        bgcolor="#0b1445",
-        toolbar_height=70,
-        title=ft.Text("Vende de Tudo", size=20, weight="bold", color="white"),
-        center_title=True,
-        actions=[ft.IconButton(icon=ft.Icons.EXIT_TO_APP, icon_color="white", on_click=sair_app)]
-    )
+    # --- LÓGICA DE QUANTIDADE DE PRODUTOS ---
+    qtd_produtos = [0] * 5
+    dias_semana = ["S", "T", "Q", "Q", "S"]
+    dias_map = {2: 0, 3: 1, 4: 2, 5: 3, 6: 4} 
+    
+    for v in dados.get('vendas_semanais', []):
+        if v.get('dia') in dias_map: 
+            idx = dias_map[v['dia']]
+            qtd_produtos[idx] = v.get('qtd') or v.get('qtd_itens') or 0
 
-    # --- BOTÃO DE REGISTRAR VENDA (AÇÃO RÁPIDA) ---
-    btn_registrar_venda = ft.Container(
-        content=ft.Row([
-            ft.Icon(ft.Icons.ADD_SHOPPING_CART_ROUNDED, color="white", size=24),
-            ft.Text("REGISTRAR NOVA VENDA", color="white", weight="bold", size=16),
-        ], alignment="center", spacing=10),
-        bgcolor="#1B4F9C",
-        padding=15,
-        border_radius=15,
-        on_click=lambda _: on_venda(),
-        ink=True,
-    )
+    valor_max_grafico = max(qtd_produtos) if max(qtd_produtos) > 0 else 2500
+    limite_y = valor_max_grafico + 500
+    passo_y = 500
 
-    # --- CARD RECEITA DO MÊS ---
-    card_receita = ft.Container(
-        padding=20,
-        border_radius=20,
-        bgcolor=cor_fundo_container,
-        border=ft.border.all(1, cor_borda),
+    # --- GRÁFICO COM LINHAS DE GRADE ---
+    card_vendas_qtd = ft.Container(
+        bgcolor=cor_fundo_container, padding=25, border_radius=25, border=ft.border.all(1, cor_borda),
         content=ft.Column([
-            ft.Text("RECEITA DO MÊS", size=12, color=cor_texto_secundario, weight="bold"),
-            ft.Row([
-                ft.Text(
-                    f"R$ {dados['receita']:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."),
-                    size=26,
-                    weight=ft.FontWeight.BOLD,
-                    color=ft.Colors.GREEN_ACCENT_400 if is_dark else ft.Colors.GREEN_700,
-                ),
-                ft.Container(
-                    content=ft.Text("LIVE", size=12, color=ft.Colors.GREEN, weight="bold"),
-                    bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.GREEN),
-                    padding=5,
-                    border_radius=5
-                ),
-            ], alignment="spaceBetween"),
-            ft.Text("Dados reais do banco de dados", size=10, color=cor_texto_secundario),
-        ]),
-    )
-
-    # --- CARD VOLUME SEMANAL ---
-    valores_grafico = [0, 0, 0, 0, 0]
-    for v in dados['vendas_semanais']:
-        index = v['dia'] - 2 
-        if 0 <= index <= 4:
-            valores_grafico[index] = v['qtd']
-
-    card_volume = ft.Container(
-        bgcolor=cor_fundo_container,
-        padding=20,
-        border_radius=25,
-        border=ft.border.all(1, cor_borda),
-        content=ft.Column([
-            ft.Text("VOLUME DE VENDAS (SEG-SEX)", size=12, color=cor_texto_secundario, weight="bold"),
+            ft.Text("QUANTIDADE DE PRODUTOS VENDIDOS", size=11, color=cor_texto_secundario, weight="bold"),
             ft.Container(
-                height=200,
+                height=180,
                 content=fch.BarChart(
+                    max_y=limite_y,
                     interactive=True,
-                    max_y=max(valores_grafico) + 5 if valores_grafico else 10,
+                    # REMOVIDO O 'DASH' PARA NÃO DAR ERRO
+                    horizontal_grid_lines=fch.ChartGridLines(
+                        color=ft.Colors.with_opacity(0.1, cor_texto_principal),
+                        width=1
+                    ),
+                    left_axis=fch.ChartAxis(
+                        labels=[fch.ChartAxisLabel(value=i, label=ft.Text(str(i), size=10, color=cor_texto_secundario)) 
+                               for i in range(0, int(limite_y) + 500, passo_y)]
+                    ),
                     bottom_axis=fch.ChartAxis(
-                        labels=[
-                            fch.ChartAxisLabel(value=0, label=ft.Text("S", color=cor_texto_principal)),
-                            fch.ChartAxisLabel(value=1, label=ft.Text("T", color=cor_texto_principal)),
-                            fch.ChartAxisLabel(value=2, label=ft.Text("Q", color=cor_texto_principal)),
-                            fch.ChartAxisLabel(value=3, label=ft.Text("Q", color=cor_texto_principal)),
-                            fch.ChartAxisLabel(value=4, label=ft.Text("S", color=cor_texto_principal)),
-                        ]
+                        labels=[fch.ChartAxisLabel(value=i, label=ft.Text(dias_semana[i], color=cor_texto_principal, weight="bold")) 
+                               for i in range(5)]
                     ),
                     groups=[
-                        fch.BarChartGroup(x=i, rods=[fch.BarChartRod(from_y=0, to_y=v, width=30, color="#4FC3F7", border_radius=5)]) 
-                        for i, v in enumerate(valores_grafico)
-                    ],
+                        fch.BarChartGroup(
+                            x=i, 
+                            rods=[fch.BarChartRod(from_y=0, to_y=v, width=25, color="#08D345", border_radius=5)]
+                        ) for i, v in enumerate(qtd_produtos)
+                    ]
                 )
             )
         ])
     )
 
-    # --- RANKING VENDEDORES ---
     def item_vendedor(nome, vendas, valor):
         return ft.Container(
-            padding=12,
-            border_radius=15,
-            bgcolor=cor_fundo_container if is_dark else "#FFFFFF",
+            padding=15, border_radius=15, bgcolor=cor_fundo_container if is_dark else "#FFFFFF",
             border=ft.border.all(1, ft.Colors.with_opacity(0.1, cor_texto_principal)),
             content=ft.Row([
                 ft.Column([
-                    ft.Text(nome, weight="bold", color=cor_texto_principal),
-                    ft.Text(f"{vendas} VENDAS", size=11, color=cor_texto_secundario),
-                ], spacing=2),
-                ft.Text(f"R$ {valor:,.2f}", weight="bold", color=ft.Colors.GREEN),
-            ], alignment="spaceBetween"),
+                    ft.Text(nome, weight="bold", color=cor_texto_principal), 
+                    ft.Text(f"{vendas} PRODUTOS", size=10, color=cor_texto_secundario)
+                ], spacing=2, expand=True),
+                ft.Text(f"{formatar_moeda(valor)}", weight="bold", color="#08D345"),
+            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
         )
 
     coluna_ranking = ft.Column(spacing=10)
-    for v in dados['ranking']:
-        coluna_ranking.controls.append(
-            item_vendedor(v['nome_user'], v['qtd_vendas'], v['valor_total'] or 0.0)
-        )
+    for v in dados.get('ranking', []):
+        coluna_ranking.controls.append(item_vendedor(v['nome_user'], v['qtd_vendas'], v['valor_total']))
 
-    ranking = ft.Container(
-        padding=20,
-        border_radius=20,
-        bgcolor=cor_fundo_container,
-        border=ft.border.all(1, cor_borda),
-        content=ft.Column([
-            ft.Text("RANKING DO MÊS", size=12, color=cor_texto_secundario, weight="bold"),
-            ft.Divider(height=10, color="transparent"),
-            coluna_ranking
-        ]),
-    )
-
-    # Montagem da lista principal
-    conteudo_principal = ft.ListView(
+    conteudo = ft.ListView(
+        expand=True, padding=20,
         controls=[
             ft.Text("Consolidação", size=28, weight="bold", color=cor_texto_principal),
-            ft.Text("Confira os resultados reais do sistema", size=14, color=cor_texto_secundario),
-            ft.Container(height=15),
-            btn_registrar_venda, # Botão adicionado aqui
-            ft.Container(height=15),
-            card_receita,
-            ft.Container(height=15),
-            card_volume,
-            ft.Container(height=15),
-            ranking,
-            ft.Container(height=100),
-        ],
-        padding=20,
-        expand=True,
+            ft.Container(height=10),
+            ft.Container(
+                content=ft.Row([ft.Icon(ft.Icons.ADD_SHOPPING_CART, color="white"), ft.Text("REGISTRAR NOVA VENDA", color="white", weight="bold")], alignment="center"),
+                bgcolor="#1B4F9C", padding=15, border_radius=15, on_click=lambda _: on_venda()
+            ),
+            ft.Container(height=20),
+            
+            ft.Container(
+                padding=25, border_radius=20, bgcolor=cor_fundo_container, border=ft.border.all(1, cor_borda),
+                content=ft.Column([
+                    ft.Row([
+                        ft.Column([
+                            ft.Text("RECEITA ATUAL", size=11, color=cor_texto_secundario, weight="bold"),
+                            ft.Text(formatar_moeda(receita_atual), size=28, weight="bold", color="#08D345"),
+                        ], expand=True),
+                        ft.Container(
+                            content=ft.Icon(ft.Icons.TRENDING_UP, color="#08D345", size=30),
+                            padding=10, border_radius=12, bgcolor=ft.Colors.with_opacity(0.1, "#08D345")
+                        )
+                    ]),
+                    ft.Divider(color=ft.Colors.WHITE10, height=20),
+                    ft.Row([
+                        ft.Icon(ft.Icons.TRACK_CHANGES, color="red", size=16),
+                        ft.Text(f"META (+8%): {formatar_moeda(meta_valor)}", size=12, color=cor_texto_secundario)
+                    ])
+                ])
+            ),
+            ft.Container(height=20),
+            card_vendas_qtd,
+            ft.Container(height=25),
+            ft.Text("RANKING FINANCEIRO", size=12, color=cor_texto_secundario, weight="bold"),
+            coluna_ranking,
+            ft.Container(height=100)
+        ]
     )
 
-    page.add(conteudo_principal)
+    page.appbar = ft.AppBar(
+        bgcolor="#0b1445", toolbar_height=70,
+        title=ft.Text("Vende de Tudo", size=20, weight="bold", color="white"),
+        center_title=True, 
+        actions=[ft.IconButton(icon=ft.Icons.EXIT_TO_APP, icon_color="white", on_click=lambda _: on_logout())]
+    )
 
-    # --- NAVEGAÇÃO ---
+    page.add(conteudo)
+
     def trocar_aba(e):
         idx = e.control.selected_index
-        if idx == 0: pass # Já está na Home
-        elif idx == 1: on_vendas()
+        if idx == 1: on_vendas()
         elif idx == 2: on_stock()
         elif idx == 3: on_users()
         elif idx == 4: on_perfil()
 
-    nav = ft.NavigationBar(
-        bgcolor="#0b1445",
-        selected_index=0,
-        on_change=trocar_aba,
-        # ... destinations iguais aos outros
-    
-        destinations=[
-            ft.NavigationBarDestination(icon=ft.Icons.HOME_OUTLINED, selected_icon=ft.Icons.HOME, label="Inicial"),
-            ft.NavigationBarDestination(icon=ft.Icons.LIST_ALT_OUTLINED, label="Vendas"),
-            ft.NavigationBarDestination(icon=ft.Icons.INVENTORY_2_OUTLINED, selected_icon=ft.Icons.INVENTORY_2, label="Estoque"),
-            ft.NavigationBarDestination(icon=ft.Icons.GROUP_OUTLINED, selected_icon=ft.Icons.GROUP, label="Usuários"),
-            ft.NavigationBarDestination(icon=ft.Icons.PERSON_OUTLINE, selected_icon=ft.Icons.PERSON, label="Perfil"),
-        ]
-    )
-
     page.navigation_bar = ft.Container(
-        content=nav,
+        content=ft.NavigationBar(
+            bgcolor="#0b1445", selected_index=0, on_change=trocar_aba,
+            destinations=[
+                ft.NavigationBarDestination(icon=ft.Icons.HOME_OUTLINED, selected_icon=ft.Icons.HOME, label="Inicial"),
+                ft.NavigationBarDestination(icon=ft.Icons.LIST_ALT_OUTLINED, label="Vendas"),
+                ft.NavigationBarDestination(icon=ft.Icons.INVENTORY_2_OUTLINED, label="Estoque"),
+                ft.NavigationBarDestination(icon=ft.Icons.GROUP_OUTLINED, label="Usuários"),
+                ft.NavigationBarDestination(icon=ft.Icons.PERSON_OUTLINE, label="Perfil"),
+            ]
+        ),
         margin=ft.margin.only(left=25, right=25, bottom=30),
-        border_radius=40, 
-        clip_behavior=ft.ClipBehavior.ANTI_ALIAS,
+        border_radius=40, clip_behavior=ft.ClipBehavior.ANTI_ALIAS
     )
-
     page.update()

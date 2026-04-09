@@ -11,7 +11,7 @@ from editar_usuario import editar_usuario
 from configuracoes import configuracoes_page
 from desativar_usuario import tela_desativar_usuario
 from registrar_venda import tela_registrar_venda
-from vendas import vendas
+from gerenciar_vendas import gerenciar_vendas
 
 def main(page: ft.Page):
     page.title = "Vende de Tudo"
@@ -83,7 +83,7 @@ def main(page: ft.Page):
         )
 
     def carregar_vendas():
-        vendas(
+        gerenciar_vendas(
             page,
             on_logout=fazer_logout,
             on_home=carregar_home,
@@ -172,4 +172,5 @@ def main(page: ft.Page):
     
     carregar_login()
 
-ft.app(main)
+
+ft.app(target=main)
