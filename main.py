@@ -14,48 +14,47 @@ from registrar_venda import tela_registrar_venda
 from gerenciar_vendas import gerenciar_vendas
 from gerenciar_fornecedores import tela_fornecedores
 from novo_fornecedor import novo_fornecedor
+from database import buscar_tema_db
 
 def main(page: ft.Page):
     page.title = "Vende de Tudo"
     page.padding = 20
+    page.user_data = None
     
-    # --- CONFIGURAÇÃO INICIAL DE TEMA ---
-    try:
-        if hasattr(page, "client_storage") and page.client_storage:
-            tema_salvo = page.client_storage.get("app_theme")
-        else:
-            tema_salvo = None
-    except Exception:
-        tema_salvo = None
-
-    page.theme_mode = tema_salvo if tema_salvo else ft.ThemeMode.DARK
-    
+    page.window_width = 400
+    page.window_height = 800
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
 
     # --- FUNÇÃO GLOBAL PARA ALTERAR TEMA ---
-    def alterar_tema(modo):
-        if modo == "dark":
+    def aplicar_tema_visual(eh_dark):
+        """Aplica o tema visualmente na página"""
+        if eh_dark:
             page.theme_mode = ft.ThemeMode.DARK
-            page.bgcolor = "#000000"  # Fundo escuro global
+            page.bgcolor = "#000000"
         else:
             page.theme_mode = ft.ThemeMode.LIGHT
-            page.bgcolor = "#F0F4FF"  # Fundo claro global
-        
-        try:
-            if hasattr(page, "client_storage") and page.client_storage:
-                page.client_storage.set("app_theme", modo)
-        except:
-            pass
-        
+            page.bgcolor = "#F0F4FF"
         page.update()
-        carregar_config()
 
     # ---------------------------
     # Funções de Navegação
     # ---------------------------
 
-    def carregar_home():
+    def carregar_home(dados_usuario=None):
+        if dados_usuario:
+            page.user_data = dados_usuario
+            
+            # --- NOVO: Ao entrar na home (pós-login), aplica o tema do banco ---
+            id_atual = dados_usuario.get('id_user') or dados_usuario.get('id_use')
+            try:
+                # O banco retorna 1 para Dark, 0 para Light
+                tema_db = buscar_tema_db(id_atual)
+                aplicar_tema_visual(eh_dark=(tema_db == 1))
+            except:
+                aplicar_tema_visual(eh_dark=True) # Fallback
+
+        page.controls.clear()
         home_page(
             page,
             on_logout=fazer_logout,
@@ -63,8 +62,9 @@ def main(page: ft.Page):
             on_users=carregar_usuarios,
             on_perfil=carregar_perfil,
             on_venda=carregar_registrar_venda,
-            on_vendas=carregar_vendas,
+            on_vendas=carregar_vendas
         )
+        page.update()
 
     def carregar_fornecedores():
         tela_fornecedores(
@@ -77,15 +77,10 @@ def main(page: ft.Page):
         )
 
     def carregar_novo_fornecedor():
-        novo_fornecedor(
-            page,
-            on_voltar=carregar_fornecedores)
+        novo_fornecedor(page, on_voltar=carregar_fornecedores)
 
     def carregar_registrar_venda():
-        tela_registrar_venda(
-            page,
-            on_voltar=carregar_home
-        )
+        tela_registrar_venda(page, on_voltar=carregar_home)
 
     def carregar_stock():
         estoque(
@@ -111,7 +106,6 @@ def main(page: ft.Page):
             on_registrar_venda=carregar_registrar_venda
         )
 
-
     def carregar_usuarios():
         usuarios(
             page, 
@@ -122,59 +116,50 @@ def main(page: ft.Page):
             on_perfil=carregar_perfil,
             on_adicionar_usuario=carregar_novo_usuario,
             on_editar_usuario=carregar_editar_usuario,
-            on_desativar_usuario=carregar_desativar_usuario
+            on_desativar_usuario=carregar_desativar_usuario,
+            user_data=page.user_data
         )
         
     def carregar_perfil():
         perfil_page(
             page, 
-            on_home=carregar_home,
+            on_home=lambda: carregar_home(page.user_data),
             on_stock=carregar_stock,
             on_vendas=carregar_vendas,
             on_users=carregar_usuarios,
             on_logout=fazer_logout,
-            on_config=carregar_config
+            on_config=carregar_config,
         )
 
     def carregar_config():
         configuracoes_page(
             page,
             on_back=carregar_perfil,
-            on_change_theme=alterar_tema
+            user_data=page.user_data # Passando os dados para salvar o tema
         )
 
     def fazer_logout():
+        page.user_data = None
         page.navigation_bar = None
-        page.controls.clear()
+        page.appbar = None
         carregar_login()
-        page.update()
         
     def carregar_novo_produto():
         produto(page, on_stock=carregar_stock)
 
     def carregar_editar_produto(id_prod):
-        editar_produto(
-            page, 
-            id_produto=id_prod, 
-            on_stock=carregar_stock
-        )
+        editar_produto(page, id_produto=id_prod, on_stock=carregar_stock)
 
     def carregar_novo_usuario():
         novo_usuario(page, on_users=carregar_usuarios)
 
-    def carregar_editar_usuario(id_user): # <--- Adicionei o id_user aqui
-        editar_usuario(
-            page, 
-            id_usuario=id_user, # <--- Passa o ID para a tela de editar
-            on_users=carregar_usuarios
-        )
+    def carregar_editar_usuario(id_user):
+        editar_usuario(page, id_usuario=id_user, on_users=carregar_usuarios)
 
-    # --- CORREÇÃO AQUI ---
-    def carregar_desativar_usuario(dados_usuario):
-        # Invertendo a ordem e usando nomes para garantir que o Python não se confunda
+    def carregar_desativar_usuario(dados_do_usuario_alvo):
         tela_desativar_usuario(
             page=page, 
-            user_data=dados_usuario, 
+            user_data=dados_do_usuario_alvo, 
             on_voltar=carregar_usuarios
         )
 
@@ -182,14 +167,11 @@ def main(page: ft.Page):
         page.appbar = None
         page.navigation_bar = None
         page.controls.clear()
+        # Reset para tema claro no login para melhor leitura
+        aplicar_tema_visual(eh_dark=False)
         page.add(login_view(page, on_login_sucesso=carregar_home))
         page.update()
 
-    # Configurações de janela
-    page.window_width = 400
-    page.window_height = 800
-    
     carregar_login()
-
 
 ft.app(target=main)

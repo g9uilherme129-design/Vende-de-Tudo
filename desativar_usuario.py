@@ -1,9 +1,13 @@
 import flet as ft
 from datetime import datetime
-from database import desativar_usuario_db # Importe a função nova
+from database import desativar_usuario_db
 
 def tela_desativar_usuario(page: ft.Page, user_data, on_voltar):
     page.controls.clear()
+    
+    # DADOS DO ADMINISTRADOR (QUEM ESTÁ LOGADO)
+    # Pegamos do page.user_data que você configurou no main.py
+    admin_data = page.user_data 
     
     is_dark = page.theme_mode == ft.ThemeMode.DARK
     cor_texto = ft.Colors.WHITE if is_dark else ft.Colors.BLACK
@@ -17,7 +21,7 @@ def tela_desativar_usuario(page: ft.Page, user_data, on_voltar):
             icon_color="white",
             on_click=lambda _: on_voltar()
         ),
-        title=ft.Text("Desativar Usuário", size=20, weight="bold", color="white"),
+        title=ft.Text("Confirmar Desativação", size=20, weight="bold", color="white"),
         bgcolor="#0b1445",
         center_title=True,
     )
@@ -47,15 +51,16 @@ def tela_desativar_usuario(page: ft.Page, user_data, on_voltar):
         return container, input_field
 
     motivo_container, motivo_input = estilo_input("MOTIVO DA DESATIVAÇÃO", hint="Ex: Solicitação do colaborador...", multiline=True)
-    senha_container, senha_input = estilo_input("DEFINIR SENHA DE PROTOCOLO", hint="Senha para futura reativação", password=True)
+    
+    # MUDANÇA AQUI: Agora pede a SUA senha de acesso
+    senha_container, senha_input = estilo_input("SUA SENHA DE ADMINISTRADOR", hint="Digite sua senha para confirmar", password=True)
 
     info_user = ft.Container(
         content=ft.Row([
             ft.Icon(ft.Icons.PERSON_OFF, color=cor_alerta, size=30),
             ft.Column([
-                # IMPORTANTE: usei 'id_user' em vez de 'codigo' para bater com o banco
-                ft.Text(f"Usuário: {user_data.get('nome', 'N/A')}", size=16, weight="bold", color=cor_texto),
-                ft.Text(f"ID: {user_data.get('id_user', 'N/A')}", size=12, color=ft.Colors.GREY_500),
+                ft.Text(f"Desativando: {user_data.get('nome_user', 'N/A')}", size=16, weight="bold", color=cor_texto),
+                ft.Text(f"ID do Alvo: {user_data.get('id_user', 'N/A')}", size=12, color=ft.Colors.GREY_500),
             ], spacing=0)
         ]),
         padding=10,
@@ -64,32 +69,43 @@ def tela_desativar_usuario(page: ft.Page, user_data, on_voltar):
     )
 
     def confirmar_desativacao(e):
+        # 1. Verifica se os campos estão vazios
         if not motivo_input.value or not senha_input.value:
-            page.snack_bar = ft.SnackBar(ft.Text("Preencha todos os campos!"), bgcolor="orange")
+            page.snack_bar = ft.SnackBar(ft.Text("Preencha o motivo e sua senha!"), bgcolor="orange")
             page.snack_bar.open = True
             page.update()
             return
-        
-        # LOGICA DO BANCO AQUI
+
+        # 2. VALIDAÇÃO DE SEGURANÇA: Compara a senha digitada com a senha do admin logado
+        # Buscamos 'senha_user' que veio do banco no login
+        senha_correta = admin_data.get('senha_user')
+
+        if senha_input.value != senha_correta:
+            page.snack_bar = ft.SnackBar(ft.Text("Senha de administrador incorreta!"), bgcolor="red")
+            page.snack_bar.open = True
+            page.update()
+            return
+
+        # 3. Se a senha estiver certa, desativa no banco
+        # Removi o argumento 'senha_protocolo' já que agora usamos a do admin
         sucesso = desativar_usuario_db(
-            id_usuario=user_data['id_user'], 
-            motivo=motivo_input.value, 
-            senha_protocolo=senha_input.value
+            id_usuario=user_data['id_user'],
+            motivo=motivo_input.value,
+            admin_nome=admin_data.get('nome_user')
         )
 
         if sucesso:
-            page.snack_bar = ft.SnackBar(ft.Text("Usuário desativado com sucesso!"), bgcolor="green")
+            page.snack_bar = ft.SnackBar(ft.Text(f"Usuário {user_data['nome_user']} desativado!"), bgcolor="green")
             page.snack_bar.open = True
             page.update()
             import time
             time.sleep(1)
             on_voltar()
         else:
-            page.snack_bar = ft.SnackBar(ft.Text("Erro ao acessar o banco de dados!"), bgcolor="red")
+            page.snack_bar = ft.SnackBar(ft.Text("Erro ao desativar no banco de dados!"), bgcolor="red")
             page.snack_bar.open = True
             page.update()
 
-    # Layout responsivo centralizado (padrão 400px)
     form_content = ft.Column(
         horizontal_alignment=ft.CrossAxisAlignment.CENTER,
         width=400,
@@ -99,7 +115,7 @@ def tela_desativar_usuario(page: ft.Page, user_data, on_voltar):
             ft.Divider(height=10, color="transparent"),
             motivo_container,
             senha_container,
-            ft.Text(f"Data: {datetime.now().strftime('%d/%m/%Y %H:%M')}", size=11, color=ft.Colors.GREY_500),
+            ft.Text(f"Operação realizada por: {admin_data.get('nome_user')}", size=11, color=ft.Colors.GREY_500),
             ft.Divider(height=20, color="transparent"),
             ft.ElevatedButton(
                 "Confirmar Desativação",
@@ -109,13 +125,6 @@ def tela_desativar_usuario(page: ft.Page, user_data, on_voltar):
                 style=ft.ButtonStyle(bgcolor=cor_alerta, color="white", shape=ft.RoundedRectangleBorder(radius=10))
             ),
             ft.TextButton("Cancelar", on_click=lambda _: on_voltar(), width=400),
-            ft.Container(
-                content=ft.Text(
-                    "Atenção: A senha definida será necessária para reativar este usuário no futuro.",
-                    size=11, color="orange", italic=True, text_align=ft.TextAlign.CENTER
-                ),
-                padding=20
-            )
         ]
     )
 

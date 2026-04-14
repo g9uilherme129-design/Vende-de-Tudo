@@ -109,10 +109,17 @@ def gerenciar_vendas(page: ft.Page, on_home, on_users, on_perfil, on_stock, on_r
     
     def trocar_aba(e):
         idx = e.control.selected_index
-        if idx == 0: on_home()
-        elif idx == 2: on_stock()
-        elif idx == 3: on_users()
-        elif idx == 4: on_perfil()
+        if idx == 0: 
+            # Chama sem passar nada, o main.py agora sabe usar o page.user_data
+            on_home() 
+        elif idx == 1: 
+            pass # Já está em vendas
+        elif idx == 2: 
+            on_stock()
+        elif idx == 3: 
+            on_users()
+        elif idx == 4: 
+            on_perfil()
 
     page.navigation_bar = ft.Container(
         content=ft.NavigationBar(

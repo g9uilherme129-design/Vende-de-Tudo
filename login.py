@@ -1,4 +1,6 @@
 import flet as ft
+from database import validar_login 
+import time
 
 def login_view(page: ft.Page, on_login_sucesso):
     page.bgcolor = "#050505" 
@@ -6,15 +8,34 @@ def login_view(page: ft.Page, on_login_sucesso):
     
     mensagem = ft.Text(value="", color=ft.Colors.RED_400, size=12, weight="bold")
 
-    def login(e):
-        if usuario.value == "admin" and senha.value == "1234":
+    # --- FUNÇÃO DE LOGIN CONECTADA AO BANCO ---
+    def realizar_login(e):
+        if not usuario.value or not senha.value:
+            mensagem.value = "Por favor, preencha todos os campos."
+            page.update()
+            return
+
+        # Chama a função do banco de dados
+        sucesso, resultado = validar_login(usuario.value, senha.value)
+
+        if sucesso:
+            # SINALIZANDO SUCESSO NA UI
+            mensagem.value = f"Bem-vindo, {resultado.get('nome_user', 'Usuário')}!"
+            mensagem.color = ft.Colors.GREEN_400
+            page.update()
             
-            on_login_sucesso()
+            # Pequeno delay para feedback visual
+            time.sleep(1) 
+            
+            # MANDANDO OS DADOS DIRETO PARA O MAIN
+            # Agora on_login_sucesso deve aceitar um argumento (ex: carregar_home(user))
+            on_login_sucesso(resultado)
         else:
-            mensagem.value = "E-mail ou senha incorretos ou usuário inativo."
+            mensagem.value = resultado 
+            mensagem.color = ft.Colors.RED_400
             page.update()
 
-    # Reaproveitando seu estilo de campo
+    # --- ESTILO DO CAMPO (TextField Personalizado) ---
     def estilo_campo(label, password=False, suffix=None, on_submit=None):
         return ft.TextField(
             label=label,
@@ -28,10 +49,10 @@ def login_view(page: ft.Page, on_login_sucesso):
             color=ft.Colors.WHITE,
             expand=True,
             suffix=suffix,
-            on_submit=on_submit
+            on_submit=on_submit 
         )
 
-    usuario = estilo_campo("Usuário")
+    usuario = estilo_campo("Usuário ou E-mail")
     
     def toggle_password(e):
         senha.password = not senha.password
@@ -41,7 +62,7 @@ def login_view(page: ft.Page, on_login_sucesso):
     senha = estilo_campo(
         label="Senha", 
         password=True, 
-        on_submit=login,
+        on_submit=realizar_login,
         suffix=ft.IconButton(
             icon=ft.Icons.VISIBILITY,
             icon_color=ft.Colors.BLUE_GREY_200,
@@ -70,10 +91,9 @@ def login_view(page: ft.Page, on_login_sucesso):
             shape=ft.RoundedRectangleBorder(radius=12),
             elevation=5
         ),
-        on_click=login,
+        on_click=realizar_login,
     )
 
-    # Logo (Certifique-se que o caminho da imagem está correto no seu projeto)
     logo = ft.Image(
         src="imgs/icon.png",
         width=200,
@@ -81,16 +101,10 @@ def login_view(page: ft.Page, on_login_sucesso):
         fit="contain",
     )
 
-
     card_login = ft.Container(
         content=ft.Column(
            [
-                ft.Text(
-                    "LOGIN",
-                    size=30,
-                    weight=ft.FontWeight.BOLD,
-                    color="white",
-                ),
+                ft.Text("LOGIN", size=30, weight=ft.FontWeight.BOLD, color="white"),
                 ft.Divider(height=10, color="transparent"),
                 usuario,
                 senha,

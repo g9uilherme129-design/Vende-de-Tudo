@@ -1,16 +1,26 @@
 import flet as ft
+from database import salvar_tema_db
 
-def configuracoes_page(page: ft.Page, on_back, on_change_theme):
+def configuracoes_page(page: ft.Page, on_back, user_data): # Adicionei user_data como parâmetro
     page.controls.clear()
     
-    # Cores adaptáveis para a tela de config
     is_dark = page.theme_mode == ft.ThemeMode.DARK
     cor_texto = "white" if is_dark else "black"
     
-    def alternar_tema(e):
-        # Se estiver dark, muda para light e vice-versa
-        novo_modo = "light" if page.theme_mode == ft.ThemeMode.DARK else "dark"
-        on_change_theme(novo_modo)
+    def alterar_tema(e):
+        # e.control.value já é True ou False (do Switch)
+        novo_valor_dark = e.control.value 
+        
+        # 1. Aplica visualmente no app
+        page.theme_mode = ft.ThemeMode.DARK if novo_valor_dark else ft.ThemeMode.LIGHT
+        
+        # 2. Salva no banco (o database.py vai converter True/False para 1/0)
+        user_id = user_data.get('id_user') or user_data.get('id_use')
+        if user_id:
+            salvar_tema_db(user_id, novo_valor_dark)
+        
+        # 3. Atualiza a página para refletir as cores
+        configuracoes_page(page, on_back, user_data)
 
     page.appbar = ft.AppBar(
         leading=ft.IconButton(ft.Icons.ARROW_BACK, icon_color="white", on_click=lambda _: on_back()),
@@ -19,19 +29,20 @@ def configuracoes_page(page: ft.Page, on_back, on_change_theme):
         center_title=True,
     )
 
-    # Componente de mudar tema
     btn_tema = ft.Container(
         content=ft.Row(
             [
-                ft.Icon(
-                    ft.Icons.WB_SUNNY if not is_dark else ft.Icons.NIGHTLIGHT_ROUND, 
-                    color="#00bcd4"
-                ),
-                ft.Text("Tema do Aplicativo", size=16, color=cor_texto, expand=True),
+                ft.Row([
+                    ft.Icon(
+                        ft.Icons.WB_SUNNY if not is_dark else ft.Icons.NIGHTLIGHT_ROUND, 
+                        color="#00bcd4"
+                    ),
+                    ft.Text("Tema do Aplicativo", size=16, color=cor_texto),
+                ], spacing=10),
                 ft.Switch(
                     value=is_dark,
-                    active_color="#00bcd4",
-                    on_change=alternar_tema
+                    active_color="#4CAF50",
+                    on_change=alterar_tema
                 ),
             ],
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
@@ -42,7 +53,7 @@ def configuracoes_page(page: ft.Page, on_back, on_change_theme):
     )
 
     page.add(
-        ft.Container( # Usamos o Container para dar o padding com segurança
+        ft.Container(
             content=ft.Column(
                 [
                     ft.Text("Aparência", size=20, weight="bold", color=cor_texto),
@@ -51,12 +62,12 @@ def configuracoes_page(page: ft.Page, on_back, on_change_theme):
                     ft.Text(
                         "Alterne entre o modo claro e escuro para melhor visualização.",
                         size=12,
-                        color=ft.Colors.BLUE
+                        color=ft.Colors.BLUE if not is_dark else ft.Colors.BLUE_200
                     ),
                 ],
                 spacing=10,
             ),
-            padding=20 # O padding fica aqui no Container
+            padding=20
         )
     )
     page.update()

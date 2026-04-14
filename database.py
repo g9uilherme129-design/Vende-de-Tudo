@@ -1,4 +1,5 @@
 import mysql.connector
+from datetime import datetime
 
 def get_connection():
     return mysql.connector.connect(
@@ -40,55 +41,20 @@ def garantir_dependencias():
 def buscar_usuarios_db():
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM usuario")
-    res = cursor.fetchall()
-    conn.close()
-    return res
-
-def buscar_usuario_por_id(id_user):
-    conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM usuario WHERE id_user = %s", (id_user,))
-    res = cursor.fetchone()
-    conn.close()
-    return res
-
-def cadastrar_usuario_db(id_user, nome, cpf, email, senha, perfil, salario):
-    conn = get_connection()
-    cursor = conn.cursor()
     try:
-        query = """
-            INSERT INTO usuario (id_user, nome_user, cpf, email_user, senha_user, perfil, salario, status_user)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, TRUE)
-        """
-        # O float(salario) é vital para não dar erro de Decimal
-        cursor.execute(query, (id_user, nome, cpf, email, senha, perfil, float(salario)))
-        conn.commit()
-        return True, "Usuário cadastrado com sucesso!"
-    except Exception as e:
-        conn.rollback()
-        print(f"Erro no Banco: {e}")
-        return False, str(e)
-    finally:
-        conn.close()
-
-def buscar_usuarios_db():
-    conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
-    try:
-        # Busca todos os dados do usuário + contagem de vendas na tabela 'venda'
+        # Mudamos u.id_user para u.id_user
         query = """
             SELECT 
                 u.*, 
                 COUNT(v.id_venda) as total_vendas
             FROM usuario u
             LEFT JOIN venda v ON u.id_user = v.id_user
+            WHERE u.status_user = 1
             GROUP BY u.id_user
         """
         cursor.execute(query)
         usuarios = []
         for row in cursor.fetchall():
-            # Força o salário a ser float para não dar erro de serialização
             row['salario'] = float(row['salario']) if row['salario'] else 0.0
             usuarios.append(row)
         return usuarios
@@ -98,15 +64,143 @@ def buscar_usuarios_db():
     finally:
         conn.close()
 
-def desativar_usuario_db(id_usuario):
+def atualizar_usuario_db(id_user, nome, cpf, email, perfil, salario, senha=None):
     conn = get_connection()
     cursor = conn.cursor()
     try:
+        # Onde estava id_user no WHERE, agora é id_user
+        if senha and senha.strip() != "":
+            sql = "UPDATE usuario SET nome_user=%s, cpf=%s, email_user=%s, perfil=%s, salario=%s, senha_user=%s WHERE id_user=%s"
+            valores = (nome, cpf, email, perfil, float(salario), senha, id_user)
+        else:
+            sql = "UPDATE usuario SET nome_user=%s, cpf=%s, email_user=%s, perfil=%s, salario=%s WHERE id_user=%s"
+            valores = (nome, cpf, email, perfil, float(salario), id_user)
+        
+        cursor.execute(sql, valores)
+        conn.commit()
+        return True, "Sucesso"
+    except Exception as e:
+        print(f"Erro no Banco: {e}")
+        return False, str(e)
+    finally:
+        conn.close()
+
+def desativar_usuario_db(id_usuario, motivo=None): # Adicionei o motivo como opcional
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        # O SQL continua desativando pelo status
         cursor.execute("UPDATE usuario SET status_user = 0 WHERE id_user = %s", (id_usuario,))
         conn.commit()
         return True
-    except: return False
+    except Exception as e:
+        print(f"Erro ao desativar: {e}")
+        return False
+    finally:
+        conn.close()
+
+def cadastrar_usuario_db(id_user, nome, cpf, email, senha, perfil, salario):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        query = """
+            INSERT INTO usuario (id_user, nome_user, cpf, email_user, senha_user, perfil, salario, status_user)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, TRUE)
+        """
+        cursor.execute(query, (id_user, nome, cpf, email, senha, perfil, float(salario)))
+        conn.commit()
+        return True, "Sucesso"
+    except Exception as e:
+        print(f"Erro ao cadastrar: {e}")
+        return False, str(e)
     finally: conn.close()
+
+def buscar_usuarios_db():
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        query = """
+            SELECT 
+                u.*, 
+                COUNT(v.id_venda) as total_vendas
+            FROM usuario u
+            LEFT JOIN venda v ON u.id_user = v.id_user  -- ANTES ESTAVA id_use AQUI
+            WHERE u.status_user = 1
+            GROUP BY u.id_user
+        """
+        cursor.execute(query)
+        usuarios = []
+        for row in cursor.fetchall():
+            row['salario'] = float(row['salario']) if row['salario'] else 0.0
+            usuarios.append(row)
+        return usuarios
+    except Exception as e:
+        print(f"Erro no Banco: {e}")
+        return []
+    finally:
+        conn.close()
+
+def buscar_usuario_por_id(id_user):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        # Busca usando o nome real da coluna 'id_user'
+        cursor.execute("SELECT *, id_user as id_user FROM usuario WHERE id_user = %s", (id_user,))
+        return cursor.fetchone()
+    finally:
+        conn.close()
+
+def atualizar_usuario_db(id_user, nome, cpf, email, perfil, salario, senha=None):
+    try:
+        conn = get_connection()
+        cursor = conn.cursor()
+        
+        # MUDANÇA AQUI: de id_user para id_user no WHERE
+        if senha and senha.strip() != "":
+            sql = """
+                UPDATE usuario 
+                SET nome_user=%s, cpf=%s, email_user=%s, perfil=%s, salario=%s, senha_user=%s 
+                WHERE id_user=%s
+            """
+            valores = (nome, cpf, email, perfil, float(salario), senha, id_user)
+        else:
+            sql = """
+                UPDATE usuario 
+                SET nome_user=%s, cpf=%s, email_user=%s, perfil=%s, salario=%s 
+                WHERE id_user=%s
+            """
+            valores = (nome, cpf, email, perfil, float(salario), id_user)
+            
+        cursor.execute(sql, valores)
+        conn.commit()
+        return True, "Sucesso"
+    except Exception as e:
+        print(f"Erro no Banco: {e}") 
+        return False, str(e)
+    finally:
+        conn.close()
+
+def desativar_usuario_db(id_usuario, motivo, admin_nome):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        agora = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        sql = """
+            UPDATE usuario 
+            SET status_user = 0, 
+                motivo_desat = %s, 
+                data_desat = %s, 
+                admin_desat = %s 
+            WHERE id_user = %s
+        """
+        cursor.execute(sql, (motivo, agora, admin_nome, id_usuario))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"Erro ao desativar: {e}")
+        return False
+    finally:
+        conn.close()
 
 # --- 2. FUNÇÕES DE ESTOQUE ---
 def buscar_produtos_estoque():
@@ -308,22 +402,32 @@ def buscar_usuario_por_id(id_user):
     finally:
         conn.close()
 
-def atualizar_usuario_db(id_user, nome, cpf, email, perfil, salario):
-    conn = get_connection()
-    cursor = conn.cursor()
+def atualizar_usuario_db(id_user, nome, cpf, email, perfil, salario, senha=None):
     try:
-        query = """
-            UPDATE usuario 
-            SET nome_user = %s, cpf = %s, email_user = %s, perfil = %s, salario = %s 
-            WHERE id_user = %s
-        """
-        # Forçamos o salario para float para evitar erro de Decimal/Serialização
-        cursor.execute(query, (nome, cpf, email, perfil, float(salario), id_user))
+        conn = get_connection()
+        cursor = conn.cursor()
+        
+        # Note que usei 'id_user' no WHERE porque é como está no seu VS Code
+        if senha and senha.strip() != "":
+            sql = """
+                UPDATE usuario 
+                SET nome_user=%s, cpf=%s, email_user=%s, perfil=%s, salario=%s, senha_user=%s 
+                WHERE id_user=%s
+            """
+            valores = (nome, cpf, email, perfil, salario, senha, id_user)
+        else:
+            sql = """
+                UPDATE usuario 
+                SET nome_user=%s, cpf=%s, email_user=%s, perfil=%s, salario=%s 
+                WHERE id_user=%s
+            """
+            valores = (nome, cpf, email, perfil, salario, id_user)
+            
+        cursor.execute(sql, valores)
         conn.commit()
-        return True, "Usuário atualizado com sucesso!"
+        return True, "Sucesso"
     except Exception as e:
-        conn.rollback()
-        print(f"Erro ao atualizar usuário: {e}")
+        print(f"Erro no Banco: {e}") # Isso vai aparecer no seu terminal
         return False, str(e)
     finally:
         conn.close()
@@ -361,5 +465,56 @@ def buscar_fornecedores():
     except Exception as e:
         print(f"Erro ao buscar fornecedores: {e}")
         return []
+    finally:
+        conn.close()
+
+def validar_login(usuario_ou_email, senha):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        query = """
+            SELECT * FROM usuario 
+            WHERE (nome_user = %s OR email_user = %s) 
+            AND senha_user = %s 
+            AND status_user = 1
+        """
+        cursor.execute(query, (usuario_ou_email, usuario_ou_email, senha))
+        user = cursor.fetchone()
+        
+        if user:
+            return True, user
+        else:
+            return False, "Usuário/E-mail ou senha incorretos."
+    except Exception as e:
+        return False, f"Erro no banco: {str(e)}"
+    finally:
+        conn.close()
+def buscar_tema_db(id_usuario):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT tema_dark FROM tema_usuario WHERE id_user = %s", (id_usuario,))
+        res = cursor.fetchone()
+        # Se não existir registro ainda, retorna 1 (Dark) por padrão
+        return res['tema_dark'] if res else 1
+    finally:
+        conn.close()
+
+
+def salvar_tema_db(id_usuario, is_dark):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        # Se is_dark for True, vira 1. Se for False, vira 0.
+        valor_tema = 1 if is_dark else 0
+        
+        sql = "UPDATE usuario SET tema_dark = %s WHERE id_user = %s"
+        cursor.execute(sql, (valor_tema, id_usuario))
+        
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"Erro ao salvar tema: {e}")
+        return False
     finally:
         conn.close()
