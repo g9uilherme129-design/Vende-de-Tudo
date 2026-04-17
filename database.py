@@ -119,24 +119,15 @@ def buscar_usuarios_db():
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
     try:
+        # Remova qualquer "WHERE status_user = 1" para que os inativos venham também
         query = """
-            SELECT 
-                u.*, 
-                COUNT(v.id_venda) as total_vendas
+            SELECT u.*, COUNT(v.id_venda) as total_vendas
             FROM usuario u
-            LEFT JOIN venda v ON u.id_user = v.id_user  -- ANTES ESTAVA id_use AQUI
-            WHERE u.status_user = 1
+            LEFT JOIN venda v ON u.id_user = v.id_user
             GROUP BY u.id_user
         """
         cursor.execute(query)
-        usuarios = []
-        for row in cursor.fetchall():
-            row['salario'] = float(row['salario']) if row['salario'] else 0.0
-            usuarios.append(row)
-        return usuarios
-    except Exception as e:
-        print(f"Erro no Banco: {e}")
-        return []
+        return cursor.fetchall()
     finally:
         conn.close()
 
@@ -202,6 +193,21 @@ def desativar_usuario_db(id_usuario, motivo, admin_nome):
     finally:
         conn.close()
 
+
+def buscar_usuario_por_nome(nome_user):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        # Busca o admin pelo nome exato que foi salvo na desativação
+        query = "SELECT * FROM usuario WHERE nome_user = %s"
+        cursor.execute(query, (nome_user,))
+        return cursor.fetchone()
+    except Exception as e:
+        print(f"Erro ao buscar admin por nome: {e}")
+        return None
+    finally:
+        conn.close()
+
 # --- 2. FUNÇÕES DE ESTOQUE ---
 def buscar_produtos_estoque():
     conn = get_connection()
@@ -235,15 +241,23 @@ def buscar_categorias():
 def cadastrar_produto_db(id_forn, id_cat, nome, cod, val, ent, custo, venda, emb, qtd, lote):
     garantir_dependencias()
     novo_id = gerar_id_char("estoque", "id_estoque", "E")
-    f_id = id_forn if id_forn and len(str(id_forn)) > 2 else "F100001"
-    c_id = id_cat if id_cat and len(str(id_cat)) > 2 else "C100001"
+    
+    # Se o usuário digitou apenas "1", transformamos no ID correto do banco
+    f_id = "F100001" if id_forn == "1" else id_forn
+    c_id = "C100001" if id_cat == "1" else id_cat
+    
     conn = get_connection()
     cursor = conn.cursor()
-    query = "INSERT INTO estoque VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-    cursor.execute(query, (novo_id, f_id, c_id, nome, cod, val, ent, custo, venda, emb, qtd, lote))
-    conn.commit()
-    conn.close()
-    return True
+    try:
+        query = "INSERT INTO estoque VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+        cursor.execute(query, (novo_id, f_id, c_id, nome, cod, val, ent, custo, venda, emb, qtd, lote))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"Erro SQL ao cadastrar produto: {e}")
+        raise e # Repassa o erro para o Flet exibir no SnackBar
+    finally:
+        conn.close()
 
 def atualizar_produto_db(id_prod, nome, custo, venda, qtd):
     conn = get_connection()
@@ -255,32 +269,6 @@ def atualizar_produto_db(id_prod, nome, custo, venda, qtd):
     conn.commit()
     conn.close()
 
-# --- 3. FUNÇÕES DE VENDA ---
-def registrar_venda_db(id_user, id_estoque, qtd, metodo, preco_venda=0):
-    novo_id = gerar_id_char("venda", "id_venda", "V")
-    conn = get_connection()
-    cursor = conn.cursor()
-    try:
-        # Debug: Isso vai aparecer no seu terminal do VS Code
-        print(f"Tentando vender com Vendedor ID: '{id_user}' e Produto ID: '{id_estoque}'")
-        
-        query = """
-            INSERT INTO venda (id_venda, id_user, id_estoque, metodo_pagamento, data_venda) 
-            VALUES (%s, %s, %s, %s, CURDATE())
-        """
-        # Garantimos que os IDs sejam strings limpas
-        cursor.execute(query, (novo_id, str(id_user).strip(), str(id_estoque).strip(), metodo))
-        
-        cursor.execute("UPDATE estoque SET quantidade = quantidade - %s WHERE id_estoque = %s", (qtd, id_estoque))
-        
-        conn.commit()
-        return True, "Sucesso"
-    except Exception as e:
-        conn.rollback()
-        print(f"Erro SQL Venda: {e}")
-        return False, f"ID de Vendedor '{id_user}' não encontrado no sistema."
-    finally:
-        conn.close()
 
 # 1. ATUALIZE A BUSCA (Para pegar a coluna 'quantidade' real)
 def buscar_vendas_detalhadas():
@@ -305,30 +293,57 @@ def buscar_vendas_detalhadas():
     conn.close()
     return res
 
-# 2. ATUALIZE O REGISTRO (Para salvar a quantidade enviada pela tela)
+
 def registrar_venda_db(id_user, id_estoque, qtd, metodo, preco_venda=0):
     novo_id = gerar_id_char("venda", "id_venda", "V")
     conn = get_connection()
     cursor = conn.cursor()
     try:
-        # Adicionado 'quantidade' no INSERT
+        # 1. Usamos NOW() para pegar data + hora exata
+        # 2. Preenchemos todas as colunas de quantidade possíveis com o valor real (qtd)
         query = """
-            INSERT INTO venda (id_venda, id_user, id_estoque, metodo_pagamento, quantidade, data_venda) 
-            VALUES (%s, %s, %s, %s, %s, CURDATE())
+            INSERT INTO venda (id_venda, id_user, id_estoque, metodo_pagamento, quantidade, qtd_vendas, data_venda) 
+            VALUES (%s, %s, %s, %s, %s, %s, NOW())
         """
-        cursor.execute(query, (novo_id, str(id_user), str(id_estoque), metodo, qtd))
+        # Aqui passamos a variável 'qtd' (os seus 5 itens) para ambas as colunas
+        cursor.execute(query, (novo_id, str(id_user), str(id_estoque), metodo, qtd, qtd))
         
-        # Diminui do estoque
+        # Baixa o estoque normalmente
         cursor.execute("UPDATE estoque SET quantidade = quantidade - %s WHERE id_estoque = %s", (qtd, id_estoque))
         
         conn.commit()
         return True, "Sucesso"
     except Exception as e:
         conn.rollback()
+        print(f"Erro no Banco: {e}")
         return False, str(e)
     finally:
         conn.close()
 
+
+# --- AJUSTE NA BUSCA (Garantir que o nome da coluna bata com o card) ---
+def buscar_vendas_detalhadas():
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    query = """
+        SELECT 
+            v.id_venda, 
+            v.data_venda, 
+            v.metodo_pagamento, 
+            v.quantidade as qtd_venda, -- Mantenha como qtd_venda para o card ler certo
+            e.nome_estoque as produto, 
+            e.preco_venda, 
+            u.nome_user as vendedor
+        FROM venda v
+        JOIN estoque e ON v.id_estoque = e.id_estoque
+        JOIN usuario u ON v.id_user = u.id_user
+        ORDER BY v.data_venda DESC
+    """
+    cursor.execute(query)
+    res = cursor.fetchall()
+    conn.close()
+    return res
+        
 # --- 4. HOME ---
 def buscar_dados_home():
     conn = get_connection()
@@ -358,10 +373,26 @@ def buscar_dados_home():
         cursor.execute(query_ranking)
         ranking = []
         for row in cursor.fetchall():
-            # Garantia dupla: Cast no SQL e float() no Python
             row['valor_total'] = float(row['valor_total']) if row['valor_total'] else 0.0
             row['qtd_vendas'] = int(row['qtd_vendas'])
             ranking.append(row)
+
+        # --- RANKING DE VENDEDORES (ADICIONADO AQUI) ---
+        query_vendedores = """
+            SELECT u.nome_user as nome, 
+                   COUNT(v.id_venda) as total_vendas
+            FROM venda v
+            JOIN usuario u ON v.id_user = u.id_user
+            GROUP BY u.id_user
+            ORDER BY total_vendas DESC
+            LIMIT 5
+        """
+        cursor.execute(query_vendedores)
+        vendedores = []
+        for row in cursor.fetchall():
+            row['total_vendas'] = int(row['total_vendas'])
+            vendedores.append(row)
+        # -----------------------------------------------
 
         # 3. GRÁFICO
         query_grafico = """
@@ -380,11 +411,12 @@ def buscar_dados_home():
         return {
             "receita": receita, 
             "ranking": ranking, 
+            "vendedores": vendedores, # Incluído no retorno
             "vendas_semanais": vendas_semanais
         }
     except Exception as e:
         print(f"Erro na Home: {e}")
-        return {"receita": 0.0, "ranking": [], "vendas_semanais": []}
+        return {"receita": 0.0, "ranking": [], "vendedores": [], "vendas_semanais": []}
     finally:
         conn.close()
 
@@ -518,3 +550,156 @@ def salvar_tema_db(id_usuario, is_dark):
         return False
     finally:
         conn.close()
+
+
+def reativar_usuario_db(id_user):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        # Volta o status para 1 e limpa os campos de desativação
+        sql = """
+            UPDATE usuario 
+            SET status_user = 1, 
+                motivo_desat = NULL, 
+                data_desat = NULL, 
+                admin_desat = NULL 
+            WHERE id_user = %s
+        """
+        cursor.execute(sql, (id_user,))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"Erro ao reativar: {e}")
+        return False
+    finally:
+        conn.close()
+
+def buscar_fornecedores_dropdown():
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        # Pega o ID para o banco e o Nome para o usuário ver
+        cursor.execute("SELECT id_fornecedor, nome_fornecedor FROM fornecedor ORDER BY nome_fornecedor ASC")
+        return cursor.fetchall()
+    finally:
+        conn.close()
+
+def buscar_categorias_dropdown():
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        # Pega o ID para o banco e o Nome para o usuário ver
+        cursor.execute("SELECT id_categoria, nome_categoria FROM categoria ORDER BY nome_categoria ASC")
+        return cursor.fetchall()
+    finally:
+        conn.close()
+
+def buscar_categorias_detalhado():
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT id_categoria, nome_categoria FROM categoria ORDER BY nome_categoria ASC")
+        dados = cursor.fetchall()
+        
+        for d in dados:
+            d['status'] = "Ativo" 
+            
+        return dados
+    finally:
+        conn.close()
+
+def salvar_categoria_db(nome):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("INSERT INTO categoria (nome_categoria, status) VALUES (%s, 'Ativo')", (nome,))
+        conn.commit()
+    finally:
+        conn.close()
+
+def editar_categoria_db(id_cat, novo_nome):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("UPDATE categoria SET nome_categoria = %s WHERE id_categoria = %s", (novo_nome, id_cat))
+        conn.commit()
+    finally:
+        conn.close()
+
+def alterar_status_fornecedor_db(id_forn, novo_status):
+    conn = get_connection() # Use a função que você já tem para conectar
+    cursor = conn.cursor()
+    try:
+        # Aqui ele atualiza a coluna status do fornecedor específico
+        cursor.execute(
+            "UPDATE fornecedor SET status = %s WHERE id_fornecedor = %s", 
+            (novo_status, id_forn)
+        )
+        conn.commit()
+    except Exception as e:
+        print(f"Erro ao alterar status do fornecedor: {e}")
+    finally:
+        conn.close()
+
+def alterar_status_categoria_db(id_cat, novo_status):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        # Atualiza o status da categoria
+        cursor.execute(
+            "UPDATE categoria SET status = %s WHERE id_categoria = %s", 
+            (novo_status, id_cat)
+        )
+        conn.commit()
+    except Exception as e:
+        print(f"Erro ao alterar status da categoria: {e}")
+    finally:
+        conn.close()
+
+
+def buscar_fornecedor_por_id(id_forn):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        cursor.execute("SELECT * FROM fornecedor WHERE id_fornecedor = %s", (id_forn,))
+        return cursor.fetchone()
+    finally:
+        conn.close()
+
+def atualizar_fornecedor_db(id_forn, nome, cnpj, tel, email, logradouro, num, bairro, cidade, uf):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        # Note o email_forn aqui
+        sql = """UPDATE fornecedor SET 
+                 nome_fornecedor=%s, CNPJ=%s, telefone=%s, email_forn=%s, 
+                 endereco_logradouro=%s, endereco_numero=%s, bairro=%s, cidade=%s, estado=%s
+                 WHERE id_fornecedor=%s"""
+        cursor.execute(sql, (nome, cnpj, tel, email, logradouro, num, bairro, cidade, uf, id_forn))
+        conn.commit()
+    finally:
+        conn.close()
+
+def validar_recuperacao_db(nome, email, cpf):
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        # Verifica se existe um usuário com esses 3 dados exatos
+        query = "SELECT id_user FROM usuario WHERE nome_user = %s AND email_user = %s AND cpf = %s AND status_user = 1"
+        cursor.execute(query, (nome, email, cpf))
+        return cursor.fetchone() # Retorna o ID se achar, ou None se estiver errado
+    finally:
+        conn.close()
+
+def resetar_senha_db(id_user, nova_senha):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("UPDATE usuario SET senha_user = %s WHERE id_user = %s", (nova_senha, id_user))
+        conn.commit()
+        return True
+    except:
+        return False
+    finally:
+        conn.close()
+

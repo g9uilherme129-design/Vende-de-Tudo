@@ -1,7 +1,7 @@
 import flet as ft
 from database import buscar_usuarios_db
 
-def usuarios(page: ft.Page, on_home, on_stock, on_vendas, on_perfil, on_logout, on_adicionar_usuario, on_editar_usuario, on_desativar_usuario, user_data):
+def usuarios(page: ft.Page, on_home, on_stock, on_vendas, on_perfil, on_logout, on_adicionar_usuario, on_editar_usuario, on_desativar_usuario, on_reativar_user, user_data):
 
     page.controls.clear()
     page.padding = 20
@@ -16,18 +16,23 @@ def usuarios(page: ft.Page, on_home, on_stock, on_vendas, on_perfil, on_logout, 
     lista_usuarios_ui = ft.Column(expand=True, scroll=ft.ScrollMode.AUTO, spacing=10)
 
     def formatar_moeda(valor):
-        return f"R$ {float(valor):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+        try:
+            return f"R$ {float(valor):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+        except:
+            return "R$ 0,00"
 
     def user_card(u):
+        dados_sessao = user_data if user_data else {}
+        
         id_do_card = u.get("id_user") or u.get("id_use")
-        id_logado = user_data.get("id_use") or user_data.get("id_user")
+        id_logado = dados_sessao.get("id_use") or dados_sessao.get("id_user")
         
-        eu_sou_este_usuario = str(id_do_card) == str(id_logado)
-        
-        # Lógica de Status
+        eu_sou_este_usuario = str(id_do_card) == str(id_logado) if id_logado else False
         esta_ativo = u.get("status_user") == 1
+        
         status_texto = "ATIVO" if esta_ativo else "INATIVO"
         cor_status = "#00b40d" if esta_ativo else "#ff0008"
+        opacidade_card = 1.0 if esta_ativo else 0.7
         
         cor_bg_final = "#1A3A7A" if eu_sou_este_usuario else cor_container_bg
         borda_card = ft.border.all(2, ft.Colors.BLUE_400) if eu_sou_este_usuario else None
@@ -37,8 +42,6 @@ def usuarios(page: ft.Page, on_home, on_stock, on_vendas, on_perfil, on_logout, 
         icone_perfil = ft.Icons.SECURITY if is_admin else ft.Icons.PERSON
         cor_perfil = ft.Colors.BLUE_800 if is_admin else ft.Colors.ORANGE_700
 
-        # --- NOVO: BLOCO DE INFORMAÇÕES DE DESATIVAÇÃO ---
-        # Só fica visível se o usuário estiver inativo
         info_desativacao = ft.Container(
             visible=not esta_ativo,
             padding=10,
@@ -50,11 +53,11 @@ def usuarios(page: ft.Page, on_home, on_stock, on_vendas, on_perfil, on_logout, 
                     ft.Icon(ft.Icons.INFO_OUTLINE, size=14, color="#ff4444"),
                     ft.Text("DETALHES DA DESATIVAÇÃO", size=11, weight="bold", color="#ff4444"),
                 ]),
-                ft.Text(f"Motivo: {u.get('motivo_desat', 'Não informado')}", size=12, italic=True, color=cor_texto_principal),
+                ft.Text(f"Motivo: {u.get('motivo_desat') or 'Não informado'}", size=12, italic=True, color=cor_texto_principal),
                 ft.Row([
-                    ft.Text(f"Data: {u.get('data_desat', '---')}", size=11, color=cor_texto_secundario),
+                    ft.Text(f"Data: {u.get('data_desat') or '---'}", size=11, color=cor_texto_secundario),
                     ft.Text(" • ", color=cor_texto_secundario),
-                    ft.Text(f"Por: {u.get('admin_desat', 'Admin')}", size=11, weight="w600", color=cor_texto_secundario),
+                    ft.Text(f"Por: {u.get('admin_desat') or 'Admin'}", size=11, weight="w600", color=cor_texto_secundario),
                 ])
             ], spacing=3)
         )
@@ -64,9 +67,9 @@ def usuarios(page: ft.Page, on_home, on_stock, on_vendas, on_perfil, on_logout, 
             border_radius=15, 
             padding=15,
             border=borda_card,
+            opacity=opacidade_card,
             content=ft.Column(spacing=10, controls=[
-                # Linha ID e CPF
-                ft.Row(alignment="spaceBetween", controls=[
+                ft.Row(alignment=ft.MainAxisAlignment.SPACE_BETWEEN, controls=[
                     ft.Row([
                         ft.Text(f"ID: {id_do_card}", size=12, color=cor_texto_secundario, weight="bold"),
                         ft.Container(
@@ -80,10 +83,9 @@ def usuarios(page: ft.Page, on_home, on_stock, on_vendas, on_perfil, on_logout, 
                     ft.Text(f"CPF: {u.get('cpf', '000.000.000-00')}", size=12, color=cor_texto_secundario),
                 ]),
                 
-                # Nome, Avatar e Status
                 ft.Row(
-                    alignment="spaceBetween", 
-                    vertical_alignment="center", 
+                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN, 
+                    vertical_alignment=ft.CrossAxisAlignment.CENTER, 
                     controls=[
                         ft.Row([
                             ft.CircleAvatar(
@@ -92,9 +94,12 @@ def usuarios(page: ft.Page, on_home, on_stock, on_vendas, on_perfil, on_logout, 
                                 radius=25,
                             ),
                             ft.Column([
-                                ft.Text(u.get("nome_user", "Usuário"), size=18, weight="bold", 
-                                        color=cor_texto_principal, 
-                                        style=ft.TextStyle(decoration=None if esta_ativo else ft.TextDecoration.LINE_THROUGH)),
+                                ft.Text(
+                                    u.get("nome_user", "Usuário"), 
+                                    size=18, weight="bold", 
+                                    color=cor_texto_principal, 
+                                    style=ft.TextStyle(decoration=None if esta_ativo else ft.TextDecoration.LINE_THROUGH)
+                                ),
                                 ft.Row([
                                     ft.Text(perfil_str.upper(), size=11, color=ft.Colors.BLUE_GREY_400),
                                     ft.Text(" • ", color=cor_texto_secundario),
@@ -112,35 +117,45 @@ def usuarios(page: ft.Page, on_home, on_stock, on_vendas, on_perfil, on_logout, 
                     ]
                 ),
                 
-                # Injeta o bloco de desativação aqui
                 info_desativacao,
 
-                # E-mail e Salário
-                ft.Row(alignment="spaceBetween", controls=[
+                ft.Row(alignment=ft.MainAxisAlignment.SPACE_BETWEEN, controls=[
                     ft.Text(f"✉ {u.get('email_user', '---')}", size=12, color=cor_texto_secundario),
                     ft.Text(f"Salário: {formatar_moeda(u.get('salario', 0))}", size=13, weight="bold", color=cor_texto_principal),
                 ]),
 
                 ft.Divider(height=1, color=ft.Colors.WHITE10),
                 
-                # Botões de Ação
-                ft.Row(alignment="end", spacing=10, controls=[
-                    ft.TextButton("Editar", icon=ft.Icons.EDIT_NOTE, on_click=lambda _: on_editar_usuario(id_do_card)),
+                ft.Row(alignment=ft.MainAxisAlignment.END, spacing=10, controls=[
+                    ft.TextButton(
+                        "Editar", 
+                        icon=ft.Icons.EDIT_NOTE, 
+                        on_click=lambda _: on_editar_usuario(id_do_card),
+                        visible=esta_ativo
+                    ),
                     ft.ElevatedButton(
-                        "Desativar" if esta_ativo else "Reativar",
-                        bgcolor="#991f23" if esta_ativo else "#00b40d",
-                        color="white",
+                        content=ft.Row([
+                            ft.Icon(ft.Icons.POWER_SETTINGS_NEW if esta_ativo else ft.Icons.PLAY_ARROW_ROUNDED, size=20),
+                            ft.Text("Desativar" if esta_ativo else "REATIVAR USUÁRIO", weight="bold"),
+                        ], tight=True),
+                        bgcolor="#991f23" if esta_ativo else "#00E676",
+                        color=ft.Colors.WHITE,
+                        style=ft.ButtonStyle(
+                            shape=ft.RoundedRectangleBorder(radius=10),
+                            elevation=8,
+                        ),
                         disabled=eu_sou_este_usuario, 
-                        on_click=lambda _: on_desativar_usuario(u)
+                        # Aqui decide qual função chamar baseado no status
+                        on_click=lambda _: on_desativar_usuario(u) if esta_ativo else on_reativar_user(u)
                     ),
                 ])
             ])
         )
 
-    # --- RESTANTE DO CÓDIGO (Busca, Filtros, Nav) ---
     def filtrar_usuarios(e=None):
-        t = search_field.value.lower()
+        t = search_field.value.lower() if search_field.value else ""
         c = btn_filtro.data
+        
         filtrados = [u for u in usuarios_db if t in str(u.get("nome_user", "")).lower() or t in str(u.get("email_user", "")).lower()]
 
         if c == "id":
@@ -151,10 +166,20 @@ def usuarios(page: ft.Page, on_home, on_stock, on_vendas, on_perfil, on_logout, 
             filtrados.sort(key=lambda x: str(x.get("nome_user", "")))
         elif c == "inativos":
             filtrados = [u for u in filtrados if u.get("status_user") == 0]
+        elif c == "ativos":
+            filtrados = [u for u in filtrados if u.get("status_user") == 1]
 
         lista_usuarios_ui.controls.clear()
         for u in filtrados:
             lista_usuarios_ui.controls.append(user_card(u))
+        
+        if not filtrados:
+            lista_usuarios_ui.controls.append(
+                ft.Container(
+                    content=ft.Text("Nenhum usuário encontrado.", color=cor_texto_secundario),
+                    alignment=ft.alignment.center, padding=20
+                )
+            )
         page.update()
 
     def mudar_f(c): 
@@ -167,10 +192,11 @@ def usuarios(page: ft.Page, on_home, on_stock, on_vendas, on_perfil, on_logout, 
     )
 
     btn_filtro = ft.PopupMenuButton(icon=ft.Icons.FILTER_LIST, items=[
-        ft.PopupMenuItem(content=ft.Text("Ordem Alfabética"), on_click=lambda _: mudar_f("alfabetica")),
-        ft.PopupMenuItem(content=ft.Text("Por ID"), on_click=lambda _: mudar_f("id")),
-        ft.PopupMenuItem(content=ft.Text("Mais Vendas"), on_click=lambda _: mudar_f("vendas")),
+        ft.PopupMenuItem(content=ft.Text("Todos"), on_click=lambda _: mudar_f("alfabetica")),
+        ft.PopupMenuItem(content=ft.Text("Apenas Ativos"), on_click=lambda _: mudar_f("ativos")),
         ft.PopupMenuItem(content=ft.Text("Apenas Inativos"), on_click=lambda _: mudar_f("inativos")),
+        ft.PopupMenuItem(content=ft.Text("Mais Vendas"), on_click=lambda _: mudar_f("vendas")),
+        ft.PopupMenuItem(content=ft.Text("Por ID"), on_click=lambda _: mudar_f("id")),
     ])
     btn_filtro.data = "alfabetica"
 
@@ -184,7 +210,7 @@ def usuarios(page: ft.Page, on_home, on_stock, on_vendas, on_perfil, on_logout, 
             ft.Row([
                 ft.Text("Gerenciar Usuários", size=24, weight="bold", color=cor_texto_principal),
                 ft.FloatingActionButton(icon=ft.Icons.ADD, bgcolor="#1B4F9C", mini=True, on_click=lambda _: on_adicionar_usuario())
-            ], alignment="spaceBetween"),
+            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
             ft.Row([search_field, btn_filtro]),
             lista_usuarios_ui
         ])
@@ -195,6 +221,7 @@ def usuarios(page: ft.Page, on_home, on_stock, on_vendas, on_perfil, on_logout, 
         if idx == 0: on_home()
         elif idx == 1: on_vendas()
         elif idx == 2: on_stock()
+        elif idx == 3: pass
         elif idx == 4: on_perfil()
 
     nav = ft.NavigationBar(
@@ -207,6 +234,6 @@ def usuarios(page: ft.Page, on_home, on_stock, on_vendas, on_perfil, on_logout, 
             ft.NavigationBarDestination(icon=ft.Icons.PERSON_OUTLINE, label="Perfil"),
         ]
     )
-    page.navigation_bar = ft.Container(content=nav, margin=ft.margin.only(left=25, right=25, bottom=30), border_radius=40, clip_behavior="antiAlias")
+    page.navigation_bar = ft.Container(content=nav, margin=ft.margin.only(left=25, right=25, bottom=30), border_radius=40, clip_behavior=ft.ClipBehavior.ANTI_ALIAS)
     
     filtrar_usuarios()

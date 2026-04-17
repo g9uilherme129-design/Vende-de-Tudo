@@ -2,7 +2,7 @@ import flet as ft
 from database import buscar_produtos_estoque, buscar_categorias 
 
 # 1. ADICIONADO on_fornecedores nos parâmetros
-def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar_produto, on_editar_produto, on_logout, on_fornecedores):
+def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar_produto, on_editar_produto, on_logout, on_fornecedores, on_categorias):
 
     page.controls.clear()
     page.padding = 20
@@ -130,13 +130,21 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar
                 ft.Text("Consultar Produtos", size=22, weight="bold"),
                 # --- BOTÕES DE AÇÃO ---
                 ft.Row([
-                    # NOVO BOTÃO DE FORNECEDORES
+                    # BOTÃO DE CATEGORIAS (Novo atalho)
+                    ft.ElevatedButton(
+                        "Categorias", 
+                        icon=ft.Icons.CATEGORY_ROUNDED,
+                        on_click=lambda _: on_categorias(),
+                        style=ft.ButtonStyle(bgcolor="#0b1445", color="white")
+                    ),
+                    # BOTÃO DE FORNECEDORES
                     ft.ElevatedButton(
                         "Fornecedores", 
                         icon=ft.Icons.BUSINESS,
                         on_click=lambda _: on_fornecedores(),
                         style=ft.ButtonStyle(bgcolor="#0b1445", color="white")
                     ),
+                    # BOTÃO ADICIONAR PRODUTO
                     ft.FloatingActionButton(
                         icon=ft.Icons.ADD, 
                         bgcolor="#1B4F9C", 

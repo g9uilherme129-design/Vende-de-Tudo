@@ -56,8 +56,10 @@ def novo_usuario(page: ft.Page, on_users):
     email_c, email_in = estilo_input("E-MAIL", hint="usuario@email.com", keyboard_type=ft.KeyboardType.EMAIL)
     senha_c, senha_in = estilo_input("SENHA", hint="******", password=True)
     # Novo campo de Salário
-    salario_c, salario_in = estilo_input("SALÁRIO BASE", hint="Ex: 2500.00", keyboard_type=ft.KeyboardType.NUMBER)
-    
+    salario_c, salario_in = estilo_input("SALÁRIO BASE", hint="2.500,00", keyboard_type=ft.KeyboardType.NUMBER)# Após criar, você acessa o TextField (salario_in) e define o prefixo:
+    salario_in.prefix_text = "R$ "
+    salario_in.hint_text = "0,00"
+
     perfil_dropdown = ft.Dropdown(
         options=[
             ft.dropdown.Option("admin", "ADMINISTRADOR"),

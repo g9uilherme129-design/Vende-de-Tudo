@@ -2,7 +2,7 @@ import flet as ft
 from database import validar_login 
 import time
 
-def login_view(page: ft.Page, on_login_sucesso):
+def login_view(page: ft.Page, on_login_sucesso, on_recuperar_senha):
     page.bgcolor = "#050505" 
     page.controls.clear()
     
@@ -77,7 +77,7 @@ def login_view(page: ft.Page, on_login_sucesso):
 
     link_senha = ft.TextButton(
         "Esqueci minha senha",
-        on_click=esqueci_senha,
+        on_click=lambda _: on_recuperar_senha(), # Agora ele chama a tela de verdade!
         style=ft.ButtonStyle(color=ft.Colors.BLUE_GREY_200),
     )
 

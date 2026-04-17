@@ -15,6 +15,10 @@ from gerenciar_vendas import gerenciar_vendas
 from gerenciar_fornecedores import tela_fornecedores
 from novo_fornecedor import novo_fornecedor
 from database import buscar_tema_db
+from reativar_usuario import reativar_user
+from gerenciar_categoria import gerenciar_categorias
+from editar_fornecedor import editar_fornecedor
+from recuperar_senha import tela_recuperacao
 
 def main(page: ft.Page):
     page.title = "Vende de Tudo"
@@ -43,16 +47,22 @@ def main(page: ft.Page):
 
     def carregar_home(dados_usuario=None):
         if dados_usuario:
+            # Sincroniza o user_data global da página
             page.user_data = dados_usuario
             
-            # --- NOVO: Ao entrar na home (pós-login), aplica o tema do banco ---
-            id_atual = dados_usuario.get('id_user') or dados_usuario.get('id_use')
+            # Salvamos no page.data para compatibilidade
+            page.data = {
+                "user_id": dados_usuario.get('id_user') or dados_usuario.get('id_use'),
+                "user_nome": dados_usuario.get('nome_user')
+            }
+            
+            # Aplicação do tema
+            id_atual = page.data["user_id"]
             try:
-                # O banco retorna 1 para Dark, 0 para Light
                 tema_db = buscar_tema_db(id_atual)
                 aplicar_tema_visual(eh_dark=(tema_db == 1))
             except:
-                aplicar_tema_visual(eh_dark=True) # Fallback
+                aplicar_tema_visual(eh_dark=True)
 
         page.controls.clear()
         home_page(
@@ -73,11 +83,20 @@ def main(page: ft.Page):
             on_vendas=carregar_vendas,
             on_stock=carregar_stock,
             on_usuarios=carregar_usuarios,
-            on_adicionar_fornecedor=carregar_novo_fornecedor
+            on_adicionar_fornecedor=carregar_novo_fornecedor,
+            on_editar_fornecedor=carregar_editar_fornecedor,
+            on_perfil=carregar_perfil
         )
 
     def carregar_novo_fornecedor():
         novo_fornecedor(page, on_voltar=carregar_fornecedores)
+
+    def carregar_editar_fornecedor(id_forn):
+        editar_fornecedor(
+            page, 
+            on_back=carregar_fornecedores,
+            id_fornecedor=id_forn
+        )
 
     def carregar_registrar_venda():
         tela_registrar_venda(page, on_voltar=carregar_home)
@@ -92,8 +111,16 @@ def main(page: ft.Page):
             on_perfil=carregar_perfil,
             on_adicionar_produto=carregar_novo_produto,
             on_editar_produto=carregar_editar_produto,
-            on_fornecedores=carregar_fornecedores
+            on_fornecedores=carregar_fornecedores,
+            on_categorias=carregar_categoria
         )
+
+    def carregar_categoria():
+        gerenciar_categorias(
+            page,
+            on_back=carregar_stock
+        )
+
 
     def carregar_vendas():
         gerenciar_vendas(
@@ -117,7 +144,8 @@ def main(page: ft.Page):
             on_adicionar_usuario=carregar_novo_usuario,
             on_editar_usuario=carregar_editar_usuario,
             on_desativar_usuario=carregar_desativar_usuario,
-            user_data=page.user_data
+            user_data=page.user_data,
+            on_reativar_user=carregar_reativar_user
         )
         
     def carregar_perfil():
@@ -135,7 +163,7 @@ def main(page: ft.Page):
         configuracoes_page(
             page,
             on_back=carregar_perfil,
-            user_data=page.user_data # Passando os dados para salvar o tema
+            user_data=page.user_data
         )
 
     def fazer_logout():
@@ -152,24 +180,48 @@ def main(page: ft.Page):
 
     def carregar_novo_usuario():
         novo_usuario(page, on_users=carregar_usuarios)
+        
+
+    def tratar_clique_status(usuario_selecionado, carregar_tela_desativar, carregar_tela_reativar):
+        if usuario_selecionado.get("status_user") == 1:
+            carregar_tela_desativar(usuario_selecionado)
+        else:
+            carregar_tela_reativar(usuario_selecionado)
 
     def carregar_editar_usuario(id_user):
         editar_usuario(page, id_usuario=id_user, on_users=carregar_usuarios)
 
+    # --- AJUSTE NA FUNÇÃO DE DESATIVAR/REATIVAR ---
     def carregar_desativar_usuario(dados_do_usuario_alvo):
+        # Essa função agora é inteligente:
+        # No 'usuarios.py', se o cara estiver INATIVO, ela abre o modal de reativação direto.
+        # Se estiver ATIVO, ela abre a tela de desativar normal.
         tela_desativar_usuario(
             page=page, 
             user_data=dados_do_usuario_alvo, 
             on_voltar=carregar_usuarios
         )
 
+    def carregar_reativar_user(dados_do_usuario):
+        reativar_user(
+            page,
+            user_data=dados_do_usuario,
+            on_gerenciar_usuario=carregar_usuarios
+        )
+
+    def carregar_recuperar_senha():
+        from recuperar_senha import tela_recuperacao # Import local para evitar erro de circularidade
+        tela_recuperacao(
+            page=page, 
+            on_login=carregar_login # Passa a volta para o login como callback
+        )
+
     def carregar_login():
         page.appbar = None
         page.navigation_bar = None
         page.controls.clear()
-        # Reset para tema claro no login para melhor leitura
         aplicar_tema_visual(eh_dark=False)
-        page.add(login_view(page, on_login_sucesso=carregar_home))
+        page.add(login_view(page, on_login_sucesso=carregar_home, on_recuperar_senha=carregar_recuperar_senha))
         page.update()
 
     carregar_login()
