@@ -612,7 +612,10 @@ def salvar_categoria_db(nome):
     conn = get_connection()
     cursor = conn.cursor()
     try:
-        cursor.execute("INSERT INTO categoria (nome_categoria, status) VALUES (%s, 'Ativo')", (nome,))
+        cursor.execute(
+        "INSERT INTO categoria (id_categoria, nome_categoria, tipo_categoria, marca, status_categoria) VALUES (%s,%s,%s,%s,%s)",
+        (gerar_id_char("categoria","id_categoria","C"), nome, "Diversos", "Generica", 1)
+)
         conn.commit()
     finally:
         conn.close()
