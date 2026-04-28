@@ -40,7 +40,7 @@ def editar_fornecedor(page: ft.Page, on_back, id_fornecedor):
 
     # Criando os campos com os dados vindos do MySQL
     nome_c, nome_in = estilo_input("RAZÃO SOCIAL / NOME", value=f['nome_fornecedor'], col=12)
-    cnpj_c, cnpj_in = estilo_input("CNPJ", value=f['CNPJ'], read_only=True, col=6)
+    cnpj_c, cnpj_in = estilo_input("CNPJ", value=f['CNPJ'], read_only=False, col=6)
     tel_c, tel_in = estilo_input("TELEFONE", value=f['telefone'], col=6)
     email_c, email_in = estilo_input("E-MAIL", value=f.get('email_forn', ''), col=12)
     
