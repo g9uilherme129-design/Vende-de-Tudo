@@ -270,28 +270,32 @@ def atualizar_produto_db(id_prod, nome, custo, venda, qtd):
     conn.close()
 
 
-# 1. ATUALIZE A BUSCA (Para pegar a coluna 'quantidade' real)
 def buscar_vendas_detalhadas():
     conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
-    query = """
-        SELECT 
-            v.id_venda, 
-            v.data_venda, 
-            v.metodo_pagamento, 
-            v.quantidade as quantidade_vendida, -- Agora pega do banco
-            e.nome_estoque as produto, 
-            e.preco_venda, 
-            u.nome_user as vendedor
-        FROM venda v
-        JOIN estoque e ON v.id_estoque = e.id_estoque
-        JOIN usuario u ON v.id_user = u.id_user
-        ORDER BY v.data_venda DESC
-    """
-    cursor.execute(query)
-    res = cursor.fetchall()
-    conn.close()
-    return res
+    cursor = conn.cursor()
+    try:
+        # Busca vendas cruzando com estoque e usuario para mostrar nomes em vez de IDs
+        query = """
+            SELECT 
+                v.id_venda, 
+                e.nome_estoque as produto, 
+                e.preco_venda, 
+                u.nome_user as vendedor, 
+                v.data_venda, 
+                v.quantidade as qtd_venda, 
+                v.metodo_pagamento
+            FROM venda v
+            JOIN estoque e ON v.id_estoque = e.id_estoque
+            JOIN usuario u ON v.id_user = u.id_user
+            ORDER BY v.data_venda DESC
+        """
+        cursor.execute(query)
+        return [dict(row) for row in cursor.fetchall()]
+    except Exception as e:
+        print(f"Erro ao buscar vendas detalhadas: {e}")
+        return []
+    finally:
+        conn.close()
 
 
 def registrar_venda_db(id_user, id_estoque, qtd, metodo, preco_venda=0):

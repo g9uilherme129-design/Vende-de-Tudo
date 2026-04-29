@@ -86,7 +86,7 @@ def gerenciar_vendas(page: ft.Page, on_home, on_users, on_perfil, on_stock, on_r
         lista_vendas_ui.controls.clear()
         if not filtrados:
             lista_vendas_ui.controls.append(
-                ft.Container(content=ft.Text("Nenhuma venda encontrada.", color=cor_texto_principal), alignment=ft.alignment.center, padding=20)
+                ft.Container(content=ft.Text("Nenhuma venda encontrada.", color=cor_texto_principal), padding=20)
             )
         else:
             for v in filtrados:

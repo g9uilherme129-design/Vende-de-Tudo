@@ -4,6 +4,7 @@ from database import cadastrar_fornecedor_db
 def novo_fornecedor(page: ft.Page, on_voltar):
     page.controls.clear()
     page.padding = 20
+    page.scroll = ft.ScrollMode.AUTO
 
     # --- CONFIGURAÇÃO DE TEMA ---
     is_dark = page.theme_mode == ft.ThemeMode.DARK
