@@ -306,14 +306,14 @@ def registrar_venda_db(id_user, id_estoque, qtd, metodo, preco_venda=0):
         # 1. Usamos NOW() para pegar data + hora exata
         # 2. Preenchemos todas as colunas de quantidade possíveis com o valor real (qtd)
         query = """
-            INSERT INTO venda (id_venda, id_user, id_estoque, metodo_pagamento, quantidade, qtd_vendas, data_venda) 
+            INSERT INTO venda (id_venda, id_user, id_estoque, metodo_pagamento, quantidade, qtd_venda, data_venda) 
             VALUES (%s, %s, %s, %s, %s, %s, NOW())
         """
         # Aqui passamos a variável 'qtd' (os seus 5 itens) para ambas as colunas
         cursor.execute(query, (novo_id, str(id_user), str(id_estoque), metodo, qtd, qtd))
         
         # Baixa o estoque normalmente
-        cursor.execute("UPDATE estoque SET quantidade = quantidade - %s WHERE id_estoque = %s", (qtd, id_estoque))
+        cursor.execute("UPDATE Faestoque SET quantidade = quantidade - %s WHERE id_estoque = %s", (qtd, id_estoque))
         
         conn.commit()
         return True, "Sucesso"
@@ -334,7 +334,7 @@ def buscar_vendas_detalhadas():
             v.id_venda, 
             v.data_venda, 
             v.metodo_pagamento, 
-            v.quantidade as qtd_venda, -- Mantenha como qtd_venda para o card ler certo
+            v.quantidade as qtd_venda, 
             e.nome_estoque as produto, 
             e.preco_venda, 
             u.nome_user as vendedor
@@ -366,7 +366,7 @@ def buscar_dados_home():
         # 2. RANKING (Convertendo valor_total para float)
         query_ranking = """
             SELECT e.nome_estoque as nome_user, 
-                   SUM(v.quantidade) as qtd_vendas, 
+                   SUM(v.quantidade) as qtd_venda, 
                    CAST(SUM(e.preco_venda * v.quantidade) AS DOUBLE) as valor_total
             FROM venda v
             JOIN estoque e ON v.id_estoque = e.id_estoque
@@ -378,7 +378,7 @@ def buscar_dados_home():
         ranking = []
         for row in cursor.fetchall():
             row['valor_total'] = float(row['valor_total']) if row['valor_total'] else 0.0
-            row['qtd_vendas'] = int(row['qtd_vendas'])
+            row['qtd_venda'] = int(row['qtd_venda'])
             ranking.append(row)
 
         # --- RANKING DE VENDEDORES (ADICIONADO AQUI) ---
@@ -634,17 +634,18 @@ def editar_categoria_db(id_cat, novo_nome):
         conn.close()
 
 def alterar_status_fornecedor_db(id_forn, novo_status):
-    conn = get_connection() # Use a função que você já tem para conectar
+    conn = get_connection()
     cursor = conn.cursor()
     try:
-        # Aqui ele atualiza a coluna status do fornecedor específico
         cursor.execute(
             "UPDATE fornecedor SET status = %s WHERE id_fornecedor = %s", 
             (novo_status, id_forn)
         )
         conn.commit()
+        return True
     except Exception as e:
-        print(f"Erro ao alterar status do fornecedor: {e}")
+        print(f"ERRO NO BANCO: {e}") # Isso vai te mostrar se a coluna status falta
+        return False
     finally:
         conn.close()
 

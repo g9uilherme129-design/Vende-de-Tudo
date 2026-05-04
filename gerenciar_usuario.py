@@ -176,8 +176,7 @@ def usuarios(page: ft.Page, on_home, on_stock, on_vendas, on_perfil, on_logout, 
         if not filtrados:
             lista_usuarios_ui.controls.append(
                 ft.Container(
-                    content=ft.Text("Nenhum usuário encontrado.", color=cor_texto_secundario),
-                    alignment=ft.alignment.center, padding=20
+                    content=ft.Text("Nenhum usuário encontrado.", color=cor_texto_secundario), padding=20
                 )
             )
         page.update()

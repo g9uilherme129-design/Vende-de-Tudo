@@ -74,14 +74,37 @@ def tela_registrar_venda(page: ft.Page, on_voltar):
 
     def adicionar_ao_carrinho(e):
         nome_sel = ac_produto.value
-        if nome_sel not in mapa_produtos: return
+        if nome_sel not in mapa_produtos: 
+            return
+        
         prod = mapa_produtos[nome_sel]
+        
         try:
             q = int(input_qtd.value)
             if q <= 0: q = 1
-        except: q = 1
-        carrinho.append({"id": prod['id_estoque'], "nome": prod['nome_estoque'], "preco": float(prod['preco_venda']), "qtd": q})
-        ac_produto.value = ""; input_qtd.value = "1"; atualizar_resumo()
+        except: 
+            q = 1
+
+        # --- LÓGICA DE MESCLAGEM ---
+        # Procurar se o produto já existe no carrinho
+        item_existente = next((item for item in carrinho if item["id"] == prod['id_estoque']), None)
+
+        if item_existente:
+            # Se já existe, apenas soma a quantidade
+            item_existente["qtd"] += q
+        else:
+            # Se não existe, adiciona um novo dicionário
+            carrinho.append({
+                "id": prod['id_estoque'], 
+                "nome": prod['nome_estoque'], 
+                "preco": float(prod['preco_venda']), 
+                "qtd": q
+            })
+
+        # Limpa os campos e atualiza a interface
+        ac_produto.value = ""
+        input_qtd.value = "1"
+        atualizar_resumo()
 
     def remover_item(index):
         carrinho.pop(index); atualizar_resumo()
