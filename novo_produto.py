@@ -23,11 +23,9 @@ def produto(page: ft.Page, on_stock):
 
     if date_picker not in page.overlay:
         page.overlay.append(date_picker)
-    page.overlay.append(date_picker)
 
-    # --- LÓGICA DE MÁSCARA DE MOEDA (Substitui ponto por vírgula automático) ---
+    # --- LÓGICA DE MÁSCARA DE MOEDA ---
     def formatar_moeda(e):
-        # Remove tudo que não é número
         valor = "".join(filter(str.isdigit, e.control.value))
         if not valor:
             e.control.value = "0,00"
@@ -61,12 +59,12 @@ def produto(page: ft.Page, on_stock):
             ft.Container(
                 content=component, bgcolor=cor_fundo_input,
                 border=ft.border.all(1, "#1E2B4E" if is_dark else "#D1D5DB"), 
-                border_radius=10, padding=ft.padding.only(left=10, right=10),
+                border_radius=10, padding=ft.padding.only(left=10, right=10, bottom=5), # Ajuste para o contador não colar
             )
         ], spacing=5, col=col)
 
-    # --- CAMPOS DE TEXTO ---
-    def estilo_input(label, hint="", value="", col=None, keyboard_type=ft.KeyboardType.TEXT, on_change=None, suffix=None, read_only=False):
+    # --- FUNÇÃO DE ESTILO COM LIMITE (CONTADOR ATIVO) ---
+    def estilo_input(label, hint="", value="", col=None, keyboard_type=ft.KeyboardType.TEXT, on_change=None, suffix=None, read_only=False, limite=None):
         input_field = ft.TextField(
             value=value, 
             hint_text=hint, 
@@ -77,29 +75,31 @@ def produto(page: ft.Page, on_stock):
             keyboard_type=keyboard_type, 
             on_change=on_change, 
             suffix=suffix,
-            read_only=read_only
+            read_only=read_only,
+            max_length=limite, # Define o limite
         )
         return criar_container_input(label, input_field, col), input_field
 
-    nome_c, nome_in = estilo_input("NOME DO PRODUTO", col=12)
-    cod_c, cod_in = estilo_input("CÓDIGO DE BARRAS", col=12)
+    # --- CAMPOS COM LIMITES DEFINIDOS ---
+    nome_c, nome_in = estilo_input("NOME DO PRODUTO", col=12, limite=100)
+    cod_c, cod_in = estilo_input("CÓDIGO DE BARRAS", col=12, limite=20)
     forn_c = criar_container_input("FORNECEDOR", drop_fornecedor, col=6)
     cat_c = criar_container_input("CATEGORIA", drop_categoria, col=6)
     
-    qtd_c, qtd_in = estilo_input("QUANTIDADE", value="0", col=4, keyboard_type=ft.KeyboardType.NUMBER)
-    lote_c, lote_in = estilo_input("LOTE", col=4)
-    emb_c, emb_in = estilo_input("EMBALAGEM", value="Unidade", col=4)
+    qtd_c, qtd_in = estilo_input("QUANTIDADE", value="0", col=4, keyboard_type=ft.KeyboardType.NUMBER, limite=10)
+    lote_c, lote_in = estilo_input("LOTE", col=4, limite=30)
+    emb_c, emb_in = estilo_input("EMBALAGEM", value="Unidade", col=4, limite=20)
 
-    # Preços com formatador automático
-    custo_c, custo_in = estilo_input("PREÇO CUSTO (R$)", value="0,00", col=6, on_change=formatar_moeda)
-    venda_c, venda_in = estilo_input("PREÇO VENDA (R$)", value="0,00", col=6, on_change=formatar_moeda)
+    # Preços (limite de 15 para comportar a formatação de moeda R$)
+    custo_c, custo_in = estilo_input("PREÇO CUSTO (R$)", value="0,00", col=6, on_change=formatar_moeda, limite=15)
+    venda_c, venda_in = estilo_input("PREÇO VENDA (R$)", value="0,00", col=6, on_change=formatar_moeda, limite=15)
     
-    # Validade com ícone de calendário
     val_c, val_in = estilo_input(
         "VALIDADE (AAAA-MM-DD)", 
         value=datetime.now().strftime("%Y-%m-%d"), 
         col=12,
-        read_only=True, # Evita que o usuário digite errado
+        read_only=True,
+        limite=10,
         suffix=ft.IconButton(icon=ft.Icons.CALENDAR_MONTH, on_click=lambda _: date_picker.open_picker())
     )
 
@@ -111,7 +111,6 @@ def produto(page: ft.Page, on_stock):
             return
 
         try:
-            # Converte o valor da máscara (1.200,50) de volta para float (1200.50)
             custo_final = float(custo_in.value.replace(".", "").replace(",", "."))
             venda_final = float(venda_in.value.replace(".", "").replace(",", "."))
 
@@ -137,7 +136,6 @@ def produto(page: ft.Page, on_stock):
         spacing=15, run_spacing=15,
     )
 
-    # --- LAYOUT FINAL ---
     page.add(
         ft.Column(
             expand=True,

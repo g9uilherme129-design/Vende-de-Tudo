@@ -21,8 +21,8 @@ def novo_fornecedor(page: ft.Page, on_voltar):
         center_title=True,
     )
 
-    # --- FUNÇÃO DE ESTILO (PADRÃO PRODUTO) ---
-    def estilo_input(label, hint="", value="", col=None, keyboard_type=ft.KeyboardType.TEXT):
+    # --- FUNÇÃO DE ESTILO ATUALIZADA COM LIMITE ---
+    def estilo_input(label, hint="", value="", col=None, keyboard_type=ft.KeyboardType.TEXT, limite=None):
         input_field = ft.TextField(
             value=value, 
             hint_text=hint, 
@@ -30,7 +30,8 @@ def novo_fornecedor(page: ft.Page, on_voltar):
             content_padding=15, 
             text_style=ft.TextStyle(color=cor_texto_input),
             expand=True, 
-            keyboard_type=keyboard_type
+            keyboard_type=keyboard_type,
+            max_length=limite, # Define o limite de caracteres
         )
         container = ft.Column([
             ft.Text(label, size=11, color=cor_label, weight="bold"),
@@ -44,19 +45,20 @@ def novo_fornecedor(page: ft.Page, on_voltar):
         ], spacing=5, col=col)
         return container, input_field
 
-    # --- CAMPOS DO FORMULÁRIO ---
-    nome_c, nome_in = estilo_input("NOME DO FORNECEDOR", hint="Ex: Coca-Cola Brasil", col=12)
-    cnpj_c, cnpj_in = estilo_input("CNPJ", hint="00.000.000/0000-00", col=12)
-    tel_c, tel_in = estilo_input("TELEFONE", hint="(31) 99999-9999", col=6)
-    email_c, email_in = estilo_input("E-MAIL", hint="contato@empresa.com", col=6)
+    # --- CAMPOS DO FORMULÁRIO COM LIMITES ---
+    # Nome: 100, CNPJ: 18 (00.000.000/0000-00), Tel: 15, Email: 100
+    nome_c, nome_in = estilo_input("NOME DO FORNECEDOR", hint="Ex: Coca-Cola Brasil", col=12, limite=100)
+    cnpj_c, cnpj_in = estilo_input("CNPJ", hint="00.000.000/0000-00", col=12, limite=14)
+    tel_c, tel_in = estilo_input("TELEFONE", hint="(31) 99999-9999", col=6, limite=11)
+    email_c, email_in = estilo_input("E-MAIL", hint="contato@empresa.com", col=6, limite=100)
     
-    # Endereço
-    rua_c, rua_in = estilo_input("LOGRADOURO (RUA)", hint="Rua...", col=9)
-    num_c, num_in = estilo_input("Nº", hint="123", col=3)
-    bairro_c, bairro_in = estilo_input("BAIRRO", col=6)
-    cidade_c, cidade_in = estilo_input("CIDADE", value="Curvelo", col=6)
-    uf_c, uf_in = estilo_input("ESTADO (UF)", value="MG", col=4)
-    cep_c, cep_in = estilo_input("CEP", hint="35790-000", col=8)
+    # Endereço: Rua: 150, Num: 10, Bairro: 50, Cidade: 50, UF: 2, CEP: 9
+    rua_c, rua_in = estilo_input("LOGRADOURO (RUA)", hint="Rua...", col=9, limite=150)
+    num_c, num_in = estilo_input("Nº", hint="123", col=3, limite=10)
+    bairro_c, bairro_in = estilo_input("BAIRRO", col=6, limite=50)
+    cidade_c, cidade_in = estilo_input("CIDADE", value="Curvelo", col=6, limite=50)
+    uf_c, uf_in = estilo_input("ESTADO (UF)", value="MG", col=4, limite=2)
+    cep_c, cep_in = estilo_input("CEP", hint="35790-000", col=8, limite=9)
 
     def salvar_clique(e):
         if not nome_in.value or not cnpj_in.value:
@@ -73,7 +75,7 @@ def novo_fornecedor(page: ft.Page, on_voltar):
         if sucesso:
             page.snack_bar = ft.SnackBar(ft.Text(msg), bgcolor="green")
             page.snack_bar.open = True
-            on_voltar() # Volta para a lista
+            on_voltar() 
         else:
             page.snack_bar = ft.SnackBar(ft.Text(f"Erro: {msg}"), bgcolor="red")
             page.snack_bar.open = True
@@ -84,7 +86,7 @@ def novo_fornecedor(page: ft.Page, on_voltar):
         controls=[
             nome_c, cnpj_c, 
             tel_c, email_c,
-            ft.Text("ENDEREÇO", size=14, weight="bold", color=cor_label, col=12), # Subtítulo
+            ft.Text("ENDEREÇO", size=14, weight="bold", color=cor_label, col=12),
             rua_c, num_c,
             bairro_c, cidade_c,
             uf_c, cep_c
@@ -112,7 +114,7 @@ def novo_fornecedor(page: ft.Page, on_voltar):
                         shape=ft.RoundedRectangleBorder(radius=12)
                     )
                 ),
-                ft.Container(height=40) # Respiro no fundo
+                ft.Container(height=40)
             ]
         )
     )
