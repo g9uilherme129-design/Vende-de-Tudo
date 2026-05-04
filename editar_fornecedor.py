@@ -19,7 +19,8 @@ def editar_fornecedor(page: ft.Page, on_back, id_fornecedor):
         center_title=True,
     )
 
-    def estilo_input(label, value="", read_only=False, col=None):
+    # --- FUNÇÃO DE ESTILO COM LIMITE ---
+    def estilo_input(label, value="", read_only=False, col=None, limite=None):
         input_field = ft.TextField(
             value=str(value) if value else "",
             border=ft.InputBorder.NONE,
@@ -27,29 +28,30 @@ def editar_fornecedor(page: ft.Page, on_back, id_fornecedor):
             read_only=read_only,
             text_style=ft.TextStyle(color=cor_texto),
             expand=True,
+            max_length=limite, # Define o limite máximo
         )
         container = ft.Column([
             ft.Text(label, size=11, color=ft.Colors.TEAL_700, weight="bold"),
             ft.Container(
                 content=input_field, bgcolor=cor_input_fundo,
                 border=ft.border.all(1, cor_borda), border_radius=10,
-                padding=ft.padding.only(right=10),
+                padding=ft.padding.only(right=10, bottom=5), # Espaço para o contador
             )
         ], spacing=5, col=col)
         return container, input_field
 
-    # Criando os campos com os dados vindos do MySQL
-    nome_c, nome_in = estilo_input("RAZÃO SOCIAL / NOME", value=f['nome_fornecedor'], col=12)
-    cnpj_c, cnpj_in = estilo_input("CNPJ", value=f['CNPJ'], read_only=False, col=6)
-    tel_c, tel_in = estilo_input("TELEFONE", value=f['telefone'], col=6)
-    email_c, email_in = estilo_input("E-MAIL", value=f.get('email_forn', ''), col=12)
+    # --- CAMPOS COM LIMITES ---
+    nome_c, nome_in = estilo_input("RAZÃO SOCIAL / NOME", value=f['nome_fornecedor'], col=12, limite=100)
+    cnpj_c, cnpj_in = estilo_input("CNPJ", value=f['CNPJ'], read_only=False, col=6, limite=14)
+    tel_c, tel_in = estilo_input("TELEFONE", value=f['telefone'], col=6, limite=11)
+    email_c, email_in = estilo_input("E-MAIL", value=f.get('email_forn', ''), col=12, limite=100)
     
     # Campos de Endereço
-    rua_c, rua_in = estilo_input("LOGRADOURO (RUA/AV)", value=f['endereco_logradouro'], col=9)
-    num_c, num_in = estilo_input("Nº", value=f['endereco_numero'], col=3)
-    bairro_c, bairro_in = estilo_input("BAIRRO", value=f['bairro'], col=5)
-    cid_c, cid_in = estilo_input("CIDADE", value=f['cidade'], col=5)
-    uf_c, uf_in = estilo_input("UF", value=f['estado'], col=2)
+    rua_c, rua_in = estilo_input("LOGRADOURO (RUA/AV)", value=f['endereco_logradouro'], col=9, limite=150)
+    num_c, num_in = estilo_input("Nº", value=f['endereco_numero'], col=3, limite=10)
+    bairro_c, bairro_in = estilo_input("BAIRRO", value=f['bairro'], col=5, limite=50)
+    cid_c, cid_in = estilo_input("CIDADE", value=f['cidade'], col=5, limite=50)
+    uf_c, uf_in = estilo_input("UF", value=f['estado'], col=2, limite=2)
 
     def salvar_alteracoes(e):
         try:
@@ -67,7 +69,7 @@ def editar_fornecedor(page: ft.Page, on_back, id_fornecedor):
             )
             page.snack_bar = ft.SnackBar(ft.Text("Fornecedor atualizado com sucesso!"), bgcolor="green")
             page.snack_bar.open = True
-            on_back() # Volta para a lista de fornecedores
+            on_back() 
         except Exception as ex:
             page.snack_bar = ft.SnackBar(ft.Text(f"Erro ao atualizar: {ex}"), bgcolor="red")
             page.snack_bar.open = True
@@ -99,6 +101,7 @@ def editar_fornecedor(page: ft.Page, on_back, id_fornecedor):
                         shape=ft.RoundedRectangleBorder(radius=10)
                     )
                 ),
+                ft.Container(height=20) # Espaço extra no final
             ],
             spacing=10
         )

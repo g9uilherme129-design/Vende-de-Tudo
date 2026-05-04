@@ -20,6 +20,7 @@ from gerenciar_categoria import gerenciar_categorias
 from editar_fornecedor import editar_fornecedor
 from recuperar_senha import tela_recuperacao
 
+
 def main(page: ft.Page):
     page.title = "Vende de Tudo"
     page.padding = 20

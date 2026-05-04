@@ -22,8 +22,8 @@ def novo_usuario(page: ft.Page, on_users):
         center_title=True,
     )
 
-    # Função auxiliar para manter seu estilo visual
-    def estilo_input(label, hint="", password=False, keyboard_type=ft.KeyboardType.TEXT):
+    # --- FUNÇÃO AUXILIAR COM LIMITE DE CARACTERES ---
+    def estilo_input(label, hint="", password=False, keyboard_type=ft.KeyboardType.TEXT, limite=None):
         input_field = ft.TextField(
             hint_text=hint,
             password=password,
@@ -32,7 +32,8 @@ def novo_usuario(page: ft.Page, on_users):
             content_padding=15,
             text_style=ft.TextStyle(color=cor_texto_input),
             expand=True,
-            keyboard_type=keyboard_type
+            keyboard_type=keyboard_type,
+            max_length=limite, # Define o limite máximo
         )
         
         container = ft.Column(
@@ -43,22 +44,22 @@ def novo_usuario(page: ft.Page, on_users):
                     bgcolor=cor_fundo_input,
                     border=ft.border.all(1, cor_borda_input),
                     border_radius=12,
-                    padding=ft.padding.only(right=10),
+                    padding=ft.padding.only(right=10, bottom=5), # Padding extra para o contador não colar
                 )
             ],
             spacing=5,
         )
         return container, input_field
 
-    # Criando os campos
-    nome_c, nome_in = estilo_input("NOME COMPLETO", hint="Ex: Neymar Jr")
-    cpf_c, cpf_in = estilo_input("CPF (Apenas números)", hint="12345678900", keyboard_type=ft.KeyboardType.NUMBER)
-    email_c, email_in = estilo_input("E-MAIL", hint="usuario@email.com", keyboard_type=ft.KeyboardType.EMAIL)
-    senha_c, senha_in = estilo_input("SENHA", hint="******", password=True)
-    # Novo campo de Salário
-    salario_c, salario_in = estilo_input("SALÁRIO BASE", hint="2.500,00", keyboard_type=ft.KeyboardType.NUMBER)# Após criar, você acessa o TextField (salario_in) e define o prefixo:
+    # --- CAMPOS COM LIMITES ---
+    nome_c, nome_in = estilo_input("NOME COMPLETO", hint="Ex: Neymar Jr", limite=100)
+    cpf_c, cpf_in = estilo_input("CPF (Apenas números)", hint="12345678900", keyboard_type=ft.KeyboardType.NUMBER, limite=11)
+    email_c, email_in = estilo_input("E-MAIL", hint="usuario@email.com", keyboard_type=ft.KeyboardType.EMAIL, limite=100)
+    senha_c, senha_in = estilo_input("SENHA", hint="******", password=True, limite=32)
+    
+    # Campo de Salário
+    salario_c, salario_in = estilo_input("SALÁRIO BASE", hint="0,00", keyboard_type=ft.KeyboardType.NUMBER, limite=15)
     salario_in.prefix_text = "R$ "
-    salario_in.hint_text = "0,00"
 
     perfil_dropdown = ft.Dropdown(
         options=[
@@ -86,7 +87,6 @@ def novo_usuario(page: ft.Page, on_users):
     )
 
     def salvar_usuario(e):
-        # 1. Limpa espaços e valida
         nome = nome_in.value.strip() if nome_in.value else ""
         email = email_in.value.strip() if email_in.value else ""
         senha = senha_in.value.strip() if senha_in.value else ""
@@ -101,10 +101,7 @@ def novo_usuario(page: ft.Page, on_users):
             return
 
         try:
-            # Gerar ID único (ex: U10005)
             novo_id = gerar_id_char("usuario", "id_user", "U")
-
-            # Chama o banco
             sucesso, msg = cadastrar_usuario_db(
                 id_user=novo_id,
                 nome=nome,
@@ -119,7 +116,6 @@ def novo_usuario(page: ft.Page, on_users):
                 page.snack_bar = ft.SnackBar(ft.Text(msg), bgcolor="green")
                 page.snack_bar.open = True
                 page.update()
-                # Pequena pausa para o usuário ver a mensagem antes de mudar de tela
                 on_users() 
             else:
                 page.snack_bar = ft.SnackBar(ft.Text(f"Erro: {msg}"), bgcolor="red")
@@ -127,7 +123,7 @@ def novo_usuario(page: ft.Page, on_users):
                 page.update()
 
         except Exception as ex:
-            print(f"Erro na UI: {ex}") # Isso aparece no seu terminal do VS Code
+            print(f"Erro na UI: {ex}")
             page.snack_bar = ft.SnackBar(ft.Text(f"Erro inesperado: {ex}"), bgcolor="red")
             page.snack_bar.open = True
             page.update()
@@ -138,7 +134,7 @@ def novo_usuario(page: ft.Page, on_users):
             cpf_c,
             email_c,
             senha_c,
-            salario_c, # Adicionado no layout
+            salario_c,
             perfil_c,
             ft.Container(height=10),
             ft.ElevatedButton(
@@ -165,7 +161,7 @@ def novo_usuario(page: ft.Page, on_users):
                     padding=20,
                 )
             ],
-            alignment="center" # Centraliza o formulário na tela
+            alignment="center" 
         )
     )
     
