@@ -97,7 +97,7 @@ def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil, on_venda,
     for v in dados.get('ranking', []):
         # Aqui usamos o nome correto da função
         coluna_produtos.controls.append(
-            item_ranking(v['nome_user'], f"{v['qtd_vendas']} UNIDADES", formatar_moeda(v['valor_total']))
+            item_ranking(v['nome_user'], f"{v['qtd_venda']} UNIDADES", formatar_moeda(v['valor_total']))
         )
 
     coluna_vendedores = ft.Column(spacing=10)

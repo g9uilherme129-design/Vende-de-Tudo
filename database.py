@@ -313,7 +313,7 @@ def registrar_venda_db(id_user, id_estoque, qtd, metodo, preco_venda=0):
         cursor.execute(query, (novo_id, str(id_user), str(id_estoque), metodo, qtd, qtd))
         
         # Baixa o estoque normalmente
-        cursor.execute("UPDATE Faestoque SET quantidade = quantidade - %s WHERE id_estoque = %s", (qtd, id_estoque))
+        cursor.execute("UPDATE estoque SET quantidade = quantidade - %s WHERE id_estoque = %s", (qtd, id_estoque))
         
         conn.commit()
         return True, "Sucesso"
@@ -468,7 +468,7 @@ def atualizar_usuario_db(id_user, nome, cpf, email, perfil, salario, senha=None)
     finally:
         conn.close()
 
-def cadastrar_fornecedor_db(nome, cnpj, tel, email, rua, num, bairro, cidade, uf, cep):
+def cadastrar_fornecedor_db(nome, cnpj, tel, email, logradouro, num, bairro, cidade, uf, cep):
     # Gera o ID no padrão F100001
     novo_id = gerar_id_char("fornecedor", "id_fornecedor", "F")
 
@@ -481,7 +481,7 @@ def cadastrar_fornecedor_db(nome, cnpj, tel, email, rua, num, bairro, cidade, uf
              endereco_logradouro, endereco_numero, bairro, cidade, estado, cep)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
-        valores = (novo_id, nome, cnpj, tel, email, rua, num, bairro, cidade, uf, cep)
+        valores = (novo_id, nome, cnpj, tel, email, logradouro, num, bairro, cidade, uf, cep)
         cursor.execute(query, valores)
         conn.commit()
         return True, "Fornecedor cadastrado com sucesso!"
@@ -674,16 +674,16 @@ def buscar_fornecedor_por_id(id_forn):
     finally:
         conn.close()
 
-def atualizar_fornecedor_db(id_forn, nome, cnpj, tel, email, logradouro, num, bairro, cidade, uf):
+def atualizar_fornecedor_db(id_forn, nome, cnpj, tel, email, logradouro, num, bairro, cidade, uf, cep):
     conn = get_connection()
     cursor = conn.cursor()
     try:
         # Note o email_forn aqui
         sql = """UPDATE fornecedor SET 
                  nome_fornecedor=%s, CNPJ=%s, telefone=%s, email_forn=%s, 
-                 endereco_logradouro=%s, endereco_numero=%s, bairro=%s, cidade=%s, estado=%s
+                 endereco_logradouro=%s, endereco_numero=%s, bairro=%s, cidade=%s, estado=%s, cep=%s
                  WHERE id_fornecedor=%s"""
-        cursor.execute(sql, (nome, cnpj, tel, email, logradouro, num, bairro, cidade, uf, id_forn))
+        cursor.execute(sql, (nome, cnpj, tel, email, logradouro, num, bairro, cidade, uf, cep, id_forn))
         conn.commit()
     finally:
         conn.close()

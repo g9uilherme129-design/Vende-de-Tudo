@@ -178,3 +178,4 @@ def gerenciar_vendas(page: ft.Page, on_home, on_users, on_perfil, on_stock, on_r
     )
 
     filtrar_vendas()
+
