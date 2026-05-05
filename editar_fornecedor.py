@@ -28,57 +28,61 @@ def editar_fornecedor(page: ft.Page, on_back, id_fornecedor):
             read_only=read_only,
             text_style=ft.TextStyle(color=cor_texto),
             expand=True,
-            max_length=limite, # Define o limite máximo
+            max_length=limite, 
         )
         container = ft.Column([
             ft.Text(label, size=11, color=ft.Colors.TEAL_700, weight="bold"),
             ft.Container(
                 content=input_field, bgcolor=cor_input_fundo,
                 border=ft.border.all(1, cor_borda), border_radius=10,
-                padding=ft.padding.only(right=10, bottom=5), # Espaço para o contador
+                padding=ft.padding.only(right=10, bottom=5), 
             )
         ], spacing=5, col=col)
         return container, input_field
 
     # --- CAMPOS COM LIMITES ---
-    nome_c, nome_in = estilo_input("RAZÃO SOCIAL / NOME", value=f['nome_fornecedor'], col=12, limite=100)
+    nome_c, nome_in = estilo_input("RAZÃO SOCIAL / NOME", value=f['nome_fornecedor'], col=12, limite=150)
     cnpj_c, cnpj_in = estilo_input("CNPJ", value=f['CNPJ'], read_only=False, col=6, limite=14)
     tel_c, tel_in = estilo_input("TELEFONE", value=f['telefone'], col=6, limite=11)
     email_c, email_in = estilo_input("E-MAIL", value=f.get('email_forn', ''), col=12, limite=100)
     
-    # Campos de Endereço
-    rua_c, rua_in = estilo_input("LOGRADOURO (RUA/AV)", value=f['endereco_logradouro'], col=9, limite=150)
-    num_c, num_in = estilo_input("Nº", value=f['endereco_numero'], col=3, limite=10)
-    bairro_c, bairro_in = estilo_input("BAIRRO", value=f['bairro'], col=5, limite=50)
-    cid_c, cid_in = estilo_input("CIDADE", value=f['cidade'], col=5, limite=50)
-    uf_c, uf_in = estilo_input("UF", value=f['estado'], col=2, limite=2)
+    # Campos de Endereço (Inclusão do CEP)
+    
+    rua_c, rua_in = estilo_input("LOGRADOURO (RUA/AV)", value=f['endereco_logradouro'], col=8, limite=150)
+    num_c, num_in = estilo_input("Nº", value=f['endereco_numero'], col=3, limite=3)
+    bairro_c, bairro_in = estilo_input("BAIRRO", value=f['bairro'], col=9, limite=100)
+    cid_c, cid_in = estilo_input("CIDADE", value=f['cidade'], col=8, limite=100)
+    uf_c, uf_in = estilo_input("UF", value=f['estado'], col=4, limite=2)
+    cep_c, cep_in = estilo_input("CEP", value=f.get('cep'), col=4, limite=9)
 
     def salvar_alteracoes(e):
         try:
             atualizar_fornecedor_db(
-                id_forn=id_fornecedor,
-                nome=nome_in.value,
-                cnpj=cnpj_in.value,
-                tel=tel_in.value,
-                email=email_in.value,
-                logradouro=rua_in.value,
-                num=num_in.value,
-                bairro=bairro_in.value,
-                cidade=cid_in.value,
-                uf=uf_in.value
+                id_fornecedor,
+                nome_in.value,
+                cnpj_in.value,
+                tel_in.value,   
+                email_in.value,
+                rua_in.value,
+                num_in.value,
+                bairro_in.value,
+                cid_in.value,
+                uf_in.value,
+                cep_in.value
             )
-            page.snack_bar = ft.SnackBar(ft.Text("Fornecedor atualizado com sucesso!"), bgcolor="green")
+            page.snack_bar = ft.SnackBar(ft.Text("Fornecedor atualizado!"), bgcolor="green")
             page.snack_bar.open = True
             on_back() 
         except Exception as ex:
-            page.snack_bar = ft.SnackBar(ft.Text(f"Erro ao atualizar: {ex}"), bgcolor="red")
+            print(f"Erro detalhado: {ex}") 
+            page.snack_bar = ft.SnackBar(ft.Text(f"Erro: {ex}"), bgcolor="red")
             page.snack_bar.open = True
         page.update()
 
     layout_campos = ft.ResponsiveRow(
         controls=[
             nome_c, cnpj_c, tel_c, email_c, 
-            rua_c, num_c, bairro_c, cid_c, uf_c
+             rua_c, num_c, bairro_c, cid_c, uf_c, cep_c
         ],
         spacing=15, run_spacing=15,
     )
@@ -101,7 +105,7 @@ def editar_fornecedor(page: ft.Page, on_back, id_fornecedor):
                         shape=ft.RoundedRectangleBorder(radius=10)
                     )
                 ),
-                ft.Container(height=20) # Espaço extra no final
+                ft.Container(height=40) 
             ],
             spacing=10
         )

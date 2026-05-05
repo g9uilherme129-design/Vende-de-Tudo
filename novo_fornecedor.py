@@ -13,7 +13,7 @@ def novo_fornecedor(page: ft.Page, on_voltar):
     cor_texto_input = "white" if is_dark else "black"
     cor_label = ft.Colors.TEAL_700 if is_dark else ft.Colors.TEAL_900
 
-    # --- APPBAR PADRÃO ---
+    # --- APPBAR ---
     page.appbar = ft.AppBar(
         leading=ft.IconButton(ft.Icons.ARROW_BACK, icon_color="white", on_click=lambda _: on_voltar()),
         title=ft.Text("Novo Fornecedor", size=20, weight="bold", color="white"),
@@ -21,7 +21,7 @@ def novo_fornecedor(page: ft.Page, on_voltar):
         center_title=True,
     )
 
-    # --- FUNÇÃO DE ESTILO ATUALIZADA COM LIMITE ---
+    # --- FUNÇÃO DE ESTILO ---
     def estilo_input(label, hint="", value="", col=None, keyboard_type=ft.KeyboardType.TEXT, limite=None):
         input_field = ft.TextField(
             value=value, 
@@ -31,7 +31,7 @@ def novo_fornecedor(page: ft.Page, on_voltar):
             text_style=ft.TextStyle(color=cor_texto_input),
             expand=True, 
             keyboard_type=keyboard_type,
-            max_length=limite, # Define o limite de caracteres
+            max_length=limite,
         )
         container = ft.Column([
             ft.Text(label, size=11, color=cor_label, weight="bold"),
@@ -40,25 +40,25 @@ def novo_fornecedor(page: ft.Page, on_voltar):
                 bgcolor=cor_fundo_input,
                 border=ft.border.all(1, cor_borda_input), 
                 border_radius=10,
-                padding=ft.padding.only(right=10),
+                padding=ft.padding.only(right=10, bottom=5), # Espaço para o contador
             )
         ], spacing=5, col=col)
         return container, input_field
 
-    # --- CAMPOS DO FORMULÁRIO COM LIMITES ---
-    # Nome: 100, CNPJ: 18 (00.000.000/0000-00), Tel: 15, Email: 100
-    nome_c, nome_in = estilo_input("NOME DO FORNECEDOR", hint="Ex: Coca-Cola Brasil", col=12, limite=100)
-    cnpj_c, cnpj_in = estilo_input("CNPJ", hint="00.000.000/0000-00", col=12, limite=14)
+    # --- CAMPOS DO FORMULÁRIO ---
+    nome_c, nome_in = estilo_input("NOME DO FORNECEDOR", hint="Ex: Coca-Cola Brasil", col=12, limite=150)
+    cnpj_c, cnpj_in = estilo_input("CNPJ", hint="00.000.000/0000-00", col=6, limite=14)
     tel_c, tel_in = estilo_input("TELEFONE", hint="(31) 99999-9999", col=6, limite=11)
-    email_c, email_in = estilo_input("E-MAIL", hint="contato@empresa.com", col=6, limite=100)
+    email_c, email_in = estilo_input("E-MAIL", hint="contato@empresa.com", col=12, limite=100)
     
-    # Endereço: Rua: 150, Num: 10, Bairro: 50, Cidade: 50, UF: 2, CEP: 9
-    rua_c, rua_in = estilo_input("LOGRADOURO (RUA)", hint="Rua...", col=9, limite=150)
-    num_c, num_in = estilo_input("Nº", hint="123", col=3, limite=10)
-    bairro_c, bairro_in = estilo_input("BAIRRO", col=6, limite=50)
-    cidade_c, cidade_in = estilo_input("CIDADE", value="Curvelo", col=6, limite=50)
+    # Seção de Endereço
+    
+    rua_c, rua_in = estilo_input("LOGRADOURO (RUA)", hint="Rua...", col=8, limite=150)
+    num_c, num_in = estilo_input("Nº", hint="123", col=3, limite=3)
+    bairro_c, bairro_in = estilo_input("BAIRRO", col=9, limite=100)
+    cidade_c, cidade_in = estilo_input("CIDADE", value="Curvelo", col=8, limite=100)
     uf_c, uf_in = estilo_input("ESTADO (UF)", value="MG", col=4, limite=2)
-    cep_c, cep_in = estilo_input("CEP", hint="35790-000", col=8, limite=9)
+    cep_c, cep_in = estilo_input("CEP", hint="35790-000", col=4, limite=9)
 
     def salvar_clique(e):
         if not nome_in.value or not cnpj_in.value:
@@ -67,9 +67,18 @@ def novo_fornecedor(page: ft.Page, on_voltar):
             page.update()
             return
 
+        # Chamada para o banco incluindo o CEP
         sucesso, msg = cadastrar_fornecedor_db(
-            nome_in.value, cnpj_in.value, tel_in.value, email_in.value,
-            rua_in.value, num_in.value, bairro_in.value, cidade_in.value, uf_in.value, cep_in.value
+            nome=nome_in.value, 
+            cnpj=cnpj_in.value, 
+            tel=tel_in.value, 
+            email=email_in.value,
+            logradouro=rua_in.value, 
+            num=num_in.value, 
+            bairro=bairro_in.value, 
+            cidade=cidade_in.value, 
+            uf=uf_in.value, 
+            cep=cep_in.value
         )
 
         if sucesso:
@@ -84,12 +93,13 @@ def novo_fornecedor(page: ft.Page, on_voltar):
     # --- LAYOUT RESPONSIVO ---
     layout_campos = ft.ResponsiveRow(
         controls=[
-            nome_c, cnpj_c, 
-            tel_c, email_c,
-            ft.Text("ENDEREÇO", size=14, weight="bold", color=cor_label, col=12),
-            rua_c, num_c,
-            bairro_c, cidade_c,
-            uf_c, cep_c
+            nome_c, 
+            cnpj_c, tel_c, 
+            email_c,
+            ft.Text("  ENDEREÇO", size=14, weight="bold", color=cor_label, col=12),
+            rua_c,
+            num_c, bairro_c,
+            cidade_c, uf_c, cep_c
         ],
         spacing=15, 
         run_spacing=15,
