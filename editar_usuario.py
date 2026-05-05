@@ -1,5 +1,5 @@
 import flet as ft
-from database import buscar_usuario_por_id, atualizar_usuario_db
+from database import buscar_usuario_por_id, atualizar_usuario_db, Validar_senha_atual_db
 
 def editar_usuario(page: ft.Page, on_users, id_usuario):
     page.controls.clear()
@@ -63,7 +63,23 @@ def editar_usuario(page: ft.Page, on_users, id_usuario):
         ft.Container(content=perfil_dropdown, bgcolor=cor_input_fundo, border=ft.border.all(1, cor_borda), border_radius=10, height=55)
     ], col={"sm": 12, "md": 6})
 
+    senha_atual_c, senha_atual_in = estilo_input("SENHA ATUAL (PARA MUDAR)", "", {"sm":12, "md": 4}, True)
+    senha_c, senha_in = estilo_input("NOVA SENHA", "", {"sm": 12, "md": 4}, True, limite=32)
+    senha_conf_c, senha_conf_in = estilo_input("CONFIRMAR NOVA SENHA", "", {"sm": 12, "md": 4}, True)
+
     def salvar(e):
+        if senha_in.value:
+
+            if senha_in.value != senha_conf_in.value:
+                page.snack_bar = ft.SnackBar(ft.Text("A nova senha e a confirmação não coincidem!"), bgcolor="red")
+                page.snack_bar.open = True
+                page.update()
+                return
+            if not Validar_senha_atual_db(id_usuario, senha_atual_in.value):
+                page.snack_bar = ft.SnackBar(ft.Text("Senha Atual incorreta! Autorização negada."), bgcolor="red")
+                page.snack_bar.open = True
+                page.update()
+                return
         sucesso, msg = atualizar_usuario_db(
             id_usuario, nome_in.value, cpf_in.value, email_in.value, 
             perfil_dropdown.value, salario_in.value.replace(",", "."), senha_in.value
