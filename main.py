@@ -92,7 +92,9 @@ def main(page: ft.Page):
         )
         page.update()
 
-    def carregar_fornecedores():
+    # --- NO SEU MAIN.PY ---
+
+    def carregar_fornecedores(): # Esta é a linha 77 aproximadamente
         tela_fornecedores(
             page,
             on_home=carregar_home,

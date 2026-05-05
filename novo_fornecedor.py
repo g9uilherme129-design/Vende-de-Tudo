@@ -1,12 +1,17 @@
 import flet as ft
+import re
 from database import cadastrar_fornecedor_db
+
+ESTADOS_BR = [
+    "AC", "AL", "AM", "AP", "BA", "CE", "DF", "ES", "GO", "MA", "MG", "MS", 
+    "MT", "PA", "PB", "PE", "PI", "PR", "RJ", "RN", "RO", "RR", "RS", "SC", "SE", "SP", "TO"
+]
 
 def novo_fornecedor(page: ft.Page, on_voltar):
     page.controls.clear()
     page.padding = 20
     page.scroll = ft.ScrollMode.AUTO
 
-    # --- CONFIGURAÇÃO DE TEMA ---
     is_dark = page.theme_mode == ft.ThemeMode.DARK
     cor_fundo_input = "#0A122A" if is_dark else "#FFFFFF"
     cor_borda_input = "#1E2B4E" if is_dark else "#D1D5DB"
@@ -24,7 +29,6 @@ def novo_fornecedor(page: ft.Page, on_voltar):
     # --- FUNÇÃO DE ESTILO ---
     def estilo_input(label, hint="", value="", col=None, keyboard_type=ft.KeyboardType.TEXT, limite=None):
         input_field = ft.TextField(
-            value=value, 
             hint_text=hint, 
             border=ft.InputBorder.NONE,
             content_padding=15, 
@@ -84,13 +88,13 @@ def novo_fornecedor(page: ft.Page, on_voltar):
         if sucesso:
             page.snack_bar = ft.SnackBar(ft.Text(msg), bgcolor="green")
             page.snack_bar.open = True
-            on_voltar() 
+            on_voltar()
         else:
             page.snack_bar = ft.SnackBar(ft.Text(f"Erro: {msg}"), bgcolor="red")
             page.snack_bar.open = True
         page.update()
 
-    # --- LAYOUT RESPONSIVO ---
+    # --- RESTO DO LAYOUT ---
     layout_campos = ft.ResponsiveRow(
         controls=[
             nome_c, 
@@ -105,27 +109,26 @@ def novo_fornecedor(page: ft.Page, on_voltar):
         run_spacing=15,
     )
 
-    page.add(
-        ft.Column(
-            scroll=ft.ScrollMode.AUTO,
+    page.appbar = ft.AppBar(
+        leading=ft.IconButton(ft.Icons.ARROW_BACK, icon_color="white", on_click=lambda _: on_voltar()),
+        title=ft.Text("Novo Fornecedor", size=20, weight="bold", color="white"),
+        bgcolor="#0b1445", center_title=True,
+    )
+
+    corpo_formulario = ft.Container(
+        content=ft.Column(
             horizontal_alignment="center",
             controls=[
                 ft.Divider(height=10, color="transparent"),
                 layout_campos,
                 ft.Divider(height=20, color="transparent"),
-                ft.ElevatedButton(
-                    "CADASTRAR FORNECEDOR", 
-                    on_click=salvar_clique, 
-                    width=300, 
-                    height=50,
-                    style=ft.ButtonStyle(
-                        bgcolor="#1B4F9C", 
-                        color="white", 
-                        shape=ft.RoundedRectangleBorder(radius=12)
-                    )
-                ),
+                ft.ElevatedButton("CADASTRAR FORNECEDOR", on_click=salvar_clique, width=float("inf"), height=50,
+                                  style=ft.ButtonStyle(bgcolor="#1B4F9C", color="white", shape=ft.RoundedRectangleBorder(radius=12))),
                 ft.Container(height=40)
             ]
-        )
+        ),
+        width=500, padding=10,
     )
+
+    page.add(ft.Row(controls=[corpo_formulario], alignment=ft.MainAxisAlignment.CENTER))
     page.update()
