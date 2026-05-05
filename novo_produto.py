@@ -82,7 +82,7 @@ def produto(page: ft.Page, on_stock):
 
     # --- CAMPOS COM LIMITES DEFINIDOS ---
     nome_c, nome_in = estilo_input("NOME DO PRODUTO", col=12, limite=100)
-    cod_c, cod_in = estilo_input("CÓDIGO DE BARRAS", col=12, limite=20)
+    cod_c, cod_in = estilo_input("CÓDIGO DE BARRAS", col=12, limite=10)
     forn_c = criar_container_input("FORNECEDOR", drop_fornecedor, col=6)
     cat_c = criar_container_input("CATEGORIA", drop_categoria, col=6)
     

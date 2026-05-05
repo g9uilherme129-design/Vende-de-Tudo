@@ -42,7 +42,7 @@ def editar_produto(page: ft.Page, on_stock, id_produto):
 
     # --- CAMPOS COM LIMITES ADEQUADOS ---
     nome_c, nome_in = estilo_input("NOME DO PRODUTO", value=dados_atuais['nome_estoque'], col=12, limite=120)
-    cod_c, cod_in = estilo_input("CÓDIGO DE BARRAS", value=dados_atuais['codigo_barras'], read_only=True, col=12, limite=32)
+    cod_c, cod_in = estilo_input("CÓDIGO DE BARRAS", value=dados_atuais['codigo_barras'], read_only=True, col=12, limite=10)
     qtd_c, qtd_in = estilo_input("ESTOQUE ATUAL", value=dados_atuais['quantidade'], col=6, limite=10)
     venda_c, venda_in = estilo_input("PREÇO VENDA (R$)", value=dados_atuais['preco_venda'], col=6, limite=12)
     custo_c, custo_in = estilo_input("PREÇO CUSTO (R$)", value=dados_atuais['preco_unitario'], col=12, limite=12)

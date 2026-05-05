@@ -31,15 +31,30 @@ def main(page: ft.Page):
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
 
+     # --- FUNÇÃO GLOBAL PARA ALTERAR TEMA E REFRESH ---
+    def alternar_tema_global():
+        # 1. Inverte o modo
+        if page.theme_mode == ft.ThemeMode.DARK:
+            page.theme_mode = ft.ThemeMode.LIGHT
+        else:
+            page.theme_mode = ft.ThemeMode.DARK
+        
+        # 2. Aplica as cores de fundo da página (essencial para o refresh visual)
+        eh_dark = page.theme_mode == ft.ThemeMode.DARK
+        aplicar_tema_visual(eh_dark)
+        
+        # 3. REFRESH IMEDIATO: Limpa e reconstrói a tela de perfil
+        # Isso força o código do perfil.py a ler as novas cores do 'obter_cores()'
+        carregar_perfil() 
+
     # --- FUNÇÃO GLOBAL PARA ALTERAR TEMA ---
     def aplicar_tema_visual(eh_dark):
-        """Aplica o tema visualmente na página"""
         if eh_dark:
             page.theme_mode = ft.ThemeMode.DARK
-            page.bgcolor = "#000000"
+            page.bgcolor = "#050A18"  # Fundo escuro
         else:
             page.theme_mode = ft.ThemeMode.LIGHT
-            page.bgcolor = "#F0F4FF"
+            page.bgcolor = "#F0F4FF"  # Fundo claro
         page.update()
 
     # ---------------------------
@@ -150,6 +165,7 @@ def main(page: ft.Page):
         )
         
     def carregar_perfil():
+        page.controls.clear() # Limpa a tela antes de reconstruir
         perfil_page(
             page, 
             on_home=lambda: carregar_home(page.user_data),
@@ -157,8 +173,18 @@ def main(page: ft.Page):
             on_vendas=carregar_vendas,
             on_users=carregar_usuarios,
             on_logout=fazer_logout,
-            on_config=carregar_config,
+            on_theme_change=alternar_tema_global,
+            on_config=carregar_config
         )
+
+    def aplicar_tema_visual(eh_dark):
+        if eh_dark:
+            page.theme_mode = ft.ThemeMode.DARK
+            page.bgcolor = "#000000"
+        else:
+            page.theme_mode = ft.ThemeMode.LIGHT
+            page.bgcolor = "#F0F4FF"
+        page.update()
 
     def carregar_config():
         configuracoes_page(
