@@ -26,7 +26,7 @@ def main(page: ft.Page):
     page.title = "Vende de Tudo"
     page.padding = 20
     page.user_data = None
-    
+    page.scroll = ft.ScrollMode.AUTO
     page.window_width = 400
     page.window_height = 800
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
@@ -50,6 +50,7 @@ def main(page: ft.Page):
 
     # --- FUNÇÃO GLOBAL PARA ALTERAR TEMA ---
     def aplicar_tema_visual(eh_dark):
+        """Aplica o tema visualmente na página"""
         if eh_dark:
             page.theme_mode = ft.ThemeMode.DARK
             page.bgcolor = "#050A18"  # Fundo escuro

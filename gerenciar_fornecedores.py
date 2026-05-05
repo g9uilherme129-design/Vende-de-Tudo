@@ -17,7 +17,9 @@ def tela_fornecedores(page: ft.Page, on_home, on_vendas, on_stock, on_usuarios, 
 
     # --- CARD FORNECEDOR ---
     def criar_card_fornecedor(f):
-        status = f.get("status", "Ativo")
+        status_db = f.get("status_fornecedor")
+        status = "Ativo" if status_db == 1 or status_db == "1" else "Inativo"
+        
         cor_status = "#00b40d" if status == "Ativo" else "#ff4444"
         
         return ft.Container(
@@ -102,8 +104,15 @@ def tela_fornecedores(page: ft.Page, on_home, on_vendas, on_stock, on_usuarios, 
 
     def alternar_status_fornecedor(id_forn, status_atual):
         novo = "Inativo" if status_atual == "Ativo" else "Ativo"
-        alterar_status_fornecedor_db(id_forn, novo)
-        carregar_dados()
+        resultado = alterar_status_fornecedor_db(id_forn, novo)
+        
+        if resultado == True:
+            carregar_dados() # Sucesso
+        elif isinstance(resultado, str):
+            # Aqui você exibe um SnackBar ou Banner com a mensagem de erro
+            page.snack_bar = ft.SnackBar(ft.Text(resultado), bgcolor="red")
+            page.snack_bar.open = True
+            page.update()
 
     def carregar_dados():
         nonlocal fornecedores_base

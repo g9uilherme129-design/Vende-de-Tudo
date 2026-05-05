@@ -308,6 +308,30 @@ def buscar_vendas_detalhadas():
     finally:
         conn.close()
 
+def buscar_venda_por_id(id_venda):
+    conn = get_connection() # Use sua função de conexão aqui
+    cursor = conn.cursor(dictionary=True)
+    
+    # O segredo está neste SQL com JOIN
+    query = """
+        SELECT 
+            v.id_venda,
+            v.quantidade,
+            v.metodo_pagamento,
+            u.nome_user AS vendedor,
+            e.nome_estoque AS produto,
+            e.preco_venda   -- O preço vem da tabela estoque
+        FROM venda v
+        JOIN usuario u ON v.id_user = u.id_user
+        JOIN estoque e ON v.id_estoque = e.id_estoque
+        WHERE v.id_venda = %s
+    """
+    
+    cursor.execute(query, (id_venda,))
+    resultado = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    return resultado
 
 def registrar_venda_db(id_user, id_estoque, qtd, metodo, preco_venda=0):
     novo_id = gerar_id_char("venda", "id_venda", "V")
@@ -696,6 +720,47 @@ def buscar_fornecedores_dropdown():
     finally:
         conn.close()
 
+def alterar_status_categoria_db(id_cat, novo_status):
+    """ 
+    Altera o status da categoria. 
+    Impedindo a desativação se houver produtos vinculados.
+    """
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        # REGRA DE NEGÓCIO: Se for desativar, verifica se há produtos
+        if novo_status == "Inativo" or novo_status == 0:
+            cursor.execute("SELECT COUNT(*) as total FROM estoque WHERE id_categoria = %s", (id_cat,))
+            resultado = cursor.fetchone()
+            
+            if resultado['total'] > 0:
+                return "Erro: Existem produtos cadastrados nesta categoria."
+
+        # Se seu banco usa INT (1/0) ou VARCHAR ('Ativo'/'Inativo'), ajuste aqui:
+        # Exemplo para VARCHAR:
+        status_final = novo_status 
+        
+        query = "UPDATE categoria SET status_categoria = %s WHERE id_categoria = %s"
+        cursor.execute(query, (status_final, id_cat))
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"Erro ao alterar status da categoria: {e}")
+        return False
+    finally:
+        conn.close()
+
+
+def buscar_categorias_ativas():
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        # Pega apenas as que não estão desativadas
+        cursor.execute("SELECT * FROM categoria WHERE status_categoria = 'Ativo'")
+        return cursor.fetchall()
+    finally:
+        conn.close()
+
 def buscar_categorias_dropdown():
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
@@ -743,35 +808,43 @@ def editar_categoria_db(id_cat, novo_nome):
 
 def alterar_status_fornecedor_db(id_forn, novo_status):
     conn = get_connection()
-    cursor = conn.cursor()
+    cursor = conn.cursor(dictionary=True)
     try:
+        # REGRA: Se for desativar, verifica se há produtos no estoque
+        if novo_status == "Inativo":
+            cursor.execute("SELECT COUNT(*) as total FROM estoque WHERE id_fornecedor = %s", (id_forn,))
+            vinc_estoque = cursor.fetchone()
+            
+            if vinc_estoque['total'] > 0:
+                # Retorna uma mensagem de erro ou False para a UI avisar o usuário
+                return "Erro: Fornecedor possui produtos vinculados no estoque."
+
+        # Se passou na regra ou se for para Ativar, procede:
+        # Se seu banco for INT use 1 e 0, se for VARCHAR use 'Ativo'/'Inativo'
+        status_val = 0 if novo_status == "Inativo" else 1 
+        
         cursor.execute(
-            "UPDATE fornecedor SET status = %s WHERE id_fornecedor = %s", 
-            (novo_status, id_forn)
+            "UPDATE fornecedor SET status_fornecedor = %s WHERE id_fornecedor = %s", 
+            (status_val, id_forn)
         )
         conn.commit()
         return True
     except Exception as e:
-        print(f"ERRO NO BANCO: {e}") # Isso vai te mostrar se a coluna status falta
+        print(f"Erro ao alterar status: {e}")
         return False
     finally:
         conn.close()
 
-def alterar_status_categoria_db(id_cat, novo_status):
+def buscar_fornecedores_ativos():
+    """Retorna apenas fornecedores que podem ser vinculados a novos produtos"""
     conn = get_connection()
-    cursor = conn.cursor()
+    cursor = conn.cursor(dictionary=True)
     try:
-        # Atualiza o status da categoria
-        cursor.execute(
-            "UPDATE categoria SET status = %s WHERE id_categoria = %s", 
-            (novo_status, id_cat)
-        )
-        conn.commit()
-    except Exception as e:
-        print(f"Erro ao alterar status da categoria: {e}")
+        # Filtra por status 1 (ou 'Ativo')
+        cursor.execute("SELECT id_fornecedor, nome_fornecedor FROM fornecedor WHERE status_fornecedor = 1")
+        return cursor.fetchall()
     finally:
         conn.close()
-
 
 def buscar_fornecedor_por_id(id_forn):
     conn = get_connection()
@@ -818,4 +891,95 @@ def resetar_senha_db(id_user, nova_senha):
         return False
     finally:
         conn.close()
+
+# --- perfil ---
+
+def obter_resumo_vendas_vendedor(id_user):
+    """ Retorna a quantidade de vendas e o valor total vendido pelo usuário logado """
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        # Soma a quantidade e o valor total (preço_venda * quantidade)
+        query = """
+            SELECT 
+                COUNT(v.id_venda) as total_vendas,
+                SUM(e.preco_venda * v.quantidade) as valor_total
+            FROM venda v
+            JOIN estoque e ON v.id_estoque = e.id_estoque
+            WHERE v.id_user = %s
+        """
+        cursor.execute(query, (id_user,))
+        res = cursor.fetchone()
+        
+        return {
+            "total_vendas": res['total_vendas'] if res['total_vendas'] else 0,
+            "valor_total": float(res['valor_total']) if res['valor_total'] else 0.0
+        }
+    except Exception as e:
+        print(f"Erro ao buscar resumo de vendas do perfil: {e}")
+        return {"total_vendas": 0, "valor_total": 0.0}
+    finally:
+        conn.close()
+
+def obter_ultimo_produto_vendedor(id_user):
+    """ Busca o nome do último produto vendido pelo usuário """
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        query = """
+            SELECT e.nome_estoque 
+            FROM venda v
+            JOIN estoque e ON v.id_estoque = e.id_estoque
+            WHERE v.id_user = %s
+            ORDER BY v.data_venda DESC
+            LIMIT 1
+        """
+        cursor.execute(query, (id_user,))
+        res = cursor.fetchone()
+        return res['nome_estoque'] if res else "Nenhuma venda"
+    except Exception as e:
+        print(f"Erro ao buscar último produto: {e}")
+        return "Erro ao carregar"
+    finally:
+        conn.close()
+
+def buscar_dados_completos_perfil(id_user):
+    """ Busca todos os campos do usuário para garantir que CPF, Salário e Email apareçam """
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        query = "SELECT * FROM usuario WHERE id_user = %s"
+        cursor.execute(query, (id_user,))
+        return cursor.fetchone()
+    finally:
+        conn.close()
+
+def resetar_senha_db(id_user, nova_senha):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("UPDATE usuario SET senha_user = %s WHERE id_user = %s", (nova_senha, id_user))
+        conn.commit()
+        return True
+    except:
+        return False
+    finally:
+        conn.close()
+
+def Validar_senha_atual_db(id_user, senha_ditada):
+    """Verificar se a senha atual informa confere com a do banco."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT senha_user FROM usuario WHERE id_user = %s", (id_user,))
+        res = cursor.fetchone()
+        if res and res[0] == senha_ditada:
+            return True
+        return False
+    except Exception as e:
+        print(f"Erro ao validar senha: {e}")
+        return False
+    finally:
+        conn.close()
+
 
