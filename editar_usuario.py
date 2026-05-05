@@ -67,6 +67,7 @@ def editar_usuario(page: ft.Page, on_users, id_usuario):
     senha_c, senha_in = estilo_input("NOVA SENHA", "", {"sm": 12, "md": 4}, True, limite=32)
     senha_conf_c, senha_conf_in = estilo_input("CONFIRMAR NOVA SENHA", "", {"sm": 12, "md": 4}, True)
 
+
     def salvar(e):
         if senha_in.value:
 
@@ -93,7 +94,7 @@ def editar_usuario(page: ft.Page, on_users, id_usuario):
         ft.Container(
             padding=20, 
             content=ft.Column([
-                ft.ResponsiveRow([nome_c, cpf_c, email_c, salario_c, perfil_c, senha_c]),
+                ft.ResponsiveRow([nome_c, cpf_c, email_c, salario_c, perfil_c, senha_atual_c, senha_c, senha_conf_c]),
                 ft.Container(height=10),
                 ft.ElevatedButton(
                     "SALVAR ALTERAÇÕES", 
@@ -110,3 +111,4 @@ def editar_usuario(page: ft.Page, on_users, id_usuario):
         )
     )
     page.update()
+    
