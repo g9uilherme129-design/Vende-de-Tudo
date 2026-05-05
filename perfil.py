@@ -40,10 +40,11 @@ def perfil_page(page: ft.Page, on_home, on_stock, on_vendas, on_users, on_logout
 
     # --- LÓGICA DE CORES ---
     if page.theme_mode == ft.ThemeMode.DARK:
-        cor_fundo_card = "#0A122A"
+        is_dark = page.theme_mode == ft.ThemeMode.DARK
+        cor_fundo_card = "#0b1445"
         cor_borda = "#1E2B4E"
-        cor_texto_p = ft.Colors.WHITE
-        cor_texto_s = "#00bcd4"
+        cor_texto_p = ft.Colors.WHITE if is_dark else ft.Colors.BLACK
+        cor_texto_s = "#1679f2"
         cor_barra = "#0b1445"
         cor_fundo_tela = "#050A18"
     else:
