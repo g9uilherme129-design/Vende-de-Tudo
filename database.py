@@ -259,13 +259,24 @@ def cadastrar_produto_db(id_forn, id_cat, nome, cod, val, ent, custo, venda, emb
     finally:
         conn.close()
 
-def atualizar_produto_db(id_prod, nome, custo, venda, qtd):
-    conn = get_connection()
+def atualizar_produto_db(id_produto, id_fornecedor, id_categoria, nome, data_val, preco_uni, preco_ven, embalagem, qtd, lote):
+    conn = get_connection() # Sua função de conexão
     cursor = conn.cursor()
-    cursor.execute("""
-        UPDATE estoque SET nome_estoque=%s, preco_unitario=%s, preco_venda=%s, quantidade=%s 
-        WHERE id_estoque=%s
-    """, (nome, custo, venda, qtd, id_prod))
+    query = """
+        UPDATE estoque 
+        SET id_fornecedor = %s, 
+            id_categoria = %s, 
+            nome_estoque = %s, 
+            data_validade = %s, 
+            preco_unitario = %s, 
+            preco_venda = %s, 
+            embalagem = %s, 
+            quantidade = %s, 
+            lote = %s
+        WHERE id_estoque = %s
+    """
+    valores = (id_fornecedor, id_categoria, nome, data_val, preco_uni, preco_ven, embalagem, qtd, lote, id_produto)
+    cursor.execute(query, valores)
     conn.commit()
     conn.close()
 
@@ -324,29 +335,126 @@ def registrar_venda_db(id_user, id_estoque, qtd, metodo, preco_venda=0):
     finally:
         conn.close()
 
-
-# --- AJUSTE NA BUSCA (Garantir que o nome da coluna bata com o card) ---
 def buscar_vendas_detalhadas():
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
+    try:
+        query = """
+            SELECT 
+                v.id_venda, 
+                v.data_venda, 
+                v.metodo_pagamento, 
+                v.quantidade as qtd_venda, 
+                e.nome_estoque as produto, 
+                e.preco_venda, 
+                u.nome_user as vendedor,
+                c.nome_categoria as categoria
+            FROM venda v
+            JOIN estoque e ON v.id_estoque = e.id_estoque
+            JOIN usuario u ON v.id_user = u.id_user
+            JOIN categoria c ON e.id_categoria = c.id_categoria
+            ORDER BY v.data_venda DESC
+        """
+        cursor.execute(query)
+        return cursor.fetchall()
+    finally:
+        conn.close()
+
+def buscar_venda_por_id(id_venda):
+    conn = get_connection() # Use sua função de conexão aqui
+    cursor = conn.cursor(dictionary=True)
+    
+    # O segredo está neste SQL com JOIN
     query = """
         SELECT 
-            v.id_venda, 
-            v.data_venda, 
-            v.metodo_pagamento, 
-            v.quantidade as qtd_venda, 
-            e.nome_estoque as produto, 
-            e.preco_venda, 
-            u.nome_user as vendedor
+            v.id_venda,
+            v.quantidade,
+            v.metodo_pagamento,
+            u.nome_user AS vendedor,
+            e.nome_estoque AS produto,
+            e.preco_venda   -- O preço vem da tabela estoque
         FROM venda v
-        JOIN estoque e ON v.id_estoque = e.id_estoque
         JOIN usuario u ON v.id_user = u.id_user
-        ORDER BY v.data_venda DESC
+        JOIN estoque e ON v.id_estoque = e.id_estoque
+        WHERE v.id_venda = %s
     """
-    cursor.execute(query)
-    res = cursor.fetchall()
+    
+    cursor.execute(query, (id_venda,))
+    resultado = cursor.fetchone()
+    cursor.close()
     conn.close()
-    return res
+    return resultado
+
+def atualizar_venda_db(id_venda, nova_qtd, novo_metodo):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        # 1. Primeiro precisamos saber a quantidade antiga para ajustar o estoque
+        cursor.execute("SELECT id_estoque, quantidade FROM venda WHERE id_venda = %s", (id_venda,))
+        venda_antiga = cursor.fetchone()
+        
+        if venda_antiga:
+            id_prod = venda_antiga[0]
+            qtd_antiga = venda_antiga[1]
+            
+            # 2. Devolve a quantidade antiga ao estoque e subtrai a nova
+            # (Estoque Atual + Qtd Antiga) - Nova Qtd
+            cursor.execute(
+                "UPDATE estoque SET quantidade = (quantidade + %s) - %s WHERE id_estoque = %s",
+                (qtd_antiga, int(nova_qtd), id_prod)
+            )
+
+            # 3. Atualiza a venda (atualizamos as duas colunas de quantidade por segurança)
+            query = """
+                UPDATE venda 
+                SET quantidade = %s, qtd_venda = %s, metodo_pagamento = %s 
+                WHERE id_venda = %s
+            """
+            cursor.execute(query, (int(nova_qtd), int(nova_qtd), novo_metodo, id_venda))
+            
+            conn.commit()
+            return True, "Venda atualizada com sucesso!"
+        return False, "Venda não encontrada."
+    except Exception as e:
+        conn.rollback()
+        print(f"Erro ao atualizar venda: {e}")
+        return False, str(e)
+    finally:
+        conn.close()
+
+def excluir_item_venda_db(id_venda):
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        # 1. Busca a quantidade e o produto para devolver ao estoque antes de deletar
+        cursor.execute("SELECT id_estoque, quantidade FROM venda WHERE id_venda = %s", (id_venda,))
+        venda = cursor.fetchone()
+        
+        if venda:
+            id_prod = venda[0]
+            qtd_venda = venda[1]
+            
+            # 2. Devolve os produtos ao estoque
+            cursor.execute(
+                "UPDATE estoque SET quantidade = quantidade + %s WHERE id_estoque = %s",
+                (qtd_venda, id_prod)
+            )
+            
+            # 3. Exclui a venda
+            cursor.execute("DELETE FROM venda WHERE id_venda = %s", (id_venda,))
+            
+            conn.commit()
+            return True, "Venda excluída e estoque atualizado!"
+        
+        return False, "Venda não encontrada."
+        
+    except Exception as e:
+        conn.rollback()
+        print(f"Erro ao excluir venda: {e}")
+        return False, str(e)
+    finally:
+        conn.close()
+
         
 # --- 4. HOME ---
 def buscar_dados_home():

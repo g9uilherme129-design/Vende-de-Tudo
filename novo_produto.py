@@ -9,25 +9,20 @@ def produto(page: ft.Page, on_stock):
     # --- CORES E TEMA ---
     is_dark = page.theme_mode == ft.ThemeMode.DARK
     cor_fundo_input = "#0A122A" if is_dark else "#FFFFFF"
-    cor_texto_input = "white" if is_dark else "black"
+    cor_borda = "#1E2B4E" if is_dark else "#D1D5DB"
     cor_label = ft.Colors.TEAL_400 if is_dark else ft.Colors.TEAL_900
-    cor_texto_principal = ft.Colors.WHITE if is_dark else ft.Colors.BLACK
 
-    # --- LÓGICA DO CALENDÁRIO ---
-    def mudar_data(e):
-        val_in.value = date_picker.value.strftime("%d-%m-%Y")
-        page.update()
+    # --- LÓGICA DE TRATAMENTO DE DATA ---
+    def formatar_para_banco(data_br):
+        try:
+            # Converte de DD/MM/AAAA para AAAA-MM-DD
+            dt = datetime.strptime(data_br, "%d/%m/%Y")
+            return dt.strftime("%Y-%m-%d")
+        except:
+            # Se o usuário digitar errado, envia a data de hoje para não quebrar o banco
+            return datetime.now().strftime("%Y-%m-%d")
 
-    date_picker = ft.DatePicker(
-        on_change=mudar_data,
-        first_date=datetime(2023, 1, 1),
-        last_date=datetime(2030, 12, 31),
-    )
-
-    if date_picker not in page.overlay:
-        page.overlay.append(date_picker)
-
-    # --- LÓGICA DE MÁSCARA DE MOEDA ---
+    # --- MASCARA DE MOEDA ---
     def formatar_moeda(e):
         valor = "".join(filter(str.isdigit, e.control.value))
         if not valor:
@@ -37,158 +32,118 @@ def produto(page: ft.Page, on_stock):
             e.control.value = f"{float_valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
         page.update()
 
-    # --- COMPONENTES DROPDOWN ---
-    drop_fornecedor = ft.Dropdown(
-        expand=True, border=ft.InputBorder.NONE, 
-        text_style=ft.TextStyle(color=cor_texto_input),
-        hint_text="Selecione o Fornecedor"
-    )
-    
-    drop_categoria = ft.Dropdown(
-        expand=True, border=ft.InputBorder.NONE, 
-        text_style=ft.TextStyle(color=cor_texto_input),
-        hint_text="Selecione a Categoria"
-    )
-
-    # Carregamento seguro de dados
-    try:
-        for f in buscar_fornecedores_dropdown():
-            drop_fornecedor.options.append(ft.dropdown.Option(key=str(f['id_fornecedor']), text=f['nome_fornecedor']))
-        
-        for c in buscar_categorias_dropdown():
-            drop_categoria.options.append(ft.dropdown.Option(key=str(c['id_categoria']), text=c['nome_categoria']))
-    except:
-        pass
-
-    def criar_container_input(label, component, col):
+    # --- ESTILO DOS CAMPOS ---
+    def criar_campo(label, control, col=None):
         return ft.Column([
-            ft.Text(label, size=11, color=cor_label, weight="bold"),
+            ft.Text(f"  {label}", size=11, color=cor_label, weight="bold"),
             ft.Container(
-                content=component, bgcolor=cor_fundo_input,
-                border=ft.border.all(1, "#1E2B4E" if is_dark else "#D1D5DB"), 
-                border_radius=10, padding=ft.padding.only(left=10, right=10, bottom=5),
+                content=control, bgcolor=cor_fundo_input,
+                border=ft.border.all(1, cor_borda), border_radius=12,
+                padding=ft.padding.symmetric(horizontal=10)
             )
         ], spacing=5, col=col)
 
-    def estilo_input(label, hint="", value="", col=None, keyboard_type=ft.KeyboardType.TEXT, on_change=None, suffix=None, read_only=False, limite=None):
-        input_field = ft.TextField(
-            value=value, 
-            hint_text=hint, 
-            border=ft.InputBorder.NONE,
-            content_padding=15, 
-            text_style=ft.TextStyle(color=cor_texto_input),
-            expand=True, 
-            keyboard_type=keyboard_type, 
-            on_change=on_change, 
-            suffix=suffix,
-            read_only=read_only,
-            max_length=limite,
-        )
-        return criar_container_input(label, input_field, col), input_field
-
     # --- CAMPOS ---
-    nome_c, nome_in = estilo_input("NOME DO PRODUTO", col=12, limite=100)
-    cod_c, cod_in = estilo_input("CÓDIGO DE BARRAS", col=12, limite=20)
-    forn_c = criar_container_input("FORNECEDOR", drop_fornecedor, col=12) # Ajustado para 12 em mobile/centralizado
-    cat_c = criar_container_input("CATEGORIA", drop_categoria, col=12)
+    in_nome = ft.TextField(hint_text="Nome do Item", border=ft.InputBorder.NONE, expand=True, max_length=100)
+    in_cod = ft.TextField(hint_text="0000000000", border=ft.InputBorder.NONE, expand=True, max_length=10)
     
-    qtd_c, qtd_in = estilo_input("QUANTIDADE", value="0", col=4, keyboard_type=ft.KeyboardType.NUMBER)
-    lote_c, lote_in = estilo_input("LOTE", col=4, limite=30)
-    emb_c, emb_in = estilo_input("EMBALAGEM", value="Unidade", col=4, limite=20)
+    drop_forn = ft.Dropdown(hint_text="Selecione o Fornecedor", border=ft.InputBorder.NONE, expand=True)
+    drop_cat = ft.Dropdown(hint_text="Selecione a Categoria", border=ft.InputBorder.NONE, expand=True)
 
-    custo_c, custo_in = estilo_input("PREÇO CUSTO (R$)", value="0,00", col=6, on_change=formatar_moeda)
-    venda_c, venda_in = estilo_input("PREÇO VENDA (R$)", value="0,00", col=6, on_change=formatar_moeda)
+    in_qtd = ft.TextField(value="0", border=ft.InputBorder.NONE, expand=True, keyboard_type=ft.KeyboardType.NUMBER)
+    in_lote = ft.TextField(hint_text="Lote", border=ft.InputBorder.NONE, expand=True, max_length=9)
     
-    val_c, val_in = estilo_input(
-        "VALIDADE (AAAA-MM-DD)", 
-        value=datetime.now().strftime("%Y-%m-%d"), 
-        col=12,
-        read_only=True,
-        suffix=ft.IconButton(icon=ft.Icons.CALENDAR_MONTH, on_click=lambda _: date_picker.open_picker())
+    drop_emb = ft.Dropdown(
+        value="UN",
+        options=[ft.dropdown.Option("UN"), ft.dropdown.Option("CX"), ft.dropdown.Option("KG"), ft.dropdown.Option("LT"), ft.dropdown.Option("PCT")],
+        border=ft.InputBorder.NONE, expand=True
     )
 
+    in_custo = ft.TextField(value="0,00", border=ft.InputBorder.NONE, expand=True, on_change=formatar_moeda)
+    in_venda = ft.TextField(value="0,00", border=ft.InputBorder.NONE, expand=True, on_change=formatar_moeda)
+    
+    # Validade agora é manual igual ao Editar
+    in_validade = ft.TextField(
+        hint_text="DD/MM/AAAA", 
+        border=ft.InputBorder.NONE, expand=True, 
+        max_length=10
+    )
+
+    # Carregar Dropdowns
+    try:
+        for f in buscar_fornecedores_dropdown():
+            drop_forn.options.append(ft.dropdown.Option(key=str(f['id_fornecedor']), text=f['nome_fornecedor']))
+        for c in buscar_categorias_dropdown():
+            drop_cat.options.append(ft.dropdown.Option(key=str(c['id_categoria']), text=c['nome_categoria']))
+    except: pass
+
     def salvar_clique(e):
-        if not drop_fornecedor.value or not drop_categoria.value:
-            page.snack_bar = ft.SnackBar(ft.Text("Selecione Fornecedor e Categoria!"), bgcolor="orange")
+        if not drop_forn.value or not drop_cat.value or not in_nome.value or not in_validade.value:
+            page.snack_bar = ft.SnackBar(ft.Text("Preencha todos os campos obrigatórios!"), bgcolor="orange")
             page.snack_bar.open = True
             page.update()
             return
 
         try:
-            custo_final = float(custo_in.value.replace(".", "").replace(",", "."))
-            venda_final = float(venda_in.value.replace(".", "").replace(",", "."))
+            custo_final = float(in_custo.value.replace(".", "").replace(",", "."))
+            venda_final = float(in_venda.value.replace(".", "").replace(",", "."))
 
             cadastrar_produto_db(
-                drop_fornecedor.value,
-                drop_categoria.value,
-                nome_in.value,
-                cod_in.value,
-                val_in.value,
-                datetime.now().strftime("%Y-%m-%d"),
+                drop_forn.value,
+                drop_cat.value,
+                in_nome.value,
+                in_cod.value,
+                formatar_para_banco(in_validade.value), # Converte o que foi digitado
+                datetime.now().strftime("%Y-%m-%d"), 
                 custo_final,
                 venda_final,
-                emb_in.value,
-                int(qtd_in.value),
-                lote_in.value
+                drop_emb.value,
+                int(in_qtd.value),
+                in_lote.value
             )
+            page.snack_bar = ft.SnackBar(ft.Text("Produto cadastrado com sucesso!"), bgcolor="#08D345")
+            page.snack_bar.open = True
             on_stock()
         except Exception as ex:
-            print(f"Erro: {ex}")
+            page.snack_bar = ft.SnackBar(ft.Text(f"Erro: {ex}"), bgcolor="red")
+            page.snack_bar.open = True
+        page.update()
 
-    # --- CONTEÚDO PRINCIPAL ---
-    layout_campos = ft.ResponsiveRow(
-        controls=[nome_c, cod_c, forn_c, cat_c, qtd_c, lote_c, emb_c, custo_c, venda_c, val_c],
-        spacing=15, run_spacing=15,
-    )
-
-    conteudo = ft.Column(
-        expand=True,
-        controls=[
-            ft.Container(
-                padding=ft.padding.only(top=20, left=10, right=10),
-                content=ft.Row([
-                    ft.Text("Novo Produto", size=26, weight="bold", color=cor_texto_principal),
-                ])
-            ),
-            ft.Container(
-                content=ft.Column([
-                    layout_campos,
-                    ft.Container(height=10),
-                    ft.ElevatedButton(
-                        "Cadastrar no Sistema", 
-                        on_click=salvar_clique, 
-                        width=500, 
-                        height=50,
-                        style=ft.ButtonStyle(
-                            bgcolor="#1B4F9C", 
-                            color="white", 
-                            shape=ft.RoundedRectangleBorder(radius=12)
-                        )
-                    ),
-                    ft.Container(height=40)
-                ], scroll=ft.ScrollMode.AUTO),
-                expand=True,
-                padding=10
-            )
-        ]
-    )
-
+    # --- LAYOUT ---
     page.appbar = ft.AppBar(
         leading=ft.IconButton(ft.Icons.ARROW_BACK_IOS_NEW, icon_color="white", on_click=lambda _: on_stock()),
-        bgcolor="#0b1445",
-        title=ft.Text("Vende de Tudo", color="white", weight="bold"),
-        center_title=True,
+        title=ft.Text("Novo Produto", color="white", weight="bold"),
+        bgcolor="#0b1445", center_title=True,
     )
 
     page.add(
         ft.Column(
-            expand=True,
-            horizontal_alignment="center",
+            expand=True, horizontal_alignment="center", scroll=ft.ScrollMode.AUTO,
             controls=[
                 ft.Container(
-                    content=conteudo,
-                    width=500, # Padronização
-                    expand=True
+                    width=600, padding=25,
+                    content=ft.Column([
+                        ft.Text("Cadastro de Estoque", size=22, weight="bold"),
+                        ft.ResponsiveRow([
+                            criar_campo("NOME DO PRODUTO (Máx 100)", in_nome, 12),
+                            criar_campo("CÓDIGO DE BARRAS (Máx 10)", in_cod, 12),
+                            criar_campo("CATEGORIA", drop_cat, 6),
+                            criar_campo("FORNECEDOR", drop_forn, 6),
+                            criar_campo("PREÇO CUSTO", in_custo, 6),
+                            criar_campo("PREÇO VENDA", in_venda, 6),
+                            criar_campo("QUANTIDADE", in_qtd, 4),
+                            criar_campo("EMBALAGEM", drop_emb, 4),
+                            criar_campo("LOTE (Máx 9)", in_lote, 4),
+                            criar_campo("VALIDADE (DD/MM/AAAA)", in_validade, 12),
+                        ], spacing=15),
+                        ft.Container(height=20),
+                        ft.ElevatedButton(
+                            "CADASTRAR PRODUTO", on_click=salvar_clique,
+                            bgcolor="#1B4F9C", color="white", height=55, width=600,
+                            style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=12))
+                        ),
+                        ft.Container(height=40)
+                    ])
                 )
             ]
         )

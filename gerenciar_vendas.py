@@ -1,7 +1,7 @@
 import flet as ft
 from database import buscar_vendas_detalhadas
 
-def gerenciar_vendas(page: ft.Page, on_home, on_users, on_perfil, on_stock, on_registrar_venda, on_logout):
+def gerenciar_vendas(page: ft.Page, on_home, on_users, on_perfil, on_stock, on_registrar_venda, on_editar_venda, on_logout):
     page.controls.clear()
     page.padding = 20
     
@@ -11,7 +11,7 @@ def gerenciar_vendas(page: ft.Page, on_home, on_users, on_perfil, on_stock, on_r
     cor_texto_secundario = ft.Colors.GREY_500
     cor_fundo_busca = "#0d1626" if is_dark else "#FFFFFF"
 
-    # Busca os dados no banco
+    # Busca os dados no banco (Certifique-se que o banco retorna a coluna 'categoria')
     vendas_db = buscar_vendas_detalhadas()
     lista_vendas_ui = ft.Column(scroll=ft.ScrollMode.AUTO, expand=True, spacing=15)
 
@@ -22,9 +22,8 @@ def gerenciar_vendas(page: ft.Page, on_home, on_users, on_perfil, on_stock, on_r
         except:
             return "0,00"
 
-    def card_venda(id_venda, produto, valor_unitario, vendedor, data, qtd, metodo):
-        # --- CORREÇÃO DA DATA ---
-        # Definimos data_str antes de usá-la no ft.Text
+    def card_venda(id_venda, produto, valor_unitario, vendedor, data, qtd, metodo, categoria):
+        # --- FORMATAÇÃO DA DATA ---
         if data:
             try:
                 data_str = data.strftime('%d/%m/%Y %H:%M') if hasattr(data, 'strftime') else str(data)
@@ -33,36 +32,49 @@ def gerenciar_vendas(page: ft.Page, on_home, on_users, on_perfil, on_stock, on_r
         else:
             data_str = "--/--/--"
 
-        # 1. Garante que o valor unitário seja um número decimal
         try:
             v_unit = float(valor_unitario) if valor_unitario else 0.0
         except:
             v_unit = 0.0
 
-        # 2. Garante que a quantidade seja um número inteiro (mínimo 1)
         try:
             q = int(qtd) if (qtd and int(qtd) > 0) else 1
         except:
             q = 1
             
         valor_total = v_unit * q
+        cat_nome = str(categoria).upper() if categoria else "GERAL"
         
         return ft.Container(
             padding=15, border_radius=15, bgcolor=cor_container_bg,
             content=ft.Column(spacing=10, controls=[
                 ft.Row(alignment=ft.MainAxisAlignment.SPACE_BETWEEN, controls=[
                     ft.Column([
-                        ft.Text(f"VENDA #{id_venda} | {data_str}", 
+                        ft.Text(f"VENDA #{id_venda} | {data_str} | {cat_nome}", 
                                 size=10, color=cor_texto_secundario),
                         ft.Text(produto if produto else "Produto", size=18, weight="bold", color=cor_texto_principal),
                     ], spacing=2, expand=True),
-                    ft.Column([
-                        ft.Text(f"R$ {formatar_moeda(valor_total)}", weight="bold", size=18, color=ft.Colors.GREEN_ACCENT_400 if is_dark else ft.Colors.GREEN_700),
-                        ft.Text(f"{q} UN x R$ {formatar_moeda(v_unit)}", size=11, color=cor_texto_secundario),
-                    ], horizontal_alignment=ft.CrossAxisAlignment.END),
+                    
+                    ft.Row([
+                        ft.Column([
+                            ft.Text(f"R$ {formatar_moeda(valor_total)}", weight="bold", size=18, 
+                                    color=ft.Colors.GREEN_ACCENT_400 if is_dark else ft.Colors.GREEN_700),
+                            ft.Text(f"{q} UN x R$ {formatar_moeda(v_unit)}", size=11, color=cor_texto_secundario),
+                        ], horizontal_alignment=ft.CrossAxisAlignment.END),
+                        # --- BOTÃO EDITAR ---
+                        ft.IconButton(
+                            icon=ft.Icons.EDIT_OUTLINED,
+                            icon_color=ft.Colors.BLUE_400 if is_dark else "#1B4F9C",
+                            tooltip="Editar Venda",
+                            on_click=lambda _: on_editar_venda(id_venda)
+                        )
+                    ], spacing=10)
                 ]),
                 ft.Row(alignment=ft.MainAxisAlignment.SPACE_BETWEEN, controls=[
-                    ft.Row([ft.Icon(ft.Icons.PERSON, size=14, color=cor_texto_secundario), ft.Text(f"Vendedor: {vendedor}", size=12, color=cor_texto_secundario)]),
+                    ft.Row([
+                        ft.Icon(ft.Icons.PERSON, size=14, color=cor_texto_secundario), 
+                        ft.Text(f"Vendedor: {vendedor}", size=12, color=cor_texto_secundario)
+                    ]),
                     ft.Container(
                         content=ft.Text(metodo.upper() if metodo else "PGTO", size=10, weight="bold", color="white"), 
                         bgcolor="#1B4F9C", 
@@ -74,34 +86,40 @@ def gerenciar_vendas(page: ft.Page, on_home, on_users, on_perfil, on_stock, on_r
         )
 
     def filtrar_vendas(e=None):
+        # ESSA LINHA É CRUCIAL: Re-busca os dados atualizados do banco
+        nonlocal vendas_db
+        vendas_db = buscar_vendas_detalhadas() 
+        
         texto = search_field.value.lower() if search_field.value else ""
         metodo_filtro = str(btn_filtro.data).lower()
         
         filtrados = [
             v for v in vendas_db 
-            if (texto in (v.get("produto") or "").lower() or texto in (v.get("vendedor") or "").lower()) 
+            if (
+                texto in (v.get("produto") or "").lower() or 
+                texto in (v.get("vendedor") or "").lower() or
+                texto in (v.get("categoria") or "").lower() or
+                texto == str(v.get("qtd_venda"))
+            ) 
             and (metodo_filtro == "todos" or metodo_filtro in (v.get("metodo_pagamento") or "").lower())
         ]
         
         lista_vendas_ui.controls.clear()
-        if not filtrados:
+        # ... resto da lógica de preencher a lista ...
+        for v in filtrados:
             lista_vendas_ui.controls.append(
-                ft.Container(content=ft.Text("Nenhuma venda encontrada.", color=cor_texto_principal), padding=20)
-            )
-        else:
-            for v in filtrados:
-                lista_vendas_ui.controls.append(
-                    card_venda(
-                        v.get("id_venda"), 
-                        v.get("produto"), 
-                        v.get("preco_venda"), 
-                        v.get("vendedor"), 
-                        v.get("data_venda"), 
-                        v.get("qtd_venda") or v.get("quantidade"),
-                        v.get("metodo_pagamento")
-                    )
+                card_venda(
+                    v.get("id_venda"), 
+                    v.get("produto"), 
+                    v.get("preco_venda"), 
+                    v.get("vendedor"), 
+                    v.get("data_venda"), 
+                    v.get("qtd_venda"), # Aqui vai aparecer a nova quantidade editada
+                    v.get("metodo_pagamento"),
+                    v.get("categoria")
                 )
-        if page: page.update()
+            )
+        page.update()
 
     def mudar_f(m): 
         btn_filtro.data = m
@@ -119,7 +137,7 @@ def gerenciar_vendas(page: ft.Page, on_home, on_users, on_perfil, on_stock, on_r
     btn_filtro.data = "todos"
     
     search_field = ft.TextField(
-        hint_text="Buscar produto ou vendedor...", 
+        hint_text="Buscar produto, vendedor, categoria ou qtd...", 
         expand=True, 
         on_change=filtrar_vendas, 
         bgcolor=cor_fundo_busca, 
@@ -178,4 +196,3 @@ def gerenciar_vendas(page: ft.Page, on_home, on_users, on_perfil, on_stock, on_r
     )
 
     filtrar_vendas()
-

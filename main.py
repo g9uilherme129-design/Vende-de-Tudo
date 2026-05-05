@@ -19,6 +19,7 @@ from reativar_usuario import reativar_user
 from gerenciar_categoria import gerenciar_categorias
 from editar_fornecedor import editar_fornecedor
 from recuperar_senha import tela_recuperacao
+from editar_venda import editar_venda
 
 
 def main(page: ft.Page):
@@ -77,7 +78,6 @@ def main(page: ft.Page):
         )
         page.update()
 
-    # --- NO SEU MAIN.PY ---
 
     def carregar_fornecedores(): # Esta é a linha 77 aproximadamente
         tela_fornecedores(
@@ -133,7 +133,15 @@ def main(page: ft.Page):
             on_users=carregar_usuarios,
             on_stock=carregar_stock,
             on_perfil=carregar_perfil,
+            on_editar_venda=carregar_editar_venda,
             on_registrar_venda=carregar_registrar_venda
+        )
+
+    def carregar_editar_venda(id_venda):
+        editar_venda(
+            page, 
+            on_back=carregar_vendas, # Função que volta para o histórico
+            id_venda=id_venda
         )
 
     def carregar_usuarios():

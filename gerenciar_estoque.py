@@ -1,5 +1,6 @@
 import flet as ft
 from database import buscar_produtos_estoque, buscar_categorias 
+from datetime import datetime
 
 # 1. ADICIONADO on_fornecedores nos parâmetros
 def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar_produto, on_editar_produto, on_logout, on_fornecedores, on_categorias):
@@ -13,6 +14,18 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar
     cor_texto_principal = ft.Colors.WHITE if is_dark else ft.Colors.BLACK
     cor_texto_secundario = ft.Colors.GREY_500
     cor_fundo_busca = "#0d1626" if is_dark else "#FFFFFF"
+
+    # --- FUNÇÃO AUXILIAR PARA FORMATAR DATA (BR) ---
+    def formatar_data_br(data_origem):
+        try:
+            # Se vier como objeto datetime/date do banco
+            if hasattr(data_origem, 'strftime'):
+                return data_origem.strftime("%d/%m/%Y")
+            # Se vier como string "YYYY-MM-DD"
+            dt = datetime.strptime(str(data_origem), "%Y-%m-%d")
+            return dt.strftime("%d/%m/%Y")
+        except:
+            return str(data_origem)
 
     # --- BUSCA DADOS REAIS ---
     try:
@@ -78,10 +91,13 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar
 
         lista_produtos_ui.controls.clear()
         for p in filtrados:
+            # AQUI: Chamamos a função formatar_data_br para a validade
+            data_formatada = formatar_data_br(p["data_validade"])
+            
             lista_produtos_ui.controls.append(
                 card_produto(
                     p["id_estoque"], p["nome_estoque"], p["preco_venda"], 
-                    p["marca"], p["data_validade"], p["quantidade"],
+                    p["marca"], data_formatada, p["quantidade"],
                     p.get("nome_categoria", "Geral")
                 )
             )
@@ -128,23 +144,19 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar
         ft.Column(expand=True, spacing=15, controls=[
             ft.Row([
                 ft.Text("Consultar Produtos", size=22, weight="bold"),
-                # --- BOTÕES DE AÇÃO ---
                 ft.Row([
-                    # BOTÃO DE CATEGORIAS (Novo atalho)
                     ft.ElevatedButton(
                         "Categorias", 
                         icon=ft.Icons.CATEGORY_ROUNDED,
                         on_click=lambda _: on_categorias(),
                         style=ft.ButtonStyle(bgcolor="#0b1445", color="white")
                     ),
-                    # BOTÃO DE FORNECEDORES
                     ft.ElevatedButton(
                         "Fornecedores", 
                         icon=ft.Icons.BUSINESS,
                         on_click=lambda _: on_fornecedores(),
                         style=ft.ButtonStyle(bgcolor="#0b1445", color="white")
                     ),
-                    # BOTÃO ADICIONAR PRODUTO
                     ft.FloatingActionButton(
                         icon=ft.Icons.ADD, 
                         bgcolor="#1B4F9C", 
