@@ -12,14 +12,28 @@ def produto(page: ft.Page, on_stock):
     cor_borda = "#1E2B4E" if is_dark else "#D1D5DB"
     cor_label = ft.Colors.TEAL_400 if is_dark else ft.Colors.TEAL_900
 
+    # Máscara da Data
+    def mascara_data(e):
+        valor = "".join(filter(str.isdigit, e.control.value))
+        valor = valor[:8]
+
+        if len(valor) > 4:
+            valor = f"{valor[:2]}/{valor[2:4]}/{valor[4:]}"
+        elif len(valor) > 2:
+            valor = f"{valor[:2]}/{valor[2:]}"
+
+        e.control.value = valor
+        e.control.selection_start = len(valor)
+        e.control.selection_end = len(valor)
+        page.update()
+    # ---------------------------------------
+
     # --- LÓGICA DE TRATAMENTO DE DATA ---
     def formatar_para_banco(data_br):
         try:
-            # Converte de DD/MM/AAAA para AAAA-MM-DD
             dt = datetime.strptime(data_br, "%d/%m/%Y")
             return dt.strftime("%Y-%m-%d")
         except:
-            # Se o usuário digitar errado, envia a data de hoje para não quebrar o banco
             return datetime.now().strftime("%Y-%m-%d")
 
     # --- MASCARA DE MOEDA ---
@@ -61,20 +75,22 @@ def produto(page: ft.Page, on_stock):
 
     in_custo = ft.TextField(value="0,00", border=ft.InputBorder.NONE, expand=True, on_change=formatar_moeda)
     in_venda = ft.TextField(value="0,00", border=ft.InputBorder.NONE, expand=True, on_change=formatar_moeda)
-    
-    # Validade agora é manual igual ao Editar
+
     in_validade = ft.TextField(
         hint_text="DD/MM/AAAA", 
-        border=ft.InputBorder.NONE, expand=True, 
-        max_length=10
+        border=ft.InputBorder.NONE, 
+        expand=True, 
+        max_length=10,
+        on_change=mascara_data
     )
+    # ------------------------------------
 
     # Carregar Dropdowns
     try:
         for f in buscar_fornecedores_dropdown():
             drop_forn.options.append(ft.dropdown.Option(key=str(f['id_fornecedor']), text=f['nome_fornecedor']))
         for c in buscar_categorias_dropdown():
-            drop_cat.options.append(ft.dropdown.Option(key=str(c['id_categoria']), text=c['nome_categoria']))
+            drop_cat.options.append(ft.dropdown.Option(key=str(c['id_categoria']), text=f['nome_categoria']))
     except: pass
 
     def salvar_clique(e):
@@ -93,7 +109,7 @@ def produto(page: ft.Page, on_stock):
                 drop_cat.value,
                 in_nome.value,
                 in_cod.value,
-                formatar_para_banco(in_validade.value), # Converte o que foi digitado
+                formatar_para_banco(in_validade.value),
                 datetime.now().strftime("%Y-%m-%d"), 
                 custo_final,
                 venda_final,
@@ -109,7 +125,6 @@ def produto(page: ft.Page, on_stock):
             page.snack_bar.open = True
         page.update()
 
-    # --- LAYOUT ---
     page.appbar = ft.AppBar(
         leading=ft.IconButton(ft.Icons.ARROW_BACK_IOS_NEW, icon_color="white", on_click=lambda _: on_stock()),
         title=ft.Text("Novo Produto", color="white", weight="bold"),

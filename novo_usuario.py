@@ -1,6 +1,21 @@
 import flet as ft
 from database import cadastrar_usuario_db, gerar_id_char
 
+
+# Máscara do CPF
+def formatar_cpf(cpf):
+    numeros = ''.join(filter(str.isdigit, cpf))[:11]
+
+    if len(numeros) <= 3:
+        return numeros
+    elif len(numeros) <= 6:
+        return f"{numeros[:3]}.{numeros[3:]}"
+    elif len(numeros) <= 9:
+        return f"{numeros[:3]}.{numeros[3:6]}.{numeros[6:]}"
+    else:
+        return f"{numeros[:3]}.{numeros[3:6]}.{numeros[6:9]}-{numeros[9:]}"
+
+
 def novo_usuario(page: ft.Page, on_users):
     page.controls.clear()
     page.scroll = ft.ScrollMode.AUTO
@@ -22,7 +37,7 @@ def novo_usuario(page: ft.Page, on_users):
         center_title=True,
     )
 
-    # --- FUNÇÃO AUXILIAR COM LIMITE DE CARACTERES ---
+    # --- FUNÇÃO AUXILIAR ---
     def estilo_input(label, hint="", password=False, keyboard_type=ft.KeyboardType.TEXT, limite=None):
         input_field = ft.TextField(
             hint_text=hint,
@@ -33,9 +48,9 @@ def novo_usuario(page: ft.Page, on_users):
             text_style=ft.TextStyle(color=cor_texto_input),
             expand=True,
             keyboard_type=keyboard_type,
-            max_length=limite, # Define o limite máximo
+            max_length=limite,
         )
-        
+
         container = ft.Column(
             [
                 ft.Text(f"  {label}", size=12, color=cor_label, weight="bold"),
@@ -44,20 +59,26 @@ def novo_usuario(page: ft.Page, on_users):
                     bgcolor=cor_fundo_input,
                     border=ft.border.all(1, cor_borda_input),
                     border_radius=12,
-                    padding=ft.padding.only(right=10, bottom=5), # Padding extra para o contador não colar
+                    padding=ft.padding.only(right=10, bottom=5),
                 )
             ],
             spacing=5,
         )
         return container, input_field
 
-    # --- CAMPOS COM LIMITES ---
+    # --- CAMPOS ---
     nome_c, nome_in = estilo_input("NOME COMPLETO", hint="Ex: Neymar Jr", limite=100)
-    cpf_c, cpf_in = estilo_input("CPF (Apenas números)", hint="12345678900", keyboard_type=ft.KeyboardType.NUMBER, limite=11)
+
+    cpf_c, cpf_in = estilo_input(
+        "CPF (Apenas números)",
+        hint="12345678900",
+        keyboard_type=ft.KeyboardType.NUMBER,
+        limite=14
+    )
+
     email_c, email_in = estilo_input("E-MAIL", hint="usuario@email.com", keyboard_type=ft.KeyboardType.EMAIL, limite=100)
     senha_c, senha_in = estilo_input("SENHA", hint="******", password=True, limite=32)
-    
-    # Campo de Salário
+
     salario_c, salario_in = estilo_input("SALÁRIO BASE", hint="0,00", keyboard_type=ft.KeyboardType.NUMBER, limite=15)
     salario_in.prefix_text = "R$ "
 
@@ -86,6 +107,18 @@ def novo_usuario(page: ft.Page, on_users):
         spacing=5,
     )
 
+    # CPF Máscara 
+    def cpf_change(e):
+        valor = e.control.value
+        novo = formatar_cpf(valor)
+
+        if valor != novo:
+            e.control.value = novo
+            e.control.update()
+
+    cpf_in.on_change = cpf_change
+
+    # --- SALVAR ---
     def salvar_usuario(e):
         nome = nome_in.value.strip() if nome_in.value else ""
         email = email_in.value.strip() if email_in.value else ""
@@ -111,23 +144,23 @@ def novo_usuario(page: ft.Page, on_users):
                 perfil=perfil,
                 salario=salario
             )
-            
+
             if sucesso:
                 page.snack_bar = ft.SnackBar(ft.Text(msg), bgcolor="green")
                 page.snack_bar.open = True
                 page.update()
-                on_users() 
+                on_users()
             else:
                 page.snack_bar = ft.SnackBar(ft.Text(f"Erro: {msg}"), bgcolor="red")
                 page.snack_bar.open = True
                 page.update()
 
         except Exception as ex:
-            print(f"Erro na UI: {ex}")
             page.snack_bar = ft.SnackBar(ft.Text(f"Erro inesperado: {ex}"), bgcolor="red")
             page.snack_bar.open = True
             page.update()
 
+    # --- FORM ---
     form_content = ft.Column(
         [
             nome_c,
@@ -155,14 +188,9 @@ def novo_usuario(page: ft.Page, on_users):
 
     page.add(
         ft.Row(
-            [
-                ft.Container(
-                    content=form_content,
-                    padding=20,
-                )
-            ],
-            alignment="center" 
+            [ft.Container(content=form_content, padding=20)],
+            alignment="center"
         )
     )
-    
+
     page.update()
