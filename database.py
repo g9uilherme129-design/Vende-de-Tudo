@@ -1,5 +1,6 @@
 import mysql.connector
 from datetime import datetime
+import json
 
 def get_connection():
     return mysql.connector.connect(
@@ -238,24 +239,28 @@ def buscar_categorias():
     conn.close()
     return res
 
+# Correção no database.py
 def cadastrar_produto_db(id_forn, id_cat, nome, cod, val, ent, custo, venda, emb, qtd, lote):
     garantir_dependencias()
     novo_id = gerar_id_char("estoque", "id_estoque", "E")
     
-    # Se o usuário digitou apenas "1", transformamos no ID correto do banco
     f_id = "F100001" if id_forn == "1" else id_forn
     c_id = "C100001" if id_cat == "1" else id_cat
     
     conn = get_connection()
     cursor = conn.cursor()
     try:
+        # AQUI: Verifique se as colunas no seu banco são exatamente estas 12:
+        # id, fornecedor, categoria, nome, codigo, validade, entrada, custo, venda, embalagem, qtd, lote
         query = "INSERT INTO estoque VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+        
+        # Certifique-se que o 'val' (validade) não está sendo trocado pelo 'ent' (entrada)
         cursor.execute(query, (novo_id, f_id, c_id, nome, cod, val, ent, custo, venda, emb, qtd, lote))
         conn.commit()
         return True
     except Exception as e:
         print(f"Erro SQL ao cadastrar produto: {e}")
-        raise e # Repassa o erro para o Flet exibir no SnackBar
+        raise e
     finally:
         conn.close()
 
@@ -657,14 +662,33 @@ def validar_login(usuario_ou_email, senha):
         return False, f"Erro no banco: {str(e)}"
     finally:
         conn.close()
-def buscar_tema_db(id_usuario):
+
+def buscar_tema_usuario(id_usuario):
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
     try:
-        cursor.execute("SELECT tema_dark FROM tema_usuario WHERE id_user = %s", (id_usuario,))
+        cursor.execute("SELECT tema_dark FROM usuario WHERE id_user = %s", (id_usuario,))
         res = cursor.fetchone()
-        # Se não existir registro ainda, retorna 1 (Dark) por padrão
-        return res['tema_dark'] if res else 1
+        # Se não achar ou der erro, o padrão será Dark (1)
+        return res['tema_dark'] if res and res['tema_dark'] is not None else 1
+    finally:
+        conn.close()
+
+def buscar_tema_db(id_usuario):
+    conn = get_connection() # Ou o nome da sua função de conexão
+    cursor = conn.cursor()
+    try:
+        # Busca o valor da coluna tema_dark para o usuário específico
+        cursor.execute("SELECT tema_dark FROM usuario WHERE id_user = %s", (id_usuario,))
+        resultado = cursor.fetchone()
+        
+        # Se retornar algo, pegamos o valor (0 ou 1). Se não, retornamos 1 (Dark) como padrão.
+        if resultado:
+            return resultado[0] # Se fetchall for usado, ajuste o índice
+        return 1 
+    except Exception as e:
+        print(f"Erro ao buscar tema: {e}")
+        return 1
     finally:
         conn.close()
 
@@ -673,12 +697,10 @@ def salvar_tema_db(id_usuario, is_dark):
     conn = get_connection()
     cursor = conn.cursor()
     try:
-        # Se is_dark for True, vira 1. Se for False, vira 0.
+        # No SQL, True vira 1 e False vira 0
         valor_tema = 1 if is_dark else 0
-        
         sql = "UPDATE usuario SET tema_dark = %s WHERE id_user = %s"
         cursor.execute(sql, (valor_tema, id_usuario))
-        
         conn.commit()
         return True
     except Exception as e:
@@ -981,5 +1003,4 @@ def Validar_senha_atual_db(id_user, senha_ditada):
         return False
     finally:
         conn.close()
-
 

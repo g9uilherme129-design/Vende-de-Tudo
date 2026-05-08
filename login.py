@@ -3,6 +3,8 @@ from database import validar_login
 import time
 
 def login_view(page: ft.Page, on_login_sucesso, on_recuperar_senha):
+    # Em vez de fixar #050505, usamos a lógica de tema se preferir, 
+    # mas como é a tela de login, o escuro costuma ser o padrão de design.
     page.bgcolor = "#050505" 
     page.controls.clear()
     
@@ -52,7 +54,7 @@ def login_view(page: ft.Page, on_login_sucesso, on_recuperar_senha):
             on_submit=on_submit 
         )
 
-    usuario = estilo_campo("Usuário ou E-mail")
+    usuario = estilo_campo("Usuário ou E-mail", on_submit=realizar_login)
     
     def toggle_password(e):
         senha.password = not senha.password

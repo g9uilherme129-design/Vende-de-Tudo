@@ -2,26 +2,28 @@ import flet as ft
 from database import buscar_produtos_estoque, buscar_categorias 
 from datetime import datetime
 
-# 1. ADICIONADO on_fornecedores nos parâmetros
 def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar_produto, on_editar_produto, on_logout, on_fornecedores, on_categorias):
 
     page.controls.clear()
-    page.padding = 20
+    page.padding = 0 # Padding zero para o container de fundo preencher tudo
     
-    # --- CORES E TEMA ---
+    # --- PADRONIZAÇÃO DE CORES (IDÊNTICO ÀS OUTRAS TELAS) ---
     is_dark = page.theme_mode == ft.ThemeMode.DARK
-    cor_container_bg = "#0b1445" if is_dark else "#F0F2F8"
-    cor_texto_principal = ft.Colors.WHITE if is_dark else ft.Colors.BLACK
-    cor_texto_secundario = ft.Colors.GREY_500
-    cor_fundo_busca = "#0d1626" if is_dark else "#FFFFFF"
+    cor_fundo_card = "#0b1445" if is_dark else "#FFFFFF"
+    cor_borda = "#1E2B4E" if is_dark else "#D1D5DB"
+    cor_texto_p = ft.Colors.WHITE if is_dark else ft.Colors.BLACK
+    cor_texto_s = "#1679f2" if is_dark else "#DA7D7D"
+    cor_barra = "#0b1445" if is_dark else "#DA7D7D" 
+    cor_fundo_tela = "#050A18" if is_dark else "#F0F4FF"
+    cor_input = "#0A122A" if is_dark else "#F5F7FB"
+    cor_secundaria =  "#1679f2" if is_dark else "#DA7D7D"
+    cor_bar =  "#1679f2" if is_dark else "#BA7272"
 
-    # --- FUNÇÃO AUXILIAR PARA FORMATAR DATA (BR) ---
+    # --- FUNÇÃO AUXILIAR DATA ---
     def formatar_data_br(data_origem):
         try:
-            # Se vier como objeto datetime/date do banco
             if hasattr(data_origem, 'strftime'):
                 return data_origem.strftime("%d/%m/%Y")
-            # Se vier como string "YYYY-MM-DD"
             dt = datetime.strptime(str(data_origem), "%Y-%m-%d")
             return dt.strftime("%d/%m/%Y")
         except:
@@ -31,8 +33,7 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar
     try:
         produtos_db = buscar_produtos_estoque()
         categorias_reais = buscar_categorias() 
-    except Exception as ex:
-        print(f"Erro ao carregar dados: {ex}")
+    except:
         produtos_db = []
         categorias_reais = []
 
@@ -40,37 +41,54 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar
 
     # --- CARD PRODUTO ---
     def card_produto(id_prod, nome, preco, marca, validade, quantidade, categoria_nome="Geral"):
-        cor_status = "#00b40d" if quantidade > 10 else "#ff9800"
+        # Status de estoque: Verde se > 10, Laranja se > 0, Vermelho se 0
+        if quantidade > 10: cor_status = "#00b40d"
+        elif quantidade > 0: cor_status = "#ff9800"
+        else: cor_status = "#ff4444"
+
         return ft.Container(
-            padding=15, border_radius=15, bgcolor=cor_container_bg,
+            padding=15, 
+            border_radius=15, 
+            bgcolor=cor_fundo_card,
+            border=ft.border.all(1, cor_borda),
             content=ft.Column(spacing=10, controls=[
                 ft.Row(alignment="spaceBetween", controls=[
                     ft.Column([
-                        ft.Text(f"ID: {id_prod} | {categoria_nome}", size=10, color=cor_texto_secundario),
-                        ft.Text(nome, size=18, weight="bold", color=cor_texto_principal),
-                    ], spacing=2),
+                        ft.Text(f"ID: {id_prod} | {categoria_nome.upper()}", size=10, color=cor_secundaria, weight="bold"),
+                        ft.Text(nome, size=18, weight="bold", color=cor_texto_p),
+                    ], spacing=2, expand=True),
                     ft.Column([
-                        ft.Text(f"R$ {preco:.2f}", weight="bold", size=18, color=cor_texto_principal),
-                        ft.Text(marca, size=11, color=cor_texto_secundario),
+                        ft.Text(f"R$ {preco:.2f}", weight="bold", size=18, color=cor_texto_p),
+                        ft.Text(marca, size=11, color=cor_secundaria),
                     ], horizontal_alignment="end"),
                 ]),
                 ft.Row(alignment="spaceBetween", controls=[
-                    ft.Text(f"Validade: {validade}", size=11, color=ft.Colors.BLUE_GREY_400),
+                    ft.Row([
+                        ft.Icon(ft.Icons.CALENDAR_MONTH_OUTLINED, size=14, color=cor_secundaria),
+                        ft.Text(f"Validade: {validade}", size=11, color=cor_secundaria),
+                    ], spacing=5),
                     ft.Container(
                         content=ft.Text(f"{quantidade} UN", size=11, weight="bold", color="white"),
-                        bgcolor=cor_status, padding=ft.padding.symmetric(horizontal=12, vertical=4), border_radius=20,
+                        bgcolor=cor_status, 
+                        padding=ft.padding.symmetric(horizontal=12, vertical=4), 
+                        border_radius=20,
                     ),
                 ]),
-                ft.Divider(height=1, color=ft.Colors.with_opacity(0.1, cor_texto_principal)),
+                ft.Divider(height=1, color=ft.Colors.WHITE10),
                 ft.Row(alignment="end", controls=[
-                    ft.TextButton("Editar", icon=ft.Icons.EDIT_NOTE, on_click=lambda _: on_editar_produto(id_prod)),
+                    ft.TextButton(
+                        "Editar Produto", 
+                        icon=ft.Icons.EDIT_OUTLINED, 
+                        icon_color=cor_texto_s,
+                        on_click=lambda _: on_editar_produto(id_prod)
+                    ),
                 ]),
             ])
         )
 
-    # --- LÓGICA DE FILTRAGEM ---
+    # --- LÓGICA FILTRAGEM ---
     def filtrar_estoque(e=None):
-        texto = search_field.value.lower()
+        texto = search_field.value.lower() if search_field.value else ""
         criterio = btn_filtro.data
         
         filtrados = [
@@ -80,24 +98,19 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar
             or texto in p.get("nome_categoria", "").lower()
         ]
 
-        if criterio == "caro": 
-            filtrados.sort(key=lambda x: x["preco_venda"], reverse=True)
-        elif criterio == "barato": 
-            filtrados.sort(key=lambda x: x["preco_venda"])
-        elif criterio == "estoque_baixo": 
-            filtrados.sort(key=lambda x: x["quantidade"])
+        # Ordenação
+        if criterio == "caro": filtrados.sort(key=lambda x: x["preco_venda"], reverse=True)
+        elif criterio == "barato": filtrados.sort(key=lambda x: x["preco_venda"])
+        elif criterio == "estoque_baixo": filtrados.sort(key=lambda x: x["quantidade"])
         elif criterio != "todos":
             filtrados = [p for p in filtrados if p.get("nome_categoria") == criterio]
 
         lista_produtos_ui.controls.clear()
         for p in filtrados:
-            # AQUI: Chamamos a função formatar_data_br para a validade
-            data_formatada = formatar_data_br(p["data_validade"])
-            
             lista_produtos_ui.controls.append(
                 card_produto(
                     p["id_estoque"], p["nome_estoque"], p["preco_venda"], 
-                    p["marca"], data_formatada, p["quantidade"],
+                    p["marca"], formatar_data_br(p["data_validade"]), p["quantidade"],
                     p.get("nome_categoria", "Geral")
                 )
             )
@@ -107,7 +120,7 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar
         btn_filtro.data = c
         filtrar_estoque()
 
-    # --- MONTAGEM DO MENU ---
+    # --- COMPONENTES ---
     menu_items = [
         ft.PopupMenuItem(content=ft.Text("Todos os Produtos"), on_click=lambda _: mudar_f("todos")),
         ft.PopupMenuItem(content=ft.Text("Mais Caro"), on_click=lambda _: mudar_f("caro")),
@@ -116,58 +129,24 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar
     ]
 
     if categorias_reais:
-        menu_items.append(ft.PopupMenuItem(content=ft.Text("----------", text_align="center"), disabled=True))
+        menu_items.append(ft.PopupMenuItem(content=ft.Divider(height=1)))
         for cat in categorias_reais:
-            menu_items.append(
-                ft.PopupMenuItem(
-                    content=ft.Text(cat), 
-                    on_click=lambda e, c=cat: mudar_f(c)
-                )
-            )
+            menu_items.append(ft.PopupMenuItem(content=ft.Text(cat), on_click=lambda e, c=cat: mudar_f(c)))
 
-    btn_filtro = ft.PopupMenuButton(icon=ft.Icons.SORT, items=menu_items)
+    btn_filtro = ft.PopupMenuButton(icon=ft.Icons.SORT, icon_color=cor_texto_p, items=menu_items)
     btn_filtro.data = "todos"
 
     search_field = ft.TextField(
         hint_text="Buscar no estoque...", expand=True, on_change=filtrar_estoque,
-        bgcolor=cor_fundo_busca, border_radius=15, prefix_icon=ft.Icons.SEARCH
+        bgcolor=cor_input, border_radius=15, prefix_icon=ft.Icons.SEARCH,
+        border_color=cor_borda, text_style=ft.TextStyle(color=cor_texto_p)
     )
 
     page.appbar = ft.AppBar(
-        bgcolor="#0b1445", 
-        title=ft.Text("Estoque", color="white", weight="bold"),
+        bgcolor=cor_barra, 
+        title=ft.Text("Gestão de Estoque", color="white", weight="bold"),
         center_title=True, 
         actions=[ft.IconButton(ft.Icons.EXIT_TO_APP, icon_color="white", on_click=lambda _: on_logout())]
-    )
-
-    page.add(
-        ft.Column(expand=True, spacing=15, controls=[
-            ft.Row([
-                ft.Text("Consultar Produtos", size=22, weight="bold"),
-                ft.Row([
-                    ft.ElevatedButton(
-                        "Categorias", 
-                        icon=ft.Icons.CATEGORY_ROUNDED,
-                        on_click=lambda _: on_categorias(),
-                        style=ft.ButtonStyle(bgcolor="#0b1445", color="white")
-                    ),
-                    ft.ElevatedButton(
-                        "Fornecedores", 
-                        icon=ft.Icons.BUSINESS,
-                        on_click=lambda _: on_fornecedores(),
-                        style=ft.ButtonStyle(bgcolor="#0b1445", color="white")
-                    ),
-                    ft.FloatingActionButton(
-                        icon=ft.Icons.ADD, 
-                        bgcolor="#1B4F9C", 
-                        mini=True, 
-                        on_click=lambda _: on_adicionar_produto()
-                    ),
-                ], spacing=10)
-            ], alignment="spaceBetween"),
-            ft.Row([search_field, btn_filtro]),
-            lista_produtos_ui
-        ])
     )
 
     def trocar_aba(e):
@@ -178,22 +157,53 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar
         elif idx == 3: on_users()
         elif idx == 4: on_perfil()
 
-    nav = ft.NavigationBar(
-        bgcolor="#0b1445",
-        selected_index=2,
-        on_change=trocar_aba,
-        destinations=[
-            ft.NavigationBarDestination(icon=ft.Icons.HOME_OUTLINED, label="Inicial"),
-            ft.NavigationBarDestination(icon=ft.Icons.LIST_ALT_OUTLINED, label="Vendas"),
-            ft.NavigationBarDestination(icon=ft.Icons.INVENTORY_2, label="Estoque"),
-            ft.NavigationBarDestination(icon=ft.Icons.GROUP_OUTLINED, label="Usuários"),
-            ft.NavigationBarDestination(icon=ft.Icons.PERSON_OUTLINE, label="Perfil"),
-        ]
-    )
-    
     page.navigation_bar = ft.Container(
-        content=nav, margin=ft.margin.only(left=25, right=25, bottom=30), 
+        content=ft.NavigationBar(
+            bgcolor=cor_barra, selected_index=2, on_change=trocar_aba,
+            indicator_color=cor_bar,
+            destinations=[
+                ft.NavigationBarDestination(icon=ft.Icons.HOME_OUTLINED, label="Inicial"),
+                ft.NavigationBarDestination(icon=ft.Icons.LIST_ALT_OUTLINED, label="Vendas"),
+                ft.NavigationBarDestination(icon=ft.Icons.INVENTORY_2, label="Estoque"),
+                ft.NavigationBarDestination(icon=ft.Icons.GROUP_OUTLINED, label="Usuários"),
+                ft.NavigationBarDestination(icon=ft.Icons.PERSON_OUTLINE, label="Perfil"),
+            ]
+        ),
+        margin=ft.margin.only(left=25, right=25, bottom=20),
         border_radius=40, clip_behavior=ft.ClipBehavior.ANTI_ALIAS
+    )
+
+    page.add(
+        ft.Container(
+            expand=True, bgcolor=cor_fundo_tela, padding=20,
+            content=ft.Column(expand=True, spacing=15, controls=[
+                ft.Row([
+                    ft.Text("Meus Produtos", size=24, weight="bold", color=cor_texto_p),
+                    ft.Row([
+                        ft.IconButton(
+                            icon=ft.Icons.CATEGORY_ROUNDED,
+                            icon_color=cor_texto_s,
+                            tooltip="Categorias",
+                            on_click=lambda _: on_categorias()
+                        ),
+                        ft.IconButton(
+                            icon=ft.Icons.BUSINESS,
+                            icon_color=cor_texto_s,
+                            tooltip="Fornecedores",
+                            on_click=lambda _: on_fornecedores()
+                        ),
+                        ft.FloatingActionButton(
+                            icon=ft.Icons.ADD, 
+                            bgcolor=cor_texto_s, 
+                            mini=True, 
+                            on_click=lambda _: on_adicionar_produto()
+                        ),
+                    ], spacing=5)
+                ], alignment="spaceBetween"),
+                ft.Row([search_field, btn_filtro]),
+                lista_produtos_ui
+            ])
+        )
     )
     
     filtrar_estoque()

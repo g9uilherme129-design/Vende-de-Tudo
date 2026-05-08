@@ -20,6 +20,9 @@ from gerenciar_categoria import gerenciar_categorias
 from editar_fornecedor import editar_fornecedor
 from recuperar_senha import tela_recuperacao
 from editar_venda import editar_venda
+from perfil import perfil_page
+from termos import game_page
+from database import buscar_dados_completos_perfil, buscar_dados_home
 
 
 def main(page: ft.Page):
@@ -32,21 +35,45 @@ def main(page: ft.Page):
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
 
-     # --- FUNÇÃO GLOBAL PARA ALTERAR TEMA E REFRESH ---
+    # --- FUNÇÃO GLOBAL PARA ALTERAR TEMA E REFRESH ---
     def alternar_tema_global():
+        from database import salvar_tema_db # Importa a função de salvar
+        
         # 1. Inverte o modo
-        if page.theme_mode == ft.ThemeMode.DARK:
-            page.theme_mode = ft.ThemeMode.LIGHT
-        else:
+        novo_tema_dark = page.theme_mode != ft.ThemeMode.DARK
+        page.theme_mode = ft.ThemeMode.DARK if novo_tema_dark else ft.ThemeMode.LIGHT
+        
+        # 2. Salva a preferência no Banco de Dados
+        # Pegamos o ID do usuário logado que você armazenou no page.user_data
+        id_usuario = page.user_data.get("id_user") if page.user_data else None
+        
+        if id_usuario:
+            salvar_tema_db(id_usuario, novo_tema_dark)
+            print(f"Tema {page.theme_mode} salvo para o usuário {id_usuario}")
+
+        # 3. Aplica as cores de fundo da página
+        aplicar_tema_visual(novo_tema_dark)
+        
+        # 4. REFRESH IMEDIATO: reconstrói a tela de perfil para aplicar as novas cores
+        carregar_perfil()
+
+    def aplicar_tema_visual(eh_dark):
+        if eh_dark:
             page.theme_mode = ft.ThemeMode.DARK
+            page.bgcolor = "#050A18"
+            # Guardamos as cores atuais no page.session para outras telas acessarem
+            page.session.set("cor_card", "#0b1445")
+            page.session.set("cor_texto", ft.Colors.WHITE)
+            page.session.set("cor_accent", "#1679f2")
+        else:
+            page.theme_mode = ft.ThemeMode.LIGHT
+            page.bgcolor = "#F0F4FF"
+            page.session.set("cor_card", "#D1D5DB")
+            page.session.set("cor_texto", "#DA7D7D")
+            page.session.set("cor_accent", "#D0D1D3")
         
-        # 2. Aplica as cores de fundo da página (essencial para o refresh visual)
-        eh_dark = page.theme_mode == ft.ThemeMode.DARK
-        aplicar_tema_visual(eh_dark)
-        
-        # 3. REFRESH IMEDIATO: Limpa e reconstrói a tela de perfil
-        # Isso força o código do perfil.py a ler as novas cores do 'obter_cores()'
-        carregar_perfil() 
+        page.update()
+    
 
     # --- FUNÇÃO GLOBAL PARA ALTERAR TEMA ---
     def aplicar_tema_visual(eh_dark):
@@ -65,22 +92,19 @@ def main(page: ft.Page):
 
     def carregar_home(dados_usuario=None):
         if dados_usuario:
-            # Sincroniza o user_data global da página
             page.user_data = dados_usuario
             
-            # Salvamos no page.data para compatibilidade
-            page.data = {
-                "user_id": dados_usuario.get('id_user') or dados_usuario.get('id_use'),
-                "user_nome": dados_usuario.get('nome_user')
-            }
+            # Pegamos o ID (garantindo que pegue a chave correta id_user)
+            id_atual = dados_usuario.get('id_user')
             
-            # Aplicação do tema
-            id_atual = page.data["user_id"]
+            # Busca no banco se o usuário prefere Dark (1) ou Light (0)
             try:
-                tema_db = buscar_tema_db(id_atual)
+                tema_db = buscar_tema_db(id_atual) # Função que você já tem no database.py
+                # Se for 1, aplica dark. Se for 0 ou None, aplica light.
                 aplicar_tema_visual(eh_dark=(tema_db == 1))
-            except:
-                aplicar_tema_visual(eh_dark=True)
+            except Exception as e:
+                print(f"Erro ao carregar tema inicial: {e}")
+                aplicar_tema_visual(eh_dark=True) # Padrão em caso de erro
 
         page.controls.clear()
         home_page(
@@ -176,7 +200,7 @@ def main(page: ft.Page):
         )
         
     def carregar_perfil():
-        page.controls.clear() # Limpa a tela antes de reconstruir
+        page.controls.clear() 
         perfil_page(
             page, 
             on_home=lambda: carregar_home(page.user_data),
@@ -184,9 +208,13 @@ def main(page: ft.Page):
             on_vendas=carregar_vendas,
             on_users=carregar_usuarios,
             on_logout=fazer_logout,
+            on_game=carregar_jogo,          # Conectado à função debaixo
             on_theme_change=alternar_tema_global,
             on_config=carregar_config
         )
+
+    def carregar_jogo():
+        game_page(page, on_back=carregar_perfil)
 
     def aplicar_tema_visual(eh_dark):
         if eh_dark:
