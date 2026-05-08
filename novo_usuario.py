@@ -2,22 +2,20 @@ import flet as ft
 from database import cadastrar_usuario_db, gerar_id_char
 
 
-# Máscara do CPF
-def formatar_cpf(cpf):
-    numeros = ''.join(filter(str.isdigit, cpf))[:11]
+def validar_cpf(cpf: str) -> bool:
+    cpf = ''.join(filter(str.isdigit, cpf))
 
-    if len(numeros) <= 3:
-        return numeros
-    elif len(numeros) <= 6:
-        return f"{numeros[:3]}.{numeros[3:]}"
-    elif len(numeros) <= 9:
-        return f"{numeros[:3]}.{numeros[3:6]}.{numeros[6:]}"
-    else:
-        return f"{numeros[:3]}.{numeros[3:6]}.{numeros[6:9]}-{numeros[9:]}"
+    if len(cpf) != 11:
+        return False
+
+    if cpf == cpf[0] * 11:
+        return False
+
+    return True
 
 
 def novo_usuario(page: ft.Page, on_users):
-    page.controls.clear()
+    page.clean()
     page.scroll = ft.ScrollMode.AUTO
 
     is_dark = page.theme_mode == ft.ThemeMode.DARK
@@ -37,7 +35,6 @@ def novo_usuario(page: ft.Page, on_users):
         center_title=True,
     )
 
-    # --- FUNÇÃO AUXILIAR ---
     def estilo_input(label, hint="", password=False, keyboard_type=ft.KeyboardType.TEXT, limite=None):
         input_field = ft.TextField(
             hint_text=hint,
@@ -66,14 +63,13 @@ def novo_usuario(page: ft.Page, on_users):
         )
         return container, input_field
 
-    # --- CAMPOS ---
     nome_c, nome_in = estilo_input("NOME COMPLETO", hint="Ex: Neymar Jr", limite=100)
 
     cpf_c, cpf_in = estilo_input(
         "CPF (Apenas números)",
         hint="12345678900",
         keyboard_type=ft.KeyboardType.NUMBER,
-        limite=14
+        limite=11
     )
 
     email_c, email_in = estilo_input("E-MAIL", hint="usuario@email.com", keyboard_type=ft.KeyboardType.EMAIL, limite=100)
@@ -107,18 +103,7 @@ def novo_usuario(page: ft.Page, on_users):
         spacing=5,
     )
 
-    # CPF Máscara 
-    def cpf_change(e):
-        valor = e.control.value
-        novo = formatar_cpf(valor)
-
-        if valor != novo:
-            e.control.value = novo
-            e.control.update()
-
-    cpf_in.on_change = cpf_change
-
-    # --- SALVAR ---
+    # ---------------- SALVAR ----------------
     def salvar_usuario(e):
         nome = nome_in.value.strip() if nome_in.value else ""
         email = email_in.value.strip() if email_in.value else ""
@@ -128,39 +113,53 @@ def novo_usuario(page: ft.Page, on_users):
         perfil = perfil_dropdown.value
 
         if not nome or not email or not senha or not perfil:
-            page.snack_bar = ft.SnackBar(ft.Text("Preencha os campos obrigatórios!"), bgcolor="red")
-            page.snack_bar.open = True
+            sb = ft.SnackBar(ft.Text("Preencha os campos obrigatórios!"), bgcolor="#B00020")
+            page.overlay.append(sb)
+            sb.open = True
+            page.update()
+            return
+
+        # CPF validação (sem máscara)
+        cpf_limpo = ''.join(filter(str.isdigit, cpf))
+
+        if not validar_cpf(cpf_limpo):
+            sb = ft.SnackBar(
+                ft.Text("CPF inválido! Verifique o número informado."),
+                bgcolor="#B00020"
+            )
+            page.overlay.append(sb)
+            sb.open = True
             page.update()
             return
 
         try:
             novo_id = gerar_id_char("usuario", "id_user", "U")
+
             sucesso, msg = cadastrar_usuario_db(
                 id_user=novo_id,
                 nome=nome,
-                cpf=cpf,
+                cpf=cpf_limpo,
                 email=email,
                 senha=senha,
                 perfil=perfil,
                 salario=salario
             )
 
-            if sucesso:
-                page.snack_bar = ft.SnackBar(ft.Text(msg), bgcolor="green")
-                page.snack_bar.open = True
-                page.update()
-                on_users()
-            else:
-                page.snack_bar = ft.SnackBar(ft.Text(f"Erro: {msg}"), bgcolor="red")
-                page.snack_bar.open = True
-                page.update()
-
-        except Exception as ex:
-            page.snack_bar = ft.SnackBar(ft.Text(f"Erro inesperado: {ex}"), bgcolor="red")
-            page.snack_bar.open = True
+            sb = ft.SnackBar(ft.Text(msg), bgcolor="green" if sucesso else "red")
+            page.overlay.append(sb)
+            sb.open = True
             page.update()
 
-    # --- FORM ---
+            if sucesso:
+                on_users()
+
+        except Exception as ex:
+            sb = ft.SnackBar(ft.Text(f"Erro inesperado: {ex}"), bgcolor="red")
+            page.overlay.append(sb)
+            sb.open = True
+            page.update()
+
+    # ---------------- FORM ----------------
     form_content = ft.Column(
         [
             nome_c,
@@ -187,9 +186,14 @@ def novo_usuario(page: ft.Page, on_users):
     )
 
     page.add(
-        ft.Row(
-            [ft.Container(content=form_content, padding=20)],
-            alignment="center"
+        ft.Column(
+            [
+                ft.Row(
+                    [ft.Container(content=form_content, padding=20)],
+                    alignment=ft.MainAxisAlignment.CENTER
+                )
+            ],
+            expand=True
         )
     )
 
