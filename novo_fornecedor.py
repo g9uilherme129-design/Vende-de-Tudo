@@ -46,7 +46,63 @@ def novo_fornecedor(page: ft.Page, on_voltar):
                 cursor_color=cor_texto_s,
                 hint_style=ft.TextStyle(color=ft.Colors.GREY_500),
             )
+    # =========================================================
+    # Máscara CNPJ
+    def mascara_cnpj(e):
+        valor = "".join(filter(str.isdigit, e.control.value))[:14]
 
+        if len(valor) > 12:
+            valor = f"{valor[:2]}.{valor[2:5]}.{valor[5:8]}/{valor[8:12]}-{valor[12:]}"
+        elif len(valor) > 8:
+            valor = f"{valor[:2]}.{valor[2:5]}.{valor[5:8]}/{valor[8:]}"
+        elif len(valor) > 5:
+            valor = f"{valor[:2]}.{valor[2:5]}.{valor[5:]}"
+        elif len(valor) > 2:
+            valor = f"{valor[:2]}.{valor[2:]}"
+        
+        e.control.value = valor
+        page.update()
+
+    # Máscara Telefone
+    def mascara_telefone(e):
+        valor = "".join(filter(str.isdigit, e.control.value))[:11]
+
+        if len(valor) > 6:
+            valor = f"({valor[:2]}) {valor[2:7]}-{valor[7:]}"
+        elif len(valor) > 2:
+            valor = f"({valor[:2]}) {valor[2:]}"
+        
+        e.control.value = valor
+        page.update()
+
+    # >>>>>>> SÓ ADICIONADO (MÁSCARA CEP) <<<<<<<<
+    def mascara_cep(e):
+        valor = "".join(filter(str.isdigit, e.control.value))[:8]
+
+        if len(valor) > 5:
+            valor = f"{valor[:5]}-{valor[5:]}"
+        
+        e.control.value = valor
+        page.update()
+    # =========================================================
+
+    page.appbar = ft.AppBar(
+        leading=ft.IconButton(ft.Icons.ARROW_BACK, icon_color="white", on_click=lambda _: on_voltar()),
+        title=ft.Text("Novo Fornecedor", size=20, weight="bold", color="white"),
+        bgcolor="#0b1445",
+        center_title=True,
+    )
+
+    def estilo_input(label, hint="", value="", col=None, keyboard_type=ft.KeyboardType.TEXT, limite=None):
+        input_field = ft.TextField(
+            hint_text=hint, 
+            border=ft.InputBorder.NONE,
+            content_padding=15, 
+            text_style=ft.TextStyle(color=cor_input),
+            expand=True, 
+            keyboard_type=keyboard_type,
+            max_length=limite,
+        )
         container = ft.Column([
             ft.Text(f"  {label}", size=11, color=cor_texto_s, weight="bold"),
             ft.Container(
@@ -54,11 +110,19 @@ def novo_fornecedor(page: ft.Page, on_voltar):
                 bgcolor=cor_input,
                 border=ft.border.all(1, cor_borda), 
                 border_radius=12,
-                padding=ft.padding.only(right=10),
+                padding=ft.padding.only(right=10, bottom=5),
                 height=50
             )
         ], spacing=5, col=col)
-        return container, field
+        return container, input_field
+
+    nome_c, nome_in = estilo_input("NOME DO FORNECEDOR", hint="Ex: Coca-Cola Brasil", col=12, limite=150)
+
+    cnpj_c, cnpj_in = estilo_input("CNPJ", hint="00.000.000/0000-00", col=6, limite=18)
+    cnpj_in.on_change = mascara_cnpj
+
+    tel_c, tel_in = estilo_input("TELEFONE", hint="(31) 99999-9999", col=6, limite=15)
+    tel_in.on_change = mascara_telefone
 
     # --- CAMPOS ---
     nome_c, nome_in = estilo_input("NOME DO FORNECEDOR", hint="Nome", col=12, limite=150)
@@ -72,6 +136,7 @@ def novo_fornecedor(page: ft.Page, on_voltar):
     cidade_c, cidade_in = estilo_input("CIDADE", hint="Cidade", col=8, limite=100)
     uf_c, uf_in = estilo_input("ESTADO (UF)", value="MG", col=4, is_dropdown=True)
     cep_c, cep_in = estilo_input("CEP", hint="00000-000", col=12, limite=9)
+    cep_in.on_change = mascara_cep
 
     def salvar_clique(e):
         if not nome_in.value or not cnpj_in.value:
@@ -94,6 +159,21 @@ def novo_fornecedor(page: ft.Page, on_voltar):
             page.snack_bar = ft.SnackBar(ft.Text(f"Erro: {msg}"), bgcolor="red")
             page.snack_bar.open = True
         page.update()
+
+
+    layout_campos = ft.ResponsiveRow(
+        controls=[
+            nome_c, 
+            cnpj_c, tel_c, 
+            email_c,
+            ft.Text("  ENDEREÇO", size=14, weight="bold", color=cor_texto_s, col=12),
+            rua_c,
+            num_c, bairro_c,
+            cidade_c, uf_c, cep_c
+        ],
+        spacing=15, 
+        run_spacing=15,
+    )
 
     # --- APPBAR ---
     page.appbar = ft.AppBar(

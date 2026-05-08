@@ -27,6 +27,29 @@ def produto(page: ft.Page, on_stock):
         else:
             e.control.value = valor
         page.update()
+    # Máscara da Data
+    def mascara_data(e):
+        valor = "".join(filter(str.isdigit, e.control.value))
+        valor = valor[:8]
+
+        if len(valor) > 4:
+            valor = f"{valor[:2]}/{valor[2:4]}/{valor[4:]}"
+        elif len(valor) > 2:
+            valor = f"{valor[:2]}/{valor[2:]}"
+
+        e.control.value = valor
+        e.control.selection_start = len(valor)
+        e.control.selection_end = len(valor)
+        page.update()
+    # ---------------------------------------
+
+    # --- LÓGICA DE TRATAMENTO DE DATA ---
+    def formatar_para_banco(data_br):
+        try:
+            dt = datetime.strptime(data_br, "%d/%m/%Y")
+            return dt.strftime("%Y-%m-%d")
+        except:
+            return datetime.now().strftime("%Y-%m-%d")
 
     def formatar_moeda(e):
         valor = "".join(filter(str.isdigit, e.control.value))
@@ -73,15 +96,16 @@ def produto(page: ft.Page, on_stock):
     
     in_validade = ft.TextField(
         hint_text="DD/MM/AAAA", border=ft.InputBorder.NONE, expand=True, 
-        max_length=10, on_change=formatar_data, keyboard_type=ft.KeyboardType.NUMBER, text_style=estilo_texto
+        max_length=10, on_change=formatar_data, keyboard_type=ft.KeyboardType.NUMBER, text_style=estilo_texto, on_change=mascara_data
     )
+    # ------------------------------------
 
     # Carregar Dropdowns (MANTIDO)
     try:
         for f in buscar_fornecedores_dropdown():
             drop_forn.options.append(ft.dropdown.Option(key=str(f['id_fornecedor']), text=f['nome_fornecedor']))
         for c in buscar_categorias_dropdown():
-            drop_cat.options.append(ft.dropdown.Option(key=str(c['id_categoria']), text=c['nome_categoria']))
+            drop_cat.options.append(ft.dropdown.Option(key=str(c['id_categoria']), text=f['nome_categoria']))
     except: pass
 
     def salvar_clique(e):
@@ -95,9 +119,18 @@ def produto(page: ft.Page, on_stock):
             venda_final = float(in_venda.value.replace(".", "").replace(",", "."))
 
             cadastrar_produto_db(
-                drop_forn.value, drop_cat.value, in_nome.value, in_cod.value,
-                data_formatada, datetime.now().strftime("%Y-%m-%d"),
-                custo_final, venda_final, drop_emb.value, int(in_qtd.value), in_lote.value
+                drop_forn.value,
+                drop_cat.value,
+                in_nome.value,
+                in_cod.value,
+                data_formatada, 
+                formatar_para_banco(in_validade.value),
+                datetime.now().strftime("%Y-%m-%d"), 
+                custo_final,
+                venda_final,
+                drop_emb.value,
+                int(in_qtd.value),
+                in_lote.value
             )
             page.snack_bar = ft.SnackBar(ft.Text("Produto cadastrado!"), bgcolor="#08D345")
             page.snack_bar.open = True

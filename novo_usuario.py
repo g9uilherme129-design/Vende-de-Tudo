@@ -1,8 +1,21 @@
 import flet as ft
 from database import cadastrar_usuario_db, gerar_id_char
 
+
+def validar_cpf(cpf: str) -> bool:
+    cpf = ''.join(filter(str.isdigit, cpf))
+
+    if len(cpf) != 11:
+        return False
+
+    if cpf == cpf[0] * 11:
+        return False
+
+    return True
+
+
 def novo_usuario(page: ft.Page, on_users):
-    page.controls.clear()
+    page.clean()
     page.scroll = ft.ScrollMode.AUTO
 
     # --- PADRONIZAÇÃO DE CORES (IDÊNTICO AO SEU PERFIL) ---
@@ -41,7 +54,7 @@ def novo_usuario(page: ft.Page, on_users):
             cursor_color=cor_texto_s,
             hint_style=ft.TextStyle(color=ft.Colors.GREY_500),
         )
-        
+
         container = ft.Column(
             [
                 ft.Text(f"  {label}", size=12, color=cor_texto_s, weight="bold"),
@@ -59,9 +72,17 @@ def novo_usuario(page: ft.Page, on_users):
 
     # --- CAMPOS ---
     nome_c, nome_in = estilo_input("NOME COMPLETO", hint="Ex: Neymar Jr", limite=100)
-    cpf_c, cpf_in = estilo_input("CPF (Apenas números)", hint="12345678900", keyboard_type=ft.KeyboardType.NUMBER, limite=11)
+
+    cpf_c, cpf_in = estilo_input(
+        "CPF (Apenas números)",
+        hint="12345678900",
+        keyboard_type=ft.KeyboardType.NUMBER,
+        limite=11
+    )
+
     email_c, email_in = estilo_input("E-MAIL", hint="usuario@email.com", keyboard_type=ft.KeyboardType.EMAIL, limite=100)
     senha_c, senha_in = estilo_input("SENHA", hint="******", password=True, limite=32)
+
     salario_c, salario_in = estilo_input("SALÁRIO BASE", hint="0,00", keyboard_type=ft.KeyboardType.NUMBER, limite=15)
     salario_in.prefix_text = "R$ "
 
@@ -90,6 +111,7 @@ def novo_usuario(page: ft.Page, on_users):
         spacing=5,
     )
 
+    # ---------------- SALVAR ----------------
     def salvar_usuario(e):
         nome = nome_in.value.strip() if nome_in.value else ""
         email = email_in.value.strip() if email_in.value else ""
@@ -99,17 +121,32 @@ def novo_usuario(page: ft.Page, on_users):
         perfil = perfil_dropdown.value
 
         if not nome or not email or not senha or not perfil:
-            page.snack_bar = ft.SnackBar(ft.Text("Preencha os campos obrigatórios!"), bgcolor="red")
-            page.snack_bar.open = True
+            sb = ft.SnackBar(ft.Text("Preencha os campos obrigatórios!"), bgcolor="#B00020")
+            page.overlay.append(sb)
+            sb.open = True
+            page.update()
+            return
+
+        # CPF validação (sem máscara)
+        cpf_limpo = ''.join(filter(str.isdigit, cpf))
+
+        if not validar_cpf(cpf_limpo):
+            sb = ft.SnackBar(
+                ft.Text("CPF inválido! Verifique o número informado."),
+                bgcolor="#B00020"
+            )
+            page.overlay.append(sb)
+            sb.open = True
             page.update()
             return
 
         try:
             novo_id = gerar_id_char("usuario", "id_user", "U")
+
             sucesso, msg = cadastrar_usuario_db(
                 id_user=novo_id,
                 nome=nome,
-                cpf=cpf,
+                cpf=cpf_limpo,
                 email=email,
                 senha=senha,
                 perfil=perfil,
@@ -128,8 +165,22 @@ def novo_usuario(page: ft.Page, on_users):
         except Exception as ex:
             page.snack_bar = ft.SnackBar(ft.Text(f"Erro inesperado: {ex}"), bgcolor="red")
             page.snack_bar.open = True
+
+            sb = ft.SnackBar(ft.Text(msg), bgcolor="green" if sucesso else "red")
+            page.overlay.append(sb)
+            sb.open = True
             page.update()
 
+            if sucesso:
+                on_users()
+
+        except Exception as ex:
+            sb = ft.SnackBar(ft.Text(f"Erro inesperado: {ex}"), bgcolor="red")
+            page.overlay.append(sb)
+            sb.open = True
+            page.update()
+
+    # ---------------- FORM ----------------
     form_content = ft.Column(
         [
             nome_c,
@@ -173,5 +224,5 @@ def novo_usuario(page: ft.Page, on_users):
             )
         )
     )
-    
+
     page.update()
