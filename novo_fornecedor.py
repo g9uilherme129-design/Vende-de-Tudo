@@ -9,10 +9,10 @@ ESTADOS_BR = [
 
 def novo_fornecedor(page: ft.Page, on_voltar):
     page.controls.clear()
-    page.padding = 0 # Removido o padding para o Container ocupar tudo
+    page.padding = 0 
     page.scroll = ft.ScrollMode.AUTO
 
-    # --- PADRONIZAÇÃO DE CORES (IDÊNTICO AO SEU PERFIL) ---
+    # --- PADRONIZAÇÃO DE CORES ---
     is_dark = page.theme_mode == ft.ThemeMode.DARK
     cor_fundo_card = "#0b1445" if is_dark else "#FFFFFF"
     cor_borda = "#1E2B4E" if is_dark else "#D1D5DB"
@@ -22,19 +22,19 @@ def novo_fornecedor(page: ft.Page, on_voltar):
     cor_fundo_tela = "#050A18" if is_dark else "#F0F4FF"
     cor_input = "#0A122A" if is_dark else "#F5F7FB"
 
-    # --- FUNÇÃO DE ESTILO ADAPTADA ---
+    # --- FUNÇÃO DE ESTILO CORRIGIDA ---
     def estilo_input(label, hint="", value="", col=None, keyboard_type=ft.KeyboardType.TEXT, limite=None, is_dropdown=False):
         if is_dropdown:
-            field = ft.Dropdown(
+            input_field = ft.Dropdown(
                 value=value,
                 options=[ft.dropdown.Option(st) for st in ESTADOS_BR],
                 border=ft.InputBorder.NONE,
-                content_padding=ft.padding.only(left=15, top=0, bottom=0),
+                content_padding=ft.padding.only(left=15),
                 text_style=ft.TextStyle(color=cor_texto_p),
                 expand=True,
             )
         else:
-            field = ft.TextField(
+            input_field = ft.TextField(
                 hint_text=hint,
                 value=value,
                 border=ft.InputBorder.NONE,
@@ -46,92 +46,57 @@ def novo_fornecedor(page: ft.Page, on_voltar):
                 cursor_color=cor_texto_s,
                 hint_style=ft.TextStyle(color=ft.Colors.GREY_500),
             )
-    # =========================================================
-    # Máscara CNPJ
-    def mascara_cnpj(e):
-        valor = "".join(filter(str.isdigit, e.control.value))[:14]
 
-        if len(valor) > 12:
-            valor = f"{valor[:2]}.{valor[2:5]}.{valor[5:8]}/{valor[8:12]}-{valor[12:]}"
-        elif len(valor) > 8:
-            valor = f"{valor[:2]}.{valor[2:5]}.{valor[5:8]}/{valor[8:]}"
-        elif len(valor) > 5:
-            valor = f"{valor[:2]}.{valor[2:5]}.{valor[5:]}"
-        elif len(valor) > 2:
-            valor = f"{valor[:2]}.{valor[2:]}"
-        
-        e.control.value = valor
-        page.update()
-
-    # Máscara Telefone
-    def mascara_telefone(e):
-        valor = "".join(filter(str.isdigit, e.control.value))[:11]
-
-        if len(valor) > 6:
-            valor = f"({valor[:2]}) {valor[2:7]}-{valor[7:]}"
-        elif len(valor) > 2:
-            valor = f"({valor[:2]}) {valor[2:]}"
-        
-        e.control.value = valor
-        page.update()
-
-    # >>>>>>> SÓ ADICIONADO (MÁSCARA CEP) <<<<<<<<
-    def mascara_cep(e):
-        valor = "".join(filter(str.isdigit, e.control.value))[:8]
-
-        if len(valor) > 5:
-            valor = f"{valor[:5]}-{valor[5:]}"
-        
-        e.control.value = valor
-        page.update()
-    # =========================================================
-
-    page.appbar = ft.AppBar(
-        leading=ft.IconButton(ft.Icons.ARROW_BACK, icon_color="white", on_click=lambda _: on_voltar()),
-        title=ft.Text("Novo Fornecedor", size=20, weight="bold", color="white"),
-        bgcolor="#0b1445",
-        center_title=True,
-    )
-
-    def estilo_input(label, hint="", value="", col=None, keyboard_type=ft.KeyboardType.TEXT, limite=None):
-        input_field = ft.TextField(
-            hint_text=hint, 
-            border=ft.InputBorder.NONE,
-            content_padding=15, 
-            text_style=ft.TextStyle(color=cor_input),
-            expand=True, 
-            keyboard_type=keyboard_type,
-            max_length=limite,
-        )
         container = ft.Column([
             ft.Text(f"  {label}", size=11, color=cor_texto_s, weight="bold"),
             ft.Container(
-                content=field, 
+                content=input_field, 
                 bgcolor=cor_input,
                 border=ft.border.all(1, cor_borda), 
                 border_radius=12,
-                padding=ft.padding.only(right=10, bottom=5),
+                padding=ft.padding.only(right=10),
                 height=50
             )
         ], spacing=5, col=col)
+        
         return container, input_field
 
-    nome_c, nome_in = estilo_input("NOME DO FORNECEDOR", hint="Ex: Coca-Cola Brasil", col=12, limite=150)
+    # --- MÁSCARAS ---
+    def mascara_cnpj(e):
+        valor = "".join(filter(str.isdigit, e.control.value))[:14]
+        if len(valor) > 12: valor = f"{valor[:2]}.{valor[2:5]}.{valor[5:8]}/{valor[8:12]}-{valor[12:]}"
+        elif len(valor) > 8: valor = f"{valor[:2]}.{valor[2:5]}.{valor[5:8]}/{valor[8:]}"
+        elif len(valor) > 5: valor = f"{valor[:2]}.{valor[2:5]}.{valor[5:]}"
+        elif len(valor) > 2: valor = f"{valor[:2]}.{valor[2:]}"
+        e.control.value = valor
+        page.update()
 
+    def mascara_telefone(e):
+        valor = "".join(filter(str.isdigit, e.control.value))[:11]
+        if len(valor) > 6: valor = f"({valor[:2]}) {valor[2:7]}-{valor[7:]}"
+        elif len(valor) > 2: valor = f"({valor[:2]}) {valor[2:]}"
+        e.control.value = valor
+        page.update()
+
+    def mascara_cep(e):
+        valor = "".join(filter(str.isdigit, e.control.value))[:8]
+        if len(valor) > 5: valor = f"{valor[:5]}-{valor[5:]}"
+        e.control.value = valor
+        page.update()
+
+    # --- DEFINIÇÃO DOS CAMPOS ---
+    nome_c, nome_in = estilo_input("NOME DO FORNECEDOR", hint="Ex: Coca-Cola Brasil", col=12, limite=150)
+    
     cnpj_c, cnpj_in = estilo_input("CNPJ", hint="00.000.000/0000-00", col=6, limite=18)
     cnpj_in.on_change = mascara_cnpj
 
     tel_c, tel_in = estilo_input("TELEFONE", hint="(31) 99999-9999", col=6, limite=15)
     tel_in.on_change = mascara_telefone
 
-    # --- CAMPOS ---
-    nome_c, nome_in = estilo_input("NOME DO FORNECEDOR", hint="Nome", col=12, limite=150)
-    cnpj_c, cnpj_in = estilo_input("CNPJ", hint="00.000.000/0000-00", col=6, limite=14)
-    tel_c, tel_in = estilo_input("TELEFONE", hint="(00) 00000-0000", col=6, limite=11)
     email_c, email_in = estilo_input("E-MAIL", hint="contato@empresa.com", col=12, limite=100)
     
     rua_c, rua_in = estilo_input("LOGRADOURO (RUA)", hint="Rua", col=8, limite=150)
-    num_c, num_in = estilo_input("Nº", hint="000", col=4, limite=5)
+    num_c, num_in = estilo_input("Nº", hint="000", col=4, limite=10)
     bairro_c, bairro_in = estilo_input("BAIRRO", hint="Bairro", col=12, limite=100)
     cidade_c, cidade_in = estilo_input("CIDADE", hint="Cidade", col=8, limite=100)
     uf_c, uf_in = estilo_input("ESTADO (UF)", value="MG", col=4, is_dropdown=True)
@@ -145,10 +110,23 @@ def novo_fornecedor(page: ft.Page, on_voltar):
             page.update()
             return
 
+        # --- LIMPEZA DAS MÁSCARAS (SOMENTE NÚMEROS PARA O BANCO) ---
+        # re.sub(r'\D', '', texto) remove tudo que não for dígito
+        cnpj_limpo = re.sub(r'\D', '', cnpj_in.value)
+        tel_limpo = re.sub(r'\D', '', tel_in.value)
+        cep_limpo = re.sub(r'\D', '', cep_in.value)
+
         sucesso, msg = cadastrar_fornecedor_db(
-            nome=nome_in.value, cnpj=cnpj_in.value, tel=tel_in.value, email=email_in.value,
-            logradouro=rua_in.value, num=num_in.value, bairro=bairro_in.value, 
-            cidade=cidade_in.value, uf=uf_in.value, cep=cep_in.value
+            nome=nome_in.value, 
+            cnpj=cnpj_limpo,    # Enviando apenas números
+            tel=tel_limpo,      # Enviando apenas números
+            email=email_in.value,
+            logradouro=rua_in.value, 
+            num=num_in.value, 
+            bairro=bairro_in.value, 
+            cidade=cidade_in.value, 
+            uf=uf_in.value, 
+            cep=cep_limpo       # Enviando apenas números
         )
 
         if sucesso:
@@ -160,21 +138,6 @@ def novo_fornecedor(page: ft.Page, on_voltar):
             page.snack_bar.open = True
         page.update()
 
-
-    layout_campos = ft.ResponsiveRow(
-        controls=[
-            nome_c, 
-            cnpj_c, tel_c, 
-            email_c,
-            ft.Text("  ENDEREÇO", size=14, weight="bold", color=cor_texto_s, col=12),
-            rua_c,
-            num_c, bairro_c,
-            cidade_c, uf_c, cep_c
-        ],
-        spacing=15, 
-        run_spacing=15,
-    )
-
     # --- APPBAR ---
     page.appbar = ft.AppBar(
         leading=ft.IconButton(ft.Icons.ARROW_BACK, icon_color="white", on_click=lambda _: on_voltar()),
@@ -182,7 +145,7 @@ def novo_fornecedor(page: ft.Page, on_voltar):
         bgcolor=cor_barra, center_title=True,
     )
 
-    # --- LAYOUT ---
+    # --- CONTEÚDO PRINCIPAL ---
     page.add(
         ft.Container(
             expand=True,
