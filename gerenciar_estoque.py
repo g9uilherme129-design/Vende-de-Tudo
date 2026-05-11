@@ -18,6 +18,7 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar
     cor_input = "#0A122A" if is_dark else "#F5F7FB"
     cor_secundaria =  "#1679f2" if is_dark else "#DA7D7D"
     cor_bar =  "#1679f2" if is_dark else "#BA7272"
+    cort_3 = "#36D900" if is_dark else "#FF6C03"
 
     # --- FUNÇÃO AUXILIAR DATA ---
     def formatar_data_br(data_origem):
@@ -42,8 +43,8 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar
     # --- CARD PRODUTO ---
     def card_produto(id_prod, nome, preco, marca, validade, quantidade, categoria_nome="Geral"):
         # Status de estoque: Verde se > 10, Laranja se > 0, Vermelho se 0
-        if quantidade > 10: cor_status = "#00b40d"
-        elif quantidade > 0: cor_status = "#ff9800"
+        if quantidade > 15: cor_status = "#00b40d"
+        elif quantidade > 0: cor_status = "#ff4545"
         else: cor_status = "#ff4444"
 
         return ft.Container(
@@ -58,7 +59,7 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar
                         ft.Text(nome, size=18, weight="bold", color=cor_texto_p),
                     ], spacing=2, expand=True),
                     ft.Column([
-                        ft.Text(f"R$ {preco:.2f}", weight="bold", size=18, color=cor_texto_p),
+                        ft.Text(f"R$ {preco:.2f}", weight="bold", size=18, color=cort_3),
                         ft.Text(marca, size=11, color=cor_secundaria),
                     ], horizontal_alignment="end"),
                 ]),
@@ -195,6 +196,7 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar
                         ft.FloatingActionButton(
                             icon=ft.Icons.ADD, 
                             bgcolor=cor_texto_s, 
+                            tooltip="Novo Produto",
                             mini=True, 
                             on_click=lambda _: on_adicionar_produto()
                         ),

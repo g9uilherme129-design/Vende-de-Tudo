@@ -185,6 +185,7 @@ def gerenciar_vendas(page: ft.Page, on_home, on_users, on_perfil, on_stock, on_r
                         ft.FloatingActionButton(
                             icon=ft.Icons.ADD,
                             bgcolor=cor_texto_s,
+                            tooltip="Registrar venda",
                             mini=True,
                             on_click=lambda _: on_registrar_venda()
                         ),

@@ -178,7 +178,7 @@ def tela_fornecedores(page: ft.Page, on_home, on_vendas, on_stock, on_usuarios, 
                 ft.Row([
                     ft.Text("Meus Fornecedores", size=24, weight="bold", color=cor_texto_p),
                     ft.FloatingActionButton(
-                        icon=ft.Icons.ADD, bgcolor=cor_texto_s, mini=True, 
+                        icon=ft.Icons.ADD, bgcolor=cor_texto_s, tooltip="Novo Fornecedor", mini=True, 
                         on_click=lambda _: on_adicionar_fornecedor()
                     )
                 ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
