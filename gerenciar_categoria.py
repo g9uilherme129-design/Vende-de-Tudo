@@ -174,6 +174,7 @@ def gerenciar_categorias(page: ft.Page, on_back):
                     ft.Text("Gestão de Categorias", size=24, weight="bold", color=cor_texto_p),
                     ft.FloatingActionButton(
                         icon=ft.Icons.ADD, 
+                        tooltip="Nova Categoria",
                         bgcolor=cor_texto_s, 
                         mini=True, 
                         on_click=abrir_modal_novo

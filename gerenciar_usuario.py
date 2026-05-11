@@ -16,8 +16,10 @@ def usuarios(page: ft.Page, on_home, on_stock, on_vendas, on_perfil, on_logout, 
     cor_fundo_tela = "#050A18" if is_dark else "#F0F4FF"
     cor_input = "#0A122A" if is_dark else "#F5F7FB"
     cor_secundaria =  "#1679f2" if is_dark else "#DA7D7D"
-    cor_desat =  "#652121" if is_dark else "#FF4805"
+    cor_desat =  "#652121" if is_dark else "#FF865B"
     cor_bar =  "#1679f2" if is_dark else "#BA7272"
+    cor_seg = "#ffffff" if is_dark else "#FFFFFF"
+    cort_3 = "#36D900" if is_dark else "#FF6C03"
 
     usuarios_db = buscar_usuarios_db()
     lista_usuarios_ui = ft.Column(expand=True, scroll=ft.ScrollMode.AUTO, spacing=10)
@@ -108,7 +110,7 @@ def usuarios(page: ft.Page, on_home, on_stock, on_vendas, on_perfil, on_logout, 
                                 ft.Row([
                                     ft.Text(perfil_str.upper(), size=11, color=cor_secundaria if esta_ativo else "white"),
                                     ft.Text(" • ", color=cor_secundaria if esta_ativo else "white"),
-                                    ft.Text(f"{u.get('total_vendas', 0)} VENDAS", size=11, color="#08D345" if esta_ativo else "white", weight="bold"),
+                                    ft.Text(f"{u.get('total_vendas', 0)} VENDAS", size=11, color=cort_3 if esta_ativo else "white", weight="bold"),
                                 ])
                             ], spacing=2),
                         ], spacing=15),
@@ -125,7 +127,7 @@ def usuarios(page: ft.Page, on_home, on_stock, on_vendas, on_perfil, on_logout, 
 
                 ft.Row(alignment=ft.MainAxisAlignment.SPACE_BETWEEN, controls=[
                     ft.Text(f"✉ {u.get('email_user', '---')}", size=12, color=cor_secundaria if esta_ativo else "white"),
-                    ft.Text(f"Salário: {formatar_moeda(u.get('salario', 0))}", size=13, weight="bold", color=cor_texto_p),
+                    ft.Text(f"Salário: {formatar_moeda(u.get('salario', 0))}", size=13, weight="bold", color=cor_seg),
                 ]),
 
                 ft.Divider(height=1, color=ft.Colors.WHITE10),
@@ -143,7 +145,7 @@ def usuarios(page: ft.Page, on_home, on_stock, on_vendas, on_perfil, on_logout, 
                             ft.Icon(ft.Icons.POWER_SETTINGS_NEW if esta_ativo else ft.Icons.PLAY_ARROW_ROUNDED, size=20),
                             ft.Text("Desativar" if esta_ativo else "REATIVAR", weight="bold"),
                         ], tight=True),
-                        bgcolor="#991f23" if esta_ativo else "#00E676",
+                        bgcolor="#c02429" if esta_ativo else "#15B065",
                         color=ft.Colors.WHITE,
                         style=ft.ButtonStyle(shape=ft.RoundedRectangleBorder(radius=10)),
                         disabled=eu_sou_este_usuario, 
@@ -214,6 +216,7 @@ def usuarios(page: ft.Page, on_home, on_stock, on_vendas, on_perfil, on_logout, 
                     ft.FloatingActionButton(
                         icon=ft.Icons.ADD,
                         bgcolor=cor_texto_s,
+                        tooltip="Novo Usuário",
                         mini=True, 
                         on_click=lambda _: on_adicionar_usuario()
                     ),
