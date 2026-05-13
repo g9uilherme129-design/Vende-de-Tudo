@@ -13,7 +13,7 @@ def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil, on_venda,
     # --- RECUPERAÇÃO DO ID DO USUÁRIO ---
     # Tenta recuperar de atributos diretos ou usando a propriedade correta da session do Flet
     id_usuario_logado = getattr(page, "id_user", None) or getattr(page, "id_usuario", None)
-    
+
     # --- BUSCA DE DADOS DINÂMICA ---
     try:
         if e_admin:
@@ -56,7 +56,7 @@ def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil, on_venda,
     cor_borda = "#1E2B4E" if is_dark else "#D1D5DB"
     cor_texto_p = ft.Colors.WHITE if is_dark else ft.Colors.BLACK
     cor_texto_s = "#1679f2" if is_dark else "#DA7D7D"
-    cor_barra = "#11259c" if is_dark else "#DA7D7D" 
+    cor_barra = "#050f44" if is_dark else "#DA7D7D" 
     cor_fundo_tela = "#050A18" if is_dark else "#F0F4FF"
     cort_3 = "#36D900" if is_dark else "#FF6C03"
     cor_bar = "#1679f2" if is_dark else "#BA7272"

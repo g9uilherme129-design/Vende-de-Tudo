@@ -22,7 +22,7 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar
     cor_borda = "#1E2B4E" if is_dark else "#D1D5DB"
     cor_texto_p = ft.Colors.WHITE if is_dark else ft.Colors.BLACK
     cor_texto_s = "#1679f2" if is_dark else "#DA7D7D"
-    cor_barra = "#11259c" if is_dark else "#DA7D7D" 
+    cor_barra = "#050f44" if is_dark else "#DA7D7D" 
     cor_fundo_tela = "#050A18" if is_dark else "#F0F4FF"
     cor_input = "#0A122A" if is_dark else "#F5F7FB"
     cor_secundaria =  "#1679f2" if is_dark else "#DA7D7D"
@@ -120,15 +120,22 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar
 
         lista_produtos_ui.controls.clear()
         for p in filtrados:
+            # Pega o nome do fornecedor vindo do banco. Se não existir, usa uma alternativa ou "Sem Fornecedor"
+            fornecedor_real = p.get("nome_fornecedor") or p.get("marca") or "Sem Fornecedor"
+
             lista_produtos_ui.controls.append(
                 card_produto(
-                    p["id_estoque"], p["nome_estoque"], p["preco_venda"], 
-                    p["marca"], formatar_data_br(p["data_validade"]), p["quantidade"],
+                    p["id_estoque"], 
+                    p["nome_estoque"], 
+                    p["preco_venda"], 
+                    fornecedor_real,  # <--- Aqui entra o fornecedor real no lugar do texto fixo
+                    formatar_data_br(p["data_validade"]), 
+                    p["quantidade"],
                     p.get("nome_categoria", "Geral")
                 )
             )
-        page.update()
-
+        page.update() 
+        
     def mudar_f(c): 
         btn_filtro.data = c
         filtrados = filtrar_estoque()

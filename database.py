@@ -213,23 +213,38 @@ def buscar_usuario_por_nome(nome_user):
 def buscar_produtos_estoque():
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
-    query = """
-        SELECT e.*, c.nome_categoria, c.marca 
-        FROM estoque e 
-        LEFT JOIN categoria c ON e.id_categoria = c.id_categoria
-    """
-    cursor.execute(query)
-    res = cursor.fetchall()
-    conn.close()
-    return res
+    try:
+        # Adicionamos o JOIN com a tabela fornecedor (f) para pegar o nome real
+        query = """
+            SELECT 
+                e.*, 
+                c.nome_categoria, 
+                f.nome_fornecedor  -- Traz o nome real do fornecedor mapeado
+            FROM estoque e 
+            LEFT JOIN categoria c ON e.id_categoria = c.id_categoria
+            LEFT JOIN fornecedor f ON e.id_fornecedor = f.id_fornecedor
+        """
+        cursor.execute(query)
+        res = cursor.fetchall()
+        return res
+    except Exception as e:
+        print(f"Erro ao buscar produtos do estoque com fornecedor: {e}")
+        return []
+    finally:
+        conn.close()
 
 def buscar_produto_por_id(id_prod):
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM estoque WHERE id_estoque = %s", (id_prod,))
-    res = cursor.fetchone()
-    conn.close()
-    return res
+    try:
+        cursor.execute("SELECT * FROM estoque WHERE id_estoque = %s", (id_prod,))
+        res = cursor.fetchone()
+        return res
+    except Exception as e:
+        print(f"Erro ao buscar produto por ID: {e}")
+        return None
+    finally:
+        conn.close()
 
 def buscar_categorias():
     conn = get_connection()

@@ -69,16 +69,34 @@ def novo_usuario(page: ft.Page, on_users):
             spacing=5,
         )
         return container, input_field
+    
+    def mascara_cpf(e):
+        # Remove tudo o que não for número e limita a 11 dígitos
+        valor = "".join(filter(str.isdigit, e.control.value))[:11]
+        
+        # Aplica o fatiamento progressivo baseado no tamanho do texto
+        if len(valor) > 9:
+            valor = f"{valor[:3]}.{valor[3:6]}.{valor[6:9]}-{valor[9:]}"
+        elif len(valor) > 6:
+            valor = f"{valor[:3]}.{valor[3:6]}.{valor[6:]}"
+        elif len(valor) > 3:
+            valor = f"{valor[:3]}.{valor[3:]}"
+            
+        e.control.value = valor
+        page.update()
 
     # --- CAMPOS ---
     nome_c, nome_in = estilo_input("NOME COMPLETO", hint="Ex: Neymar Jr", limite=100)
 
-    cpf_c, cpf_in = estilo_input(
-        "CPF (Apenas números)",
-        hint="12345678900",
+    # 1. Cria o input deixando o limite livre para os 14 caracteres da máscara (000.000.000-00)
+    cpf_c, cpf_in = estilo_input("CPF (Apenas números)",
+        hint="123.456.789-00",
         keyboard_type=ft.KeyboardType.NUMBER,
-        limite=11
+        limite=14  # <--- Aumentado para 14 para caber os pontos e o hífen!
     )
+
+    # 2. ASSOCIAÇÃO CORRETA: O evento on_change deve ir no 'cpf_in' (TextField) e não no 'cpf_c' (Container)
+    cpf_in.on_change = mascara_cpf
 
     email_c, email_in = estilo_input("E-MAIL", hint="usuario@email.com", keyboard_type=ft.KeyboardType.EMAIL, limite=100)
     senha_c, senha_in = estilo_input("SENHA", hint="******", password=True, limite=32)

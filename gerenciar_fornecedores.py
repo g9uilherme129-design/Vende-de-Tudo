@@ -11,7 +11,7 @@ def tela_fornecedores(page: ft.Page, on_home, on_vendas, on_stock, on_usuarios, 
     cor_borda = "#1E2B4E" if is_dark else "#D1D5DB"
     cor_texto_p = ft.Colors.WHITE if is_dark else ft.Colors.BLACK
     cor_texto_s = "#1679f2" if is_dark else "#DA7D7D"
-    cor_barra = "#11259c" if is_dark else "#DA7D7D" 
+    cor_barra = "#050f44" if is_dark else "#DA7D7D" 
     cor_fundo_tela = "#050A18" if is_dark else "#F0F4FF"
     cor_input = "#0A122A" if is_dark else "#F5F7FB"
     cor_secundaria =  "#1679f2" if is_dark else "#DA7D7D"

@@ -125,17 +125,39 @@ def editar_produto(page: ft.Page, on_stock, id_produto):
 
     def salvar(e):
         try:
+            # --- LIMPEZA DOS PREÇOS (CONVERTE "1.250,50" PARA "1250.50") ---
+            # Se o usuário não digitou nada, definimos como '0.0'
+            preco_compra_limpo = in_preco_compra.value.replace(".", "").replace(",", ".") if in_preco_compra.value else "0.0"
+            preco_venda_limpo = in_preco_venda.value.replace(".", "").replace(",", ".") if in_preco_venda.value else "0.0"
+            
+            # Converte explicitamente para float para garantir que o banco vai aceitar o número puro
+            preco_compra_float = float(preco_compra_limpo)
+            preco_venda_float = float(preco_venda_limpo)
+
+            # --- ENVIA OS DADOS TRATADOS PARA O BANCO ---
             atualizar_produto_db(
-                id_produto, drop_forn.value, drop_cat.value, in_nome.value,
-                formatar_para_banco(in_validade.value), in_preco_compra.value,
-                in_preco_venda.value, drop_emb.value, in_qtd.value, in_lote.value
+                id_produto, 
+                drop_forn.value, 
+                drop_cat.value, 
+                in_nome.value,
+                formatar_para_banco(in_validade.value), 
+                preco_compra_float,       # <--- Passa o valor numérico limpo
+                preco_venda_float,        # <--- Passa o valor numérico limpo
+                drop_emb.value, 
+                in_qtd.value, 
+                in_lote.value
             )
+            
             page.snack_bar = ft.SnackBar(ft.Text("Produto atualizado com sucesso!"), bgcolor=cor_destaque)
             page.snack_bar.open = True
             on_stock()
+            
         except Exception as ex:
+            # Mostra no console o erro real para facilitar o seu rastreio se algo mais quebrar
+            print(f"[ERRO AO SALVAR PRODUTO]: {ex}")
             page.snack_bar = ft.SnackBar(ft.Text(f"Erro ao salvar: {ex}"), bgcolor="red")
             page.snack_bar.open = True
+            
         page.update()
 
     # --- LAYOUT FINAL ---
