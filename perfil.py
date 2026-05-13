@@ -9,6 +9,15 @@ from database import (
 def perfil_page(page: ft.Page, on_home, on_stock, on_vendas, on_users, on_logout, on_game, on_config, on_theme_change):
     page.controls.clear()
     
+    # --- VERIFICAÇÃO DE CARGO ---
+    perfil_usuario = getattr(page, "tipo_usuario", "VENDEDOR")
+    
+    # Limpa espaços e joga para maiúsculo para evitar erros de digitação no banco
+    perfil_limpo = str(perfil_usuario).upper().strip()
+    
+    # Se for "ADMIN", e_vendedor será False. Se for qualquer outra coisa, será True.
+    e_vendedor = (perfil_limpo != "ADMIN")
+    
     # 1. Dados do Usuário
     id_usuario_logado = page.user_data.get("id_user")
     dados_banco = buscar_dados_completos_perfil(id_usuario_logado)
@@ -35,7 +44,7 @@ def perfil_page(page: ft.Page, on_home, on_stock, on_vendas, on_users, on_logout
     cor_borda = "#1E2B4E" if is_dark else "#D1D5DB"
     cor_texto_p = ft.Colors.WHITE if is_dark else ft.Colors.BLACK
     cor_texto_s = "#1679f2" if is_dark else "#DA7D7D"
-    cor_barra = "#0b1445" if is_dark else "#DA7D7D" # Ajustei o light para combinar com o rosa
+    cor_barra = "#11259c" if is_dark else "#DA7D7D" 
     cor_fundo_tela = "#050A18" if is_dark else "#F0F4FF"
     cor_sair = "#E21717" if is_dark else "#FF0000"
     cor_bar =  "#1679f2" if is_dark else "#BA7272"
@@ -100,7 +109,7 @@ def perfil_page(page: ft.Page, on_home, on_stock, on_vendas, on_users, on_logout
                 
                 ft.Container(height=30),
 
-                # --- BOTÃO NOVO: PASSATEMPO ---
+                # --- BOTÃO: PASSATEMPO ---
                 ft.Container(
                     content=ft.Row([
                         ft.Icon(ft.Icons.POLICY_OUTLINED, color="white"), 
@@ -121,25 +130,43 @@ def perfil_page(page: ft.Page, on_home, on_stock, on_vendas, on_users, on_logout
         )
     )
 
+    # --- 1. CONFIGURAÇÃO DA LISTA DE NAVEGAÇÃO DINÂMICA ---
+    destinos_navegacao = [
+        ft.NavigationBarDestination(icon=ft.Icons.HOME_OUTLINED, label="Inicial"),
+    ]
+
+    if not e_vendedor:
+        destinos_navegacao.append(ft.NavigationBarDestination(icon=ft.Icons.LIST_ALT_OUTLINED, label="Vendas"))
+        destinos_navegacao.append(ft.NavigationBarDestination(icon=ft.Icons.INVENTORY_2_OUTLINED, label="Estoque"))
+        destinos_navegacao.append(ft.NavigationBarDestination(icon=ft.Icons.GROUP_OUTLINED, label="Usuários"))
+    else:
+        destinos_navegacao.append(ft.NavigationBarDestination(icon=ft.Icons.INVENTORY_2_OUTLINED, label="Estoque"))
+
+    destinos_navegacao.append(ft.NavigationBarDestination(icon=ft.Icons.PERSON, label="Perfil"))
+
+    # Descobre dinamicamente a posição atual da aba "Perfil"
+    index_perfil = 0
+    for i, d in enumerate(destinos_navegacao):
+        if d.label == "Perfil":
+            index_perfil = i
+            break
+
+    # --- 2. FUNÇÃO TROCAR_ABA DINÂMICA POR LABELS ---
     def trocar_aba(e):
-        idx = e.control.selected_index
-        if idx == 0: on_home()
-        elif idx == 1: on_vendas()
-        elif idx == 2: on_stock()
-        elif idx == 3: on_users()
-        elif idx == 4: pass
+        aba_selecionada = destinos_navegacao[e.control.selected_index].label
+        if aba_selecionada == "Inicial": on_home()
+        elif aba_selecionada == "Vendas": on_vendas()
+        elif aba_selecionada == "Estoque": on_stock()
+        elif aba_selecionada == "Usuários": on_users()
+        elif aba_selecionada == "Perfil": pass
 
     page.navigation_bar = ft.Container(
         content=ft.NavigationBar(
-            bgcolor=cor_barra, selected_index=4, on_change=trocar_aba,
+            bgcolor=cor_barra, 
+            selected_index=index_perfil, # Define dinamicamente o index ativo
+            on_change=trocar_aba,
             indicator_color=cor_bar,
-            destinations=[
-                ft.NavigationBarDestination(icon=ft.Icons.HOME_OUTLINED, label="Inicial"),
-                ft.NavigationBarDestination(icon=ft.Icons.LIST_ALT_OUTLINED, label="Vendas"),
-                ft.NavigationBarDestination(icon=ft.Icons.INVENTORY_2_OUTLINED, label="Estoque"),
-                ft.NavigationBarDestination(icon=ft.Icons.GROUP_OUTLINED, label="Usuários"),
-                ft.NavigationBarDestination(icon=ft.Icons.PERSON, label="Perfil"),
-            ]
+            destinations=destinos_navegacao # Passa a lista customizada baseada no cargo
         ),
         margin=ft.margin.only(left=25, right=25, bottom=20),
         border_radius=40, clip_behavior=ft.ClipBehavior.ANTI_ALIAS

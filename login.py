@@ -26,8 +26,6 @@ def login_view(page: ft.Page, on_login_sucesso, on_recuperar_senha):
             mensagem.color = ft.Colors.GREEN_400
             page.update()
             
-            # Pequeno delay para feedback visual
-            time.sleep(1) 
             
             # MANDANDO OS DADOS DIRETO PARA O MAIN
             # Agora on_login_sucesso deve aceitar um argumento (ex: carregar_home(user))

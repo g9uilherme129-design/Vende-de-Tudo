@@ -20,7 +20,6 @@ from gerenciar_categoria import gerenciar_categorias
 from editar_fornecedor import editar_fornecedor
 from recuperar_senha import tela_recuperacao
 from editar_venda import editar_venda
-from perfil import perfil_page
 from termos import game_page
 from database import buscar_dados_completos_perfil, buscar_dados_home
 
@@ -37,53 +36,34 @@ def main(page: ft.Page):
 
     # --- FUNÇÃO GLOBAL PARA ALTERAR TEMA E REFRESH ---
     def alternar_tema_global():
-        from database import salvar_tema_db # Importa a função de salvar
-        
-        # 1. Inverte o modo
+        from database import salvar_tema_db
         novo_tema_dark = page.theme_mode != ft.ThemeMode.DARK
         page.theme_mode = ft.ThemeMode.DARK if novo_tema_dark else ft.ThemeMode.LIGHT
         
-        # 2. Salva a preferência no Banco de Dados
-        # Pegamos o ID do usuário logado que você armazenou no page.user_data
         id_usuario = page.user_data.get("id_user") if page.user_data else None
-        
         if id_usuario:
             salvar_tema_db(id_usuario, novo_tema_dark)
             print(f"Tema {page.theme_mode} salvo para o usuário {id_usuario}")
 
-        # 3. Aplica as cores de fundo da página
         aplicar_tema_visual(novo_tema_dark)
-        
-        # 4. REFRESH IMEDIATO: reconstrói a tela de perfil para aplicar as novas cores
         carregar_perfil()
 
     def aplicar_tema_visual(eh_dark):
         if eh_dark:
             page.theme_mode = ft.ThemeMode.DARK
             page.bgcolor = "#050A18"
-            # Guardamos as cores atuais no page.session para outras telas acessarem
-            page.session.set("cor_card", "#0b1445")
-            page.session.set("cor_texto", ft.Colors.WHITE)
-            page.session.set("cor_accent", "#1679f2")
+            # Criando atributos dinâmicos direto no page para suas outras telas lerem:
+            page.cor_card = "#0b1445"
+            page.cor_texto = ft.Colors.WHITE
+            page.cor_accent = "#1679f2"
         else:
             page.theme_mode = ft.ThemeMode.LIGHT
             page.bgcolor = "#F0F4FF"
-            page.session.set("cor_card", "#D1D5DB")
-            page.session.set("cor_texto", "#DA7D7D")
-            page.session.set("cor_accent", "#D0D1D3")
+            # Criando atributos dinâmicos direto no page para suas outras telas lerem:
+            page.cor_card = "#D1D5DB"
+            page.cor_texto = "#DA7D7D"
+            page.cor_accent = "#D0D1D3"
         
-        page.update()
-    
-
-    # --- FUNÇÃO GLOBAL PARA ALTERAR TEMA ---
-    def aplicar_tema_visual(eh_dark):
-        """Aplica o tema visualmente na página"""
-        if eh_dark:
-            page.theme_mode = ft.ThemeMode.DARK
-            page.bgcolor = "#050A18"  # Fundo escuro
-        else:
-            page.theme_mode = ft.ThemeMode.LIGHT
-            page.bgcolor = "#F0F4FF"  # Fundo claro
         page.update()
 
     # ---------------------------
@@ -91,26 +71,33 @@ def main(page: ft.Page):
     # ---------------------------
 
     def carregar_home(dados_usuario=None):
+        # --- 1. PRESERVA OS DADOS E CONFIGURA O ID DO USUÁRIO ---
         if dados_usuario:
             page.user_data = dados_usuario
             
-            # Pegamos o ID (garantindo que pegue a chave correta id_user)
-            id_atual = dados_usuario.get('id_user')
+            # Garante que vai salvar como "ADMIN" ou "VENDEDOR" limpo e em maiúsculo
+            cargo_bruto = dados_usuario.get('perfil') or 'VENDEDOR'
+            page.tipo_usuario = str(cargo_bruto).upper().strip()
             
-            # Busca no banco se o usuário prefere Dark (1) ou Light (0)
+            # Garante o ID na propriedade certa que a Home precisa ler
+            page.id_user = dados_usuario.get('id_user') or dados_usuario.get('id_usuario')
+            
+            # --- 2. SISTEMA DE TEMA HISTÓRICO ---
+            id_atual = page.id_user
             try:
-                tema_db = buscar_tema_db(id_atual) # Função que você já tem no database.py
-                # Se for 1, aplica dark. Se for 0 ou None, aplica light.
+                tema_db = buscar_tema_db(id_atual)
                 aplicar_tema_visual(eh_dark=(tema_db == 1))
             except Exception as e:
                 print(f"Erro ao carregar tema inicial: {e}")
-                aplicar_tema_visual(eh_dark=True) # Padrão em caso de erro
+                aplicar_tema_visual(eh_dark=True)
 
         page.controls.clear()
+        
+        # --- 3. CHAMADA DA HOME COM OS CALLBACKS ORIGINAIS CORRETOS ---
         home_page(
             page,
-            on_logout=fazer_logout,
-            on_stock=carregar_stock,
+            on_logout=fazer_logout,           # Nome corrigido para o seu padrão antigo
+            on_stock=carregar_stock,           # Nome corrigido para o seu padrão antigo
             on_users=carregar_usuarios,
             on_perfil=carregar_perfil,
             on_venda=carregar_registrar_venda,
@@ -118,8 +105,7 @@ def main(page: ft.Page):
         )
         page.update()
 
-
-    def carregar_fornecedores(): # Esta é a linha 77 aproximadamente
+    def carregar_fornecedores():
         tela_fornecedores(
             page,
             on_home=carregar_home,
@@ -135,11 +121,7 @@ def main(page: ft.Page):
         novo_fornecedor(page, on_voltar=carregar_fornecedores)
 
     def carregar_editar_fornecedor(id_forn):
-        editar_fornecedor(
-            page, 
-            on_back=carregar_fornecedores,
-            id_fornecedor=id_forn
-        )
+        editar_fornecedor(page, on_back=carregar_fornecedores, id_fornecedor=id_forn)
 
     def carregar_registrar_venda():
         tela_registrar_venda(page, on_voltar=carregar_home)
@@ -159,11 +141,7 @@ def main(page: ft.Page):
         )
 
     def carregar_categoria():
-        gerenciar_categorias(
-            page,
-            on_back=carregar_stock
-        )
-
+        gerenciar_categorias(page, on_back=carregar_stock)
 
     def carregar_vendas():
         gerenciar_vendas(
@@ -178,11 +156,7 @@ def main(page: ft.Page):
         )
 
     def carregar_editar_venda(id_venda):
-        editar_venda(
-            page, 
-            on_back=carregar_vendas, # Função que volta para o histórico
-            id_venda=id_venda
-        )
+        editar_venda(page, on_back=carregar_vendas, id_venda=id_venda)
 
     def carregar_usuarios():
         usuarios(
@@ -208,7 +182,7 @@ def main(page: ft.Page):
             on_vendas=carregar_vendas,
             on_users=carregar_usuarios,
             on_logout=fazer_logout,
-            on_game=carregar_jogo,          # Conectado à função debaixo
+            on_game=carregar_jogo,
             on_theme_change=alternar_tema_global,
             on_config=carregar_config
         )
@@ -216,24 +190,12 @@ def main(page: ft.Page):
     def carregar_jogo():
         game_page(page, on_back=carregar_perfil)
 
-    def aplicar_tema_visual(eh_dark):
-        if eh_dark:
-            page.theme_mode = ft.ThemeMode.DARK
-            page.bgcolor = "#000000"
-        else:
-            page.theme_mode = ft.ThemeMode.LIGHT
-            page.bgcolor = "#F0F4FF"
-        page.update()
-
     def carregar_config():
-        configuracoes_page(
-            page,
-            on_back=carregar_perfil,
-            user_data=page.user_data
-        )
+        configuracoes_page(page, on_back=carregar_perfil, user_data=page.user_data)
 
     def fazer_logout():
         page.user_data = None
+        page.tipo_usuario = None  # Reseta o cargo no logout
         page.navigation_bar = None
         page.appbar = None
         carregar_login()
@@ -247,7 +209,6 @@ def main(page: ft.Page):
     def carregar_novo_usuario():
         novo_usuario(page, on_users=carregar_usuarios)
         
-
     def tratar_clique_status(usuario_selecionado, carregar_tela_desativar, carregar_tela_reativar):
         if usuario_selecionado.get("status_user") == 1:
             carregar_tela_desativar(usuario_selecionado)
@@ -257,30 +218,15 @@ def main(page: ft.Page):
     def carregar_editar_usuario(id_user):
         editar_usuario(page, id_usuario=id_user, on_users=carregar_usuarios)
 
-    # --- AJUSTE NA FUNÇÃO DE DESATIVAR/REATIVAR ---
     def carregar_desativar_usuario(dados_do_usuario_alvo):
-        # Essa função agora é inteligente:
-        # No 'usuarios.py', se o cara estiver INATIVO, ela abre o modal de reativação direto.
-        # Se estiver ATIVO, ela abre a tela de desativar normal.
-        tela_desativar_usuario(
-            page=page, 
-            user_data=dados_do_usuario_alvo, 
-            on_voltar=carregar_usuarios
-        )
+        tela_desativar_usuario(page=page, user_data=dados_do_usuario_alvo, on_voltar=carregar_usuarios)
 
     def carregar_reativar_user(dados_do_usuario):
-        reativar_user(
-            page,
-            user_data=dados_do_usuario,
-            on_gerenciar_usuario=carregar_usuarios
-        )
+        reativar_user(page, user_data=dados_do_usuario, on_gerenciar_usuario=carregar_usuarios)
 
     def carregar_recuperar_senha():
-        from recuperar_senha import tela_recuperacao # Import local para evitar erro de circularidade
-        tela_recuperacao(
-            page=page, 
-            on_login=carregar_login # Passa a volta para o login como callback
-        )
+        from recuperar_senha import tela_recuperacao
+        tela_recuperacao(page=page, on_login=carregar_login)
 
     def carregar_login():
         page.appbar = None
@@ -289,7 +235,7 @@ def main(page: ft.Page):
         aplicar_tema_visual(eh_dark=False)
         page.add(login_view(page, on_login_sucesso=carregar_home, on_recuperar_senha=carregar_recuperar_senha))
         page.update()
-
+        
     carregar_login()
 
 ft.app(target=main)

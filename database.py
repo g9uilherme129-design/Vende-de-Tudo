@@ -561,6 +561,79 @@ def buscar_dados_home():
     finally:
         conn.close()
 
+def buscar_dados_home_vendedor(id_user):
+    # --- RASTREADOR DE BUG (Olhe o terminal do VS Code quando abrir a tela!) ---
+    print("\n" + "="*50)
+    print(f"[RASTREIO] O ID QUE CHEGOU NA HOME FOI: {id_user} (Tipo: {type(id_user)})")
+    print("="*50 + "\n")
+
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        # Se o ID veio nulo ou vazio, não adianta nem ir ao banco
+        if not id_user:
+            print("[AVISO] ID veio vazio, pulando busca e retornando zero.")
+            return {"receita_vendedor": 0.0, "ranking": [], "produtos_scrum": [], "vendedores": [], "vendas_semanais": []}
+
+        # Converte para string limpa, exatamente como está no banco
+        id_user_str = str(id_user).strip()
+        
+        # 1. MINHAS VENDAS REALIZADAS
+        query_receita = """
+            SELECT SUM(e.preco_venda * v.quantidade) as total 
+            FROM venda v 
+            JOIN estoque e ON v.id_estoque = e.id_estoque
+            WHERE v.id_user = %s
+        """
+        cursor.execute(query_receita, (id_user_str,))
+        res_receita = cursor.fetchone()
+        receita_vendedor = float(res_receita['total']) if res_receita and res_receita['total'] else 0.0
+
+        # 2. RANKING DE PRODUTOS
+        query_ranking = """
+            SELECT e.nome_estoque as nome_user, 
+                   SUM(v.quantidade) as qtd_venda, 
+                   CAST(SUM(e.preco_venda * v.quantidade) AS DOUBLE) as valor_total
+            FROM venda v
+            JOIN estoque e ON v.id_estoque = e.id_estoque
+            GROUP BY e.nome_estoque
+            ORDER BY valor_total DESC
+            LIMIT 5
+        """
+        cursor.execute(query_ranking)
+        ranking = []
+        for row in cursor.fetchall():
+            row['valor_total'] = float(row['valor_total']) if row['valor_total'] else 0.0
+            row['qtd_venda'] = int(row['qtd_venda'])
+            ranking.append(row)
+
+        # 3. PRODUTOS SCRUM
+        query_scrum = """
+            SELECT nome_estoque as nome, preco_venda as preco, quantidade
+            FROM estoque
+            WHERE quantidade >= 0
+            ORDER BY nome_estoque ASC
+        """
+        cursor.execute(query_scrum)
+        produtos_scrum = []
+        for row in cursor.fetchall():
+            row['preco'] = float(row['preco']) if row['preco'] else 0.0
+            row['quantidade'] = int(row['quantidade'])
+            produtos_scrum.append(row)
+
+        return {
+            "receita_vendedor": receita_vendedor, 
+            "ranking": ranking, 
+            "produtos_scrum": produtos_scrum,
+            "vendedores": [],
+            "vendas_semanais": []
+        }
+    except Exception as e:
+        print(f"[ERRO NO BANCO DA HOME]: {e}")
+        return {"receita_vendedor": 0.0, "ranking": [], "produtos_scrum": [], "vendedores": [], "vendas_semanais": []}
+    finally:
+        conn.close()
+
 
 def buscar_usuario_por_id(id_user):
     conn = get_connection()

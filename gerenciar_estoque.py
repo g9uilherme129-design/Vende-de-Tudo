@@ -7,13 +7,22 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar
     page.controls.clear()
     page.padding = 0 # Padding zero para o container de fundo preencher tudo
     
+    # --- VERIFICAÇÃO DE CARGO ---
+    perfil_usuario = getattr(page, "tipo_usuario", "VENDEDOR")
+    
+    # Limpa espaços e joga para maiúsculo para evitar erros de digitação no banco
+    perfil_limpo = str(perfil_usuario).upper().strip()
+    
+    # Se for "ADMIN", e_vendedor será False. Se for qualquer outra coisa, será True.
+    e_vendedor = (perfil_limpo != "ADMIN")
+
     # --- PADRONIZAÇÃO DE CORES (IDÊNTICO ÀS OUTRAS TELAS) ---
     is_dark = page.theme_mode == ft.ThemeMode.DARK
     cor_fundo_card = "#0b1445" if is_dark else "#FFFFFF"
     cor_borda = "#1E2B4E" if is_dark else "#D1D5DB"
     cor_texto_p = ft.Colors.WHITE if is_dark else ft.Colors.BLACK
     cor_texto_s = "#1679f2" if is_dark else "#DA7D7D"
-    cor_barra = "#0b1445" if is_dark else "#DA7D7D" 
+    cor_barra = "#11259c" if is_dark else "#DA7D7D" 
     cor_fundo_tela = "#050A18" if is_dark else "#F0F4FF"
     cor_input = "#0A122A" if is_dark else "#F5F7FB"
     cor_secundaria =  "#1679f2" if is_dark else "#DA7D7D"
@@ -42,7 +51,6 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar
 
     # --- CARD PRODUTO ---
     def card_produto(id_prod, nome, preco, marca, validade, quantidade, categoria_nome="Geral"):
-        # Status de estoque: Verde se > 10, Laranja se > 0, Vermelho se 0
         if quantidade > 15: cor_status = "#00b40d"
         elif quantidade > 0: cor_status = "#ff4545"
         else: cor_status = "#ff4444"
@@ -76,14 +84,19 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar
                     ),
                 ]),
                 ft.Divider(height=1, color=ft.Colors.WHITE10),
-                ft.Row(alignment="end", controls=[
-                    ft.TextButton(
-                        "Editar Produto", 
-                        icon=ft.Icons.EDIT_OUTLINED, 
-                        icon_color=cor_texto_s,
-                        on_click=lambda _: on_editar_produto(id_prod)
-                    ),
-                ]),
+                ft.Row(
+                    alignment="end", 
+                    controls=[
+                        ft.TextButton(
+                            "Editar Produto", 
+                            icon=ft.Icons.EDIT_OUTLINED, 
+                            icon_color=cor_texto_s,
+                            on_click=lambda _: on_editar_produto(id_prod)
+                        ),
+                    ],
+                    # MODIFICAÇÃO: Se for vendedor, a linha de ações do card some (não edita)
+                    visible=not e_vendedor 
+                ),
             ])
         )
 
@@ -99,7 +112,6 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar
             or texto in p.get("nome_categoria", "").lower()
         ]
 
-        # Ordenação
         if criterio == "caro": filtrados.sort(key=lambda x: x["preco_venda"], reverse=True)
         elif criterio == "barato": filtrados.sort(key=lambda x: x["preco_venda"])
         elif criterio == "estoque_baixo": filtrados.sort(key=lambda x: x["quantidade"])
@@ -119,7 +131,7 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar
 
     def mudar_f(c): 
         btn_filtro.data = c
-        filtrar_estoque()
+        filtrados = filtrar_estoque()
 
     # --- COMPONENTES ---
     menu_items = [
@@ -150,29 +162,74 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar
         actions=[ft.IconButton(ft.Icons.EXIT_TO_APP, icon_color="white", on_click=lambda _: on_logout())]
     )
 
+    # --- 1. CRIAÇÃO DA LISTA DE NAVEGAÇÃO DINÂMICA ---
+    destinos_navegacao = [
+        ft.NavigationBarDestination(icon=ft.Icons.HOME_OUTLINED, label="Inicial"),
+    ]
+
+    if not e_vendedor:
+        destinos_navegacao.append(ft.NavigationBarDestination(icon=ft.Icons.LIST_ALT_OUTLINED, label="Vendas"))
+        destinos_navegacao.append(ft.NavigationBarDestination(icon=ft.Icons.INVENTORY_2, label="Estoque"))
+        destinos_navegacao.append(ft.NavigationBarDestination(icon=ft.Icons.GROUP_OUTLINED, label="Usuários"))
+    else:
+        destinos_navegacao.append(ft.NavigationBarDestination(icon=ft.Icons.INVENTORY_2, label="Estoque"))
+
+    destinos_navegacao.append(ft.NavigationBarDestination(icon=ft.Icons.PERSON_OUTLINE, label="Perfil"))
+
+    # Descobre a posição real da aba "Estoque" para manter selecionada corretamente
+    index_estoque = 0
+    for i, d in enumerate(destinos_navegacao):
+        if d.label == "Estoque":
+            index_estoque = i
+            break
+
+    # --- 2. FUNÇÃO TROCAR_ABA DINÂMICA ---
     def trocar_aba(e):
-        idx = e.control.selected_index
-        if idx == 0: on_home()
-        elif idx == 1: on_vendas()
-        elif idx == 2: pass 
-        elif idx == 3: on_users()
-        elif idx == 4: on_perfil()
+        aba_selecionada = destinos_navegacao[e.control.selected_index].label
+        if aba_selecionada == "Inicial": on_home()
+        elif aba_selecionada == "Vendas": on_vendas()
+        elif aba_selecionada == "Estoque": pass
+        elif aba_selecionada == "Usuários": on_users()
+        elif aba_selecionada == "Perfil": on_perfil()
 
     page.navigation_bar = ft.Container(
         content=ft.NavigationBar(
-            bgcolor=cor_barra, selected_index=2, on_change=trocar_aba,
+            bgcolor=cor_barra, 
+            selected_index=index_estoque, # Modificado para usar o index real calculado dinamicamente
+            on_change=trocar_aba,
             indicator_color=cor_bar,
-            destinations=[
-                ft.NavigationBarDestination(icon=ft.Icons.HOME_OUTLINED, label="Inicial"),
-                ft.NavigationBarDestination(icon=ft.Icons.LIST_ALT_OUTLINED, label="Vendas"),
-                ft.NavigationBarDestination(icon=ft.Icons.INVENTORY_2, label="Estoque"),
-                ft.NavigationBarDestination(icon=ft.Icons.GROUP_OUTLINED, label="Usuários"),
-                ft.NavigationBarDestination(icon=ft.Icons.PERSON_OUTLINE, label="Perfil"),
-            ]
+            destinations=destinos_navegacao # Usa a lista dinâmica filtrada
         ),
         margin=ft.margin.only(left=25, right=25, bottom=20),
         border_radius=40, clip_behavior=ft.ClipBehavior.ANTI_ALIAS
     )
+
+    # --- 3. CONTAINER DE BOTÕES DE AÇÃO FILTRADO ---
+    botoes_acoes = ft.Row(spacing=5)
+    
+    # Só insere os botões de gerenciamento se NÃO for vendedor
+    if not e_vendedor:
+        botoes_acoes.controls.extend([
+            ft.IconButton(
+                icon=ft.Icons.CATEGORY_ROUNDED,
+                icon_color=cor_texto_s,
+                tooltip="Categorias",
+                on_click=lambda _: on_categorias()
+            ),
+            ft.IconButton(
+                icon=ft.Icons.BUSINESS,
+                icon_color=cor_texto_s,
+                tooltip="Fornecedores",
+                on_click=lambda _: on_fornecedores()
+            ),
+            ft.FloatingActionButton(
+                icon=ft.Icons.ADD, 
+                bgcolor=cor_texto_s, 
+                tooltip="Novo Produto",
+                mini=True, 
+                on_click=lambda _: on_adicionar_produto()
+            ),
+        ])
 
     page.add(
         ft.Container(
@@ -180,27 +237,7 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar
             content=ft.Column(expand=True, spacing=15, controls=[
                 ft.Row([
                     ft.Text("Meus Produtos", size=24, weight="bold", color=cor_texto_p),
-                    ft.Row([
-                        ft.IconButton(
-                            icon=ft.Icons.CATEGORY_ROUNDED,
-                            icon_color=cor_texto_s,
-                            tooltip="Categorias",
-                            on_click=lambda _: on_categorias()
-                        ),
-                        ft.IconButton(
-                            icon=ft.Icons.BUSINESS,
-                            icon_color=cor_texto_s,
-                            tooltip="Fornecedores",
-                            on_click=lambda _: on_fornecedores()
-                        ),
-                        ft.FloatingActionButton(
-                            icon=ft.Icons.ADD, 
-                            bgcolor=cor_texto_s, 
-                            tooltip="Novo Produto",
-                            mini=True, 
-                            on_click=lambda _: on_adicionar_produto()
-                        ),
-                    ], spacing=5)
+                    botoes_acoes # Passa o container contendo os botões (ou vazio se for vendedor)
                 ], alignment="spaceBetween"),
                 ft.Row([search_field, btn_filtro]),
                 lista_produtos_ui

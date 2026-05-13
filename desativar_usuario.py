@@ -107,8 +107,6 @@ def tela_desativar_usuario(page: ft.Page, user_data, on_voltar):
             page.snack_bar = ft.SnackBar(ft.Text(f"Usuário desativado com sucesso!"), bgcolor="green")
             page.snack_bar.open = True
             page.update()
-            import time
-            time.sleep(1)
             on_voltar()
         else:
             page.snack_bar = ft.SnackBar(ft.Text("Erro ao processar desativação."), bgcolor="red")

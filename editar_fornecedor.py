@@ -114,7 +114,6 @@ def editar_fornecedor(page: ft.Page, on_back, id_fornecedor):
             page.snack_bar.open = True
             page.update()
             
-            time.sleep(0.8)
             on_back() 
 
         except Exception as ex:
