@@ -1,0 +1,153 @@
+CREATE DATABASE sistema_vendas;
+USE sistema_vendas;
+
+-- tabela usuário
+CREATE TABLE IF NOT EXISTS usuario(
+	id_user VARCHAR(7) PRIMARY KEY ,
+	nome_user VARCHAR(100) NOT NULL,
+    cpf VARCHAR(11) NOT NULL UNIQUE,
+	email_user VARCHAR(100) NOT NULL UNIQUE,
+	senha_user VARCHAR(66) NOT NULL,
+	status_user BOOLEAN DEFAULT TRUE,
+	perfil VARCHAR(9) NOT NULL,
+    salario DECIMAL(10,2) NOT NULL,
+    motivo_desat VARCHAR(30) NULL,
+    data_desat DATETIME NULL,
+    admin_desat VARCHAR(7) NULL,
+    tema_dark TINYINT(1) DEFAULT 1,
+    pontuacao_maxima INT DEFAULT 0
+);
+
+ -- tabela categoria
+ CREATE TABLE IF NOT EXISTS categoria(
+	id_categoria VARCHAR(7) PRIMARY KEY ,
+    nome_categoria VARCHAR(150) NOT NULL UNIQUE,
+    tipo_categoria VARCHAR(20) NOT NULL,
+    marca VARCHAR(30) NOT NULL,
+    status_categoria BOOLEAN DEFAULT TRUE
+ );
+
+-- tabela fornecedor
+CREATE TABLE IF NOT EXISTS fornecedor(
+	id_fornecedor VARCHAR(7) PRIMARY KEY,
+    nome_fornecedor VARCHAR(150) NOT NULL UNIQUE,
+    CNPJ VARCHAR(14) NOT NULL UNIQUE,
+    telefone VARCHAR(12) NOT NULL,
+    email_forn varchar(100) NOT NULL UNIQUE,
+    endereco_logradouro VARCHAR(150) NOT NULL,
+    endereco_numero VARCHAR(20) NOT NULL,
+    bairro VARCHAR(100) NOT NULL,
+    cidade VARCHAR(100) NOT NULL,
+    estado VARCHAR(100) NOT NULL,
+    cep VARCHAR(10) NOT NULL,
+    status_fornecedor VARCHAR(10) DEFAULT 'Ativo'
+);
+
+ALTER TABLE fornecedor MODIFY COLUMN status_fornecedor VARCHAR(10) DEFAULT 'Ativo';
+
+-- tabela estoque
+CREATE TABLE IF NOT EXISTS estoque(
+	id_estoque VARCHAR(7) PRIMARY KEY,
+    id_fornecedor VARCHAR(7) NOT NULL,
+    id_categoria VARCHAR(7) NOT NULL,
+    nome_estoque VARCHAR(100) NOT NULL,
+    codigo_barras varchar(10) NOT NULL UNIQUE,
+    data_validade DATE NOT NULL,
+    data_entrada DATE NOT NULL,
+    preco_unitario DECIMAL(10,2) NOT NULL,
+    preco_venda DECIMAL(10,2) NOT NULL,
+    embalagem VARCHAR(30) NOT NULL,
+    quantidade int UNSIGNED DEFAULT 0,
+    lote VARCHAR(9) NOT NULL,
+    
+	FOREIGN KEY (id_fornecedor) REFERENCES fornecedor(id_fornecedor),
+	FOREIGN KEY (id_categoria) REFERENCES categoria(id_categoria)
+);
+
+-- tabela vendas
+CREATE TABLE IF NOT EXISTS venda(
+	id_venda VARCHAR(7) PRIMARY KEY,
+    id_user VARCHAR(7) NOT NULL,
+    id_estoque VARCHAR(7) NOT NULL,
+    metodo_pagamento VARCHAR(20) NOT NULL,
+    data_venda DATETIME NOT NULL,
+    quantidade INT NOT NULL,
+    qtd_venda INT NOT NULL,
+    
+    FOREIGN KEY (id_user) REFERENCES usuario(id_user),
+    FOREIGN KEY (id_estoque) REFERENCES estoque(id_estoque)
+);
+
+
+-- Inserção obrigatoria de Admin
+INSERT INTO usuario (
+    id_user, 
+    nome_user, 
+    cpf, 
+    email_user, 
+    senha_user, 
+    status_user, 
+    perfil, 
+    salario, 
+    motivo_desat, 
+
+    admin_desat, 
+    tema_dark
+) VALUES (
+    'U10001', 
+    'Admin', 
+    '00000000000', 
+    'admin@admin.com', 
+    'admin123', 
+    1, 
+    'ADMIN', 
+    0000.00, 
+    '', 
+    '', 
+    0
+);
+
+SET FOREIGN_KEY_CHECKS = 0;
+
+USE sistema_vendas;
+
+
+-- Inserções opcionais para teste
+-- 1. USUÁRIOS (Vendedores e Admins)
+INSERT INTO usuario (id_user, nome_user, cpf, email_user, senha_user, status_user, perfil, salario, tema_dark) VALUES 
+('U100008', 'Ana Souza', '23456789012', 'ana@vendas.com', '123', 1, 'Vendedor', 1800.00, 1),
+('U100003', 'Carlos Lima', '34567890123', 'carlos@vendas.com', '123', 1, 'Vendedor', 1800.00, 0),
+('U100004', 'Mariana Oliveira', '45678901234', 'mari@admin.com', '123', 1, 'Admin', 3500.00, 1);
+
+-- 2. CATEGORIAS
+INSERT INTO categoria (id_categoria, nome_categoria, tipo_categoria, marca, status_categoria) VALUES 
+('C001', 'Bebidas', 'Líquido', 'Coca-Cola', 1),
+('C002', 'Limpeza', 'Produto Químico', 'Veja', 1),
+('C003', 'Alimentos', 'Perecível', 'Nestlé', 1),
+('C004', 'Higiene', 'Uso Pessoal', 'Colgate', 1),
+('C005', 'Snacks', 'Sólido', 'Elma Chips', 1);
+
+-- 3. FORNECEDORES
+INSERT INTO fornecedor (id_fornecedor, nome_fornecedor, CNPJ, telefone, email_forn, endereco_logradouro, endereco_numero, bairro, cidade, estado, cep, status_fornecedor) VALUES 
+('F001', 'Atacadão Brasil', '11222333000199', '31988887777', 'vendas@atacadao.com', 'Av. Central', '1000', 'Centro', 'Curvelo', 'MG', '35790000', 'Ativo'),
+('F002', 'Distribuidora Norte', '44555666000188', '31977776666', 'contato@distnorte.com', 'Rua das Flores', '50', 'Industrial', 'Sete Lagoas', 'MG', '35700000', 'Ativo');
+
+-- 4. ESTOQUE (PRODUTOS)
+-- Preenchi com vários itens para você testar o scroll da tela que criamos
+INSERT INTO estoque (id_estoque, id_fornecedor, id_categoria, nome_estoque, codigo_barras, data_validade, data_entrada, preco_unitario, preco_venda, embalagem, quantidade, lote) VALUES 
+('E001', 'F001', 'C001', 'Coca-Cola 2L', '7891234561', '2027-12-31', CURDATE(), 4.50, 9.90, 'Garrafa PET', 50, 'L-001'),
+('E002', 'F001', 'C001', 'Fanta Laranja 2L', '7891234562', '2027-10-15', CURDATE(), 4.00, 8.50, 'Garrafa PET', 30, 'L-001'),
+('E003', 'F001', 'C005', 'Batata Lay\'s Clássica', '7891234563', '2026-08-20', CURDATE(), 3.50, 7.00, 'Pacote 80g', 100, 'L-042'),
+('E004', 'F002', 'C003', 'Leite Condensado Moça', '7891234564', '2026-11-05', CURDATE(), 3.80, 6.50, 'Lata', 80, 'L-099'),
+('E005', 'F002', 'C004', 'Creme Dental Colgate', '7891234565', '2028-01-01', CURDATE(), 1.50, 4.20, 'Caixa', 200, 'L-101'),
+('E006', 'F001', 'C002', 'Desinfetante Veja 500ml', '7891234566', '2028-05-10', CURDATE(), 2.80, 5.90, 'Frasco', 45, 'L-202'),
+('E007', 'F001', 'C005', 'Doritos 140g', '7891234567', '2026-09-12', CURDATE(), 5.50, 12.00, 'Pacote', 60, 'L-043'),
+('E008', 'F001', 'C001', 'Cerveja Skol Lata', '7891234568', '2026-12-25', CURDATE(), 2.20, 4.50, 'Lata 350ml', 120, 'L-555'),
+('E009', 'F002', 'C003', 'Chocolate KitKat', '7891234569', '2027-03-30', CURDATE(), 1.80, 3.99, 'Unidade', 150, 'L-777'),
+('E010', 'F002', 'C002', 'Sabão em Pó Omo 1kg', '7891234570', '2029-01-01', CURDATE(), 8.50, 15.90, 'Caixa', 25, 'L-888');
+
+-- 5. VENDAS (Exemplos de histórico)
+INSERT INTO venda (id_venda, id_user, id_estoque, metodo_pagamento, data_venda, quantidade, qtd_venda) VALUES 
+('V00001', 'U100001', 'E001', 'Pix', NOW(), 2, 2),
+('V00002', 'U100002', 'E003', 'Dinheiro', NOW(), 5, 5),
+('V00003', 'U100001', 'E007', 'Crédito', NOW(), 1, 1);
