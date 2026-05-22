@@ -102,40 +102,43 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar
 
     # --- LÓGICA FILTRAGEM ---
     def filtrar_estoque(e=None):
-        texto = search_field.value.lower() if search_field.value else ""
+        texto = search_field.value.lower().strip() if search_field.value else ""
         criterio = btn_filtro.data
-        
+
+        # Usa .get e str(...) para evitar KeyError ou AttributeError quando campos faltarem
         filtrados = [
-            p for p in produtos_db 
-            if texto in p["nome_estoque"].lower() 
-            or texto in p["marca"].lower()
-            or texto in p.get("nome_categoria", "").lower()
+            p for p in produtos_db
+            if texto in str(p.get("nome_estoque", "")).lower()
+            or texto in str(p.get("marca", "")).lower()
+            or texto in str(p.get("nome_categoria", "")).lower()
         ]
 
-        if criterio == "caro": filtrados.sort(key=lambda x: x["preco_venda"], reverse=True)
-        elif criterio == "barato": filtrados.sort(key=lambda x: x["preco_venda"])
-        elif criterio == "estoque_baixo": filtrados.sort(key=lambda x: x["quantidade"])
+        if criterio == "caro":
+            filtrados.sort(key=lambda x: x.get("preco_venda", 0), reverse=True)
+        elif criterio == "barato":
+            filtrados.sort(key=lambda x: x.get("preco_venda", 0))
+        elif criterio == "estoque_baixo":
+            filtrados.sort(key=lambda x: x.get("quantidade", 0))
         elif criterio != "todos":
             filtrados = [p for p in filtrados if p.get("nome_categoria") == criterio]
 
         lista_produtos_ui.controls.clear()
         for p in filtrados:
-            # Pega o nome do fornecedor vindo do banco. Se não existir, usa uma alternativa ou "Sem Fornecedor"
             fornecedor_real = p.get("nome_fornecedor") or p.get("marca") or "Sem Fornecedor"
 
             lista_produtos_ui.controls.append(
                 card_produto(
-                    p["id_estoque"], 
-                    p["nome_estoque"], 
-                    p["preco_venda"], 
-                    fornecedor_real,  # <--- Aqui entra o fornecedor real no lugar do texto fixo
-                    formatar_data_br(p["data_validade"]), 
-                    p["quantidade"],
+                    p.get("id_estoque"),
+                    p.get("nome_estoque", "Produto sem nome"),
+                    p.get("preco_venda", 0.0),
+                    fornecedor_real,
+                    formatar_data_br(p.get("data_validade", "")),
+                    p.get("quantidade", 0),
                     p.get("nome_categoria", "Geral")
                 )
             )
-        page.update() 
-        
+        page.update()
+        return filtrados
     def mudar_f(c): 
         btn_filtro.data = c
         filtrados = filtrar_estoque()
