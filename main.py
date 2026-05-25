@@ -93,6 +93,7 @@ def main(page: ft.Page):
                 print(f"Erro ao carregar tema inicial: {e}")
                 aplicar_tema_visual(eh_dark=True)
 
+        page.on_resize = None
         page.controls.clear()
         
         # --- 3. CHAMADA DA HOME COM OS CALLBACKS ORIGINAIS CORRETOS ---

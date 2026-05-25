@@ -51,6 +51,14 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar
     lista_produtos_ui = ft.Column(scroll=ft.ScrollMode.AUTO, expand=True, spacing=15)
 
     # --- CARD PRODUTO ---
+    def formatar_preco_brasileiro(valor):
+        try:
+            valor_float = float(valor)
+        except Exception:
+            return str(valor)
+        preco_formatado = f"{valor_float:,.2f}".replace(',', 'v').replace('.', ',').replace('v', '.')
+        return f"R$ {preco_formatado}"
+
     def card_produto(id_prod, nome, preco, marca, validade, quantidade, categoria_nome="Geral"):
         if quantidade > 15: cor_status = "#00b40d"
         elif quantidade > 0: cor_status = "#ff4545"
@@ -68,7 +76,7 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar
                         ft.Text(nome, size=18, weight="bold", color=cor_texto_p),
                     ], spacing=2, expand=True),
                     ft.Column([
-                        ft.Text(f"R$ {preco:.2f}", weight="bold", size=18, color=cort_3),
+                        ft.Text(formatar_preco_brasileiro(preco), weight="bold", size=18, color=cort_3),
                         ft.Text(marca, size=11, color=cor_secundaria),
                     ], horizontal_alignment="end"),
                 ]),

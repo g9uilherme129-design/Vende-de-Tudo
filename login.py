@@ -3,10 +3,10 @@ from database import validar_login
 import time
 
 def login_view(page: ft.Page, on_login_sucesso, on_recuperar_senha):
-    # Em vez de fixar #050505, usamos a lógica de tema se preferir, 
-    # mas como é a tela de login, o escuro costuma ser o padrão de design.
+    # Configuração inicial da página
     page.bgcolor = "#050505" 
     page.controls.clear()
+    page.padding = 0  # Garante preenchimento total em telas menores
     
     mensagem = ft.Text(value="", color=ft.Colors.RED_400, size=12, weight="bold")
 
@@ -17,64 +17,29 @@ def login_view(page: ft.Page, on_login_sucesso, on_recuperar_senha):
             page.update()
             return
 
-        # Chama a função do banco de dados
         sucesso, resultado = validar_login(usuario.value, senha.value)
 
         if sucesso:
-            # SINALIZANDO SUCESSO NA UI
             mensagem.value = f"Bem-vindo, {resultado.get('nome_user', 'Usuário')}!"
             mensagem.color = ft.Colors.GREEN_400
             page.update()
-            
-            
-            # MANDANDO OS DADOS DIRETO PARA O MAIN
-            # Agora on_login_sucesso deve aceitar um argumento (ex: carregar_home(user))
             on_login_sucesso(resultado)
         else:
             mensagem.value = resultado 
             mensagem.color = ft.Colors.RED_400
             page.update()
 
-    # --- RESPONSIVIDADE: define tamanhos conforme largura da janela ---
-    w = page.window_width or 800
-    if w < 600:
-        # celular / compacto
-        logo_size = 160
-        card_w = 340
-        field_h = 48
-        padding_card = 24
-        btn_w = 220
-        title_size = 26
-    elif w < 1000:
-        # tablet
-        logo_size = 220
-        card_w = 520
-        field_h = 54
-        padding_card = 36
-        btn_w = 260
-        title_size = 28
-    else:
-        # desktop
-        logo_size = 260
-        card_w = 640
-        field_h = 60
-        padding_card = 50
-        btn_w = 320
-        title_size = 32
-
-    # --- ESTILO DO CAMPO (TextField Personalizado) ---
+    # --- ELEMENTOS DA UI INSTANCIADOS COMO OBJETOS CONFIGURÁVEIS ---
     def estilo_campo(label, password=False, suffix=None, on_submit=None):
         return ft.TextField(
             label=label,
             password=password,
-            height=field_h,
             border_color="#1E2B4E",
             focused_border_color=ft.Colors.BLUE_500,
             bgcolor="#0A122A",
             border_radius=12,
             label_style=ft.TextStyle(color=ft.Colors.BLUE_GREY_200),
             color=ft.Colors.WHITE,
-            expand=True,
             suffix=suffix,
             on_submit=on_submit 
         )
@@ -97,21 +62,14 @@ def login_view(page: ft.Page, on_login_sucesso, on_recuperar_senha):
         )
     )
 
-    def esqueci_senha(e):
-        mensagem.value = "Recuperação de senha enviada ao e-mail cadastrado."
-        mensagem.color = ft.Colors.BLUE_200
-        page.update()
-
     link_senha = ft.TextButton(
         "Esqueci minha senha",
-        on_click=lambda _: on_recuperar_senha(), # Agora ele chama a tela de verdade!
+        on_click=lambda _: on_recuperar_senha(),
         style=ft.ButtonStyle(color=ft.Colors.BLUE_GREY_200),
     )
 
     botao_login = ft.ElevatedButton(
         "ENTRAR",
-        height=field_h,
-        width=btn_w,
         style=ft.ButtonStyle(
             bgcolor="#1B4F9C",
             color=ft.Colors.WHITE,
@@ -123,20 +81,20 @@ def login_view(page: ft.Page, on_login_sucesso, on_recuperar_senha):
 
     logo = ft.Image(
         src="imgs/icon.png",
-        width=logo_size,
-        height=logo_size,
         fit="contain",
     )
 
+    texto_titulo = ft.Text("LOGIN", weight=ft.FontWeight.BOLD, color="white")
+
     card_login = ft.Container(
         content=ft.Column(
-           [
-                ft.Text("LOGIN", size=title_size, weight=ft.FontWeight.BOLD, color="white"),
-                ft.Divider(height=10, color="transparent"),
+            [
+                texto_titulo,
+                ft.Divider(height=5, color="transparent"),
                 usuario,
                 senha,
                 ft.Row([link_senha], alignment=ft.MainAxisAlignment.END),
-                ft.Divider(height=10, color="transparent"),
+                ft.Divider(height=5, color="transparent"),
                 botao_login,
                 mensagem,
             ],
@@ -144,18 +102,80 @@ def login_view(page: ft.Page, on_login_sucesso, on_recuperar_senha):
             horizontal_alignment=ft.CrossAxisAlignment.CENTER
         ),
         bgcolor="#081035",
-        padding=padding_card,
         border_radius=25,
         border=ft.border.all(1, "#1E2B4E"),
-        width=card_w,
     )
 
-    return ft.Column(
+    # --- CONTEÚDO PRINCIPAL RENDERIZADO DENTRO DE UM CONTAINER ---
+    layout_principal = ft.Column(
         [
             logo,
             card_login
         ],
         alignment=ft.MainAxisAlignment.CENTER,
         horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-        expand=True
+        spacing=20,
+        scroll=ft.ScrollMode.AUTO,
     )
+
+    container_retorno = ft.Container(
+        expand=True,
+        alignment=ft.Alignment.CENTER,
+        content=layout_principal,
+        padding=15
+    )
+
+    # --- FUNÇÃO DE REDIMENSIONAMENTO DINÂMICO (RESPONSIVIDADE REAL-TIME) ---
+    def ajustar_responsividade(e=None):
+        # Captura a largura atual de forma segura
+        largura_atual = page.width if page.width else (page.client_size.width if page.client_size else 800)
+        
+        if largura_atual < 600:
+            # Configuração para Smartphones
+            tamanho_logo = min(140, int(largura_atual * 0.4))
+            largura_card = int(largura_atual - 30)  # Margem fina nas laterais
+            altura_campo = 46
+            padding_interno = 20
+            largura_botao = int(largura_card * 0.7)
+            tamanho_fonte_titulo = 24
+        elif largura_atual < 1000:
+            # Configuração para Tablets
+            tamanho_logo = 180
+            largura_card = 460
+            altura_campo = 52
+            padding_interno = 32
+            largura_botao = 240
+            tamanho_fonte_titulo = 28
+        else:
+            # Configuração para Desktops / Telas Grandes
+            tamanho_logo = 220
+            largura_card = 500
+            altura_campo = 56
+            padding_interno = 40
+            largura_botao = 280
+            tamanho_fonte_titulo = 32
+
+        # Redimensiona os componentes em tempo de execução
+        logo.width = tamanho_logo
+        logo.height = tamanho_logo
+        
+        card_login.width = largura_card
+        card_login.padding = padding_interno
+        
+        texto_titulo.size = tamanho_fonte_titulo
+        
+        usuario.height = altura_campo
+        senha.height = altura_campo
+        
+        botao_login.height = altura_campo
+        botao_login.width = largura_botao
+        
+        page.update()
+
+    # Define o gatilho para atualizar o layout sempre que a tela mudar de tamanho ou rotacionar
+    page.on_resized = ajustar_responsividade
+    
+    # Executa a primeira calibragem dos tamanhos
+    ajustar_responsividade()
+
+    return container_retorno
