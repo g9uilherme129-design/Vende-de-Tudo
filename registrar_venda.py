@@ -167,9 +167,9 @@ def tela_registrar_venda(page: ft.Page, on_voltar):
         if not carrinho: return
         for item in carrinho:
             registrar_venda_db(id_user=user_id_logado, id_estoque=item['id'], qtd=item['qtd'], metodo=drop_pagamento.value, preco_venda=item['preco'])
+        on_voltar()
         page.snack_bar = ft.SnackBar(ft.Text("Venda Finalizada!"), bgcolor=cor_destaque)
         page.snack_bar.open = True
-        on_voltar()
 
     # --- LAYOUT FINAL ---
     page.appbar = ft.AppBar(

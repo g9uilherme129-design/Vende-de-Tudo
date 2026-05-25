@@ -3,7 +3,7 @@ import flet_charts as fch
 from database import buscar_dados_home
 from database import buscar_dados_home_vendedor
 
-def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil, on_venda, on_vendas):
+def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil, on_venda, on_vendas, on_log=None):
     
     # --- VERIFICAÇÃO DE CARGO ---
     tipo_usuario = getattr(page, "tipo_usuario", "VENDEDOR")
@@ -139,6 +139,8 @@ def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil, on_venda,
         max_venda_atual = max(qtd_produtos) if max(qtd_produtos) > 0 else 10
         limite_y = max_venda_atual + (max_venda_atual * 0.2)
         passo_y = 20 if limite_y <= 100 else 100 if limite_y <= 500 else 500
+        cor_tooltip_bg =  "#16a34a" if is_dark else "#FF6C03"
+        cor_tooltip_texto = ft.Colors.WHITE if is_dark else ft.Colors.BLACK
 
         area_visual_desempenho = ft.Column([
             ft.Text("PRODUTOS VENDIDOS NA SEMANA", size=11, color=cor_texto_s, weight="bold"),
@@ -147,16 +149,18 @@ def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil, on_venda,
                 content=fch.BarChart(
                     max_y=limite_y,
                     interactive=True,
+                    tooltip=fch.BarChartTooltip(bgcolor=cor_tooltip_bg, border_radius=12, margin=4, padding=ft.padding.all(10)),
                     horizontal_grid_lines=fch.ChartGridLines(color=ft.Colors.with_opacity(0.1, cor_texto_p), width=1),
                     left_axis=fch.ChartAxis(
-                        labels=[fch.ChartAxisLabel(value=i, label=ft.Text(str(i), size=10, color=cor_texto_s)) 
+                        labels=[fch.ChartAxisLabel(value=i, label=ft.Text(str(int(i)), size=12, color=cor_texto_p, weight="bold")) 
                                for i in range(0, int(limite_y) + 1, int(passo_y))]
                     ),
                     bottom_axis=fch.ChartAxis(
                         labels=[fch.ChartAxisLabel(value=i, label=ft.Text(dias_semana[i], color=cor_texto_p, weight="bold")) 
                                for i in range(5)]
                     ),
-                    groups=[fch.BarChartGroup(x=i, rods=[fch.BarChartRod(from_y=0, to_y=v, width=38, color=cort_3, border_radius=5)]) 
+                    groups=[fch.BarChartGroup(x=i, rods=[fch.BarChartRod(from_y=0, to_y=v, width=38, color=cort_3, border_radius=5,
+                                                                       tooltip=fch.BarChartRodTooltip(text=str(int(v)), text_style=ft.TextStyle(color=cor_tooltip_texto, weight="bold")) )]) 
                             for i, v in enumerate(qtd_produtos)]
                 )
             )
@@ -258,8 +262,10 @@ def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil, on_venda,
         destinos_navegacao.append(ft.NavigationBarDestination(icon=ft.Icons.LIST_ALT_OUTLINED, label="Vendas"))
         destinos_navegacao.append(ft.NavigationBarDestination(icon=ft.Icons.INVENTORY_2_OUTLINED, label="Estoque"))
         destinos_navegacao.append(ft.NavigationBarDestination(icon=ft.Icons.GROUP_OUTLINED, label="Usuários"))
+        destinos_navegacao.append(ft.NavigationBarDestination(icon=ft.Icons.HISTORY, label="Logs"))
     else:
         destinos_navegacao.append(ft.NavigationBarDestination(icon=ft.Icons.INVENTORY_2_OUTLINED, label="Estoque"))
+        destinos_navegacao.append(ft.NavigationBarDestination(icon=ft.Icons.HISTORY, label="Logs"))
 
     destinos_navegacao.append(ft.NavigationBarDestination(icon=ft.Icons.PERSON_OUTLINE, label="Perfil"))
 
@@ -275,6 +281,9 @@ def home_page(page: ft.Page, on_logout, on_stock, on_users, on_perfil, on_venda,
             on_users()
         elif aba_selecionada == "Perfil":
             on_perfil()
+        elif aba_selecionada == "Logs":
+            if on_log:
+                on_log()
 
     page.navigation_bar = ft.Container(
         content=ft.NavigationBar(

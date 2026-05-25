@@ -1,7 +1,8 @@
 import flet as ft
 from database import buscar_usuarios_db
+from navigation import build_navigation_bar
 
-def usuarios(page: ft.Page, on_home, on_stock, on_vendas, on_perfil, on_logout, on_adicionar_usuario, on_editar_usuario, on_desativar_usuario, on_reativar_user, user_data):
+def usuarios(page: ft.Page, on_home, on_stock, on_vendas, on_perfil, on_logout, on_adicionar_usuario, on_editar_usuario, on_desativar_usuario, on_reativar_user, user_data, on_log=None):
 
     page.controls.clear()
     page.padding = 0
@@ -67,7 +68,7 @@ def usuarios(page: ft.Page, on_home, on_stock, on_vendas, on_perfil, on_logout, 
                     ft.Text("DADOS DA DESATIVAÇÃO", size=11, weight="bold", color=cor_texto_p),
                 ], spacing=5),
                 ft.Text(f"Motivo: {u.get('motivo_desat', 'Não informado')}", size=12, color=cor_texto_p),
-                ft.Text(f"Por: Admin {u.get('admin_desat', 'Sistema')}", size=11, italic=True, color=cor_texto_p),
+                ft.Text(f"Por: Admin ID {u.get('admin_desat', 'Sistema')}", size=11, italic=True, color=cor_texto_p),
             ], spacing=3)
         )
 
@@ -184,22 +185,24 @@ def usuarios(page: ft.Page, on_home, on_stock, on_vendas, on_perfil, on_logout, 
         elif idx == 1: on_vendas()
         elif idx == 2: on_stock()
         elif idx == 4: on_perfil()
+        elif idx == 5:
+            if on_log:
+                on_log()
 
-    page.navigation_bar = ft.Container(
-        content=ft.NavigationBar(
-            bgcolor=cor_barra, selected_index=3, on_change=trocar_aba,
-            indicator_color=cor_bar,
-            destinations=[
-                ft.NavigationBarDestination(icon=ft.Icons.HOME_OUTLINED, label="Inicial"),
-                ft.NavigationBarDestination(icon=ft.Icons.LIST_ALT_OUTLINED, label="Vendas"),
-                ft.NavigationBarDestination(icon=ft.Icons.INVENTORY_2_OUTLINED, label="Estoque"),
-                ft.NavigationBarDestination(icon=ft.Icons.GROUP, label="Usuários"),
-                ft.NavigationBarDestination(icon=ft.Icons.PERSON_OUTLINE, label="Perfil"),
-            ]
-        ),
-        margin=ft.margin.only(left=25, right=25, bottom=20),
-        border_radius=40, 
-        clip_behavior=ft.ClipBehavior.ANTI_ALIAS
+    build_navigation_bar(
+        page=page,
+        selected_label="Usuários",
+        is_admin=True,
+        callbacks={
+            "on_home": on_home,
+            "on_vendas": on_vendas,
+            "on_stock": on_stock,
+            "on_users": lambda: None,
+            "on_log": on_log or (lambda: None),
+            "on_perfil": on_perfil,
+        },
+        bgcolor=cor_barra,
+        indicator_color=cor_bar,
     )
 
     page.add(

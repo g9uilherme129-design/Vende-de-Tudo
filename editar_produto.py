@@ -148,9 +148,9 @@ def editar_produto(page: ft.Page, on_stock, id_produto):
                 in_lote.value
             )
             
+            on_stock()
             page.snack_bar = ft.SnackBar(ft.Text("Produto atualizado com sucesso!"), bgcolor=cor_destaque)
             page.snack_bar.open = True
-            on_stock()
             
         except Exception as ex:
             # Mostra no console o erro real para facilitar o seu rastreio se algo mais quebrar

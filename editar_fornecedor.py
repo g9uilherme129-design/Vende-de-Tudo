@@ -110,11 +110,10 @@ def editar_fornecedor(page: ft.Page, on_back, id_fornecedor):
                 cep=cep_in.value
             )
             
+            on_back()
             page.snack_bar = ft.SnackBar(ft.Text("Fornecedor atualizado com sucesso!"), bgcolor="#00b40d")
             page.snack_bar.open = True
             page.update()
-            
-            on_back() 
 
         except Exception as ex:
             print(f"Erro ao salvar: {ex}")

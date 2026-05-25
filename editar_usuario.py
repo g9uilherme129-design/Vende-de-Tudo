@@ -1,5 +1,6 @@
 import flet as ft
 from database import buscar_usuario_por_id, atualizar_usuario_db, Validar_senha_atual_db
+from log import write_log
 
 def editar_usuario(page: ft.Page, on_users, id_usuario):
     page.controls.clear()
@@ -18,9 +19,9 @@ def editar_usuario(page: ft.Page, on_users, id_usuario):
     # Busca os dados do usuário
     u = buscar_usuario_por_id(id_usuario)
     if not u:
+        on_users()
         page.snack_bar = ft.SnackBar(ft.Text("Erro: Usuário não encontrado!"), bgcolor="red")
         page.snack_bar.open = True
-        on_users()
         return
 
     page.appbar = ft.AppBar(
@@ -141,10 +142,11 @@ def editar_usuario(page: ft.Page, on_users, id_usuario):
         )
         
         if sucesso:
+            on_users()
             page.snack_bar = ft.SnackBar(ft.Text("Usuário atualizado com sucesso!"), bgcolor="green")
             page.snack_bar.open = True
             page.update()
-            on_users()
+            write_log('atualizar_usuario', user_id=id_usuario, details=f"nome:{nome_in.value} perfil:{perfil_dropdown.value}")
         else:
             page.snack_bar = ft.SnackBar(ft.Text(f"Erro: {msg}"), bgcolor="red")
             page.snack_bar.open = True

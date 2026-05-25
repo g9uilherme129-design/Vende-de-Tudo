@@ -1,7 +1,8 @@
 import flet as ft
 from database import buscar_vendas_detalhadas
+from navigation import build_navigation_bar
 
-def gerenciar_vendas(page: ft.Page, on_home, on_users, on_perfil, on_stock, on_registrar_venda, on_editar_venda, on_logout):
+def gerenciar_vendas(page: ft.Page, on_home, on_users, on_perfil, on_stock, on_vendas, on_registrar_venda, on_editar_venda, on_logout, on_log=None):
     page.controls.clear()
     page.padding = 0 # Ajustado para o fundo cobrir tudo
 
@@ -151,23 +152,20 @@ def gerenciar_vendas(page: ft.Page, on_home, on_users, on_perfil, on_stock, on_r
         elif idx == 4: on_perfil()
 
     # --- BARRA DE NAVEGAÇÃO CUSTOMIZADA ---
-    page.navigation_bar = ft.Container(
-        content=ft.NavigationBar(
-            bgcolor=cor_barra, 
-            selected_index=1, 
-            on_change=trocar_aba,
-            indicator_color=cor_bar,
-            destinations=[
-                ft.NavigationBarDestination(icon=ft.Icons.HOME_OUTLINED, label="Inicial"),
-                ft.NavigationBarDestination(icon=ft.Icons.LIST_ALT, label="Vendas"),
-                ft.NavigationBarDestination(icon=ft.Icons.INVENTORY_2_OUTLINED, label="Estoque"),
-                ft.NavigationBarDestination(icon=ft.Icons.GROUP_OUTLINED, label="Usuários"),
-                ft.NavigationBarDestination(icon=ft.Icons.PERSON_OUTLINE, label="Perfil"),
-            ]
-        ),
-        margin=ft.margin.only(left=25, right=25, bottom=20),
-        border_radius=40, 
-        clip_behavior=ft.ClipBehavior.ANTI_ALIAS
+    build_navigation_bar(
+        page=page,
+        selected_label="Vendas",
+        is_admin=True,
+        callbacks={
+            "on_home": on_home,
+            "on_vendas": lambda: None,
+            "on_stock": on_stock,
+            "on_users": on_users,
+            "on_log": on_log,
+            "on_perfil": on_perfil,
+        },
+        bgcolor=cor_barra,
+        indicator_color=cor_bar,
     )
 
     # --- CONTEÚDO PRINCIPAL ---

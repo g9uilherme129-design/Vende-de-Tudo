@@ -104,13 +104,22 @@ def cadastrar_usuario_db(id_user, nome, cpf, email, senha, perfil, salario):
     conn = get_connection()
     cursor = conn.cursor()
     try:
+        # Proteção contra ID inválido (ex.: 0)
+        if str(id_user).strip() == '0':
+            return False, "ID do usuário inválido"
+
+        # Verifica CPF duplicado
+        cursor.execute("SELECT id_user FROM usuario WHERE cpf = %s", (cpf,))
+        if cursor.fetchone():
+            return False, "CPF já cadastrado"
+
         query = """
             INSERT INTO usuario (id_user, nome_user, cpf, email_user, senha_user, perfil, salario, status_user)
             VALUES (%s, %s, %s, %s, %s, %s, %s, TRUE)
         """
         cursor.execute(query, (id_user, nome, cpf, email, senha, perfil, float(salario)))
         conn.commit()
-        return True, "Sucesso"
+        return True, "Usuário cadastrado com sucesso!"
     except Exception as e:
         print(f"Erro ao cadastrar: {e}")
         return False, str(e)
@@ -172,7 +181,7 @@ def atualizar_usuario_db(id_user, nome, cpf, email, perfil, salario, senha=None)
     finally:
         conn.close()
 
-def desativar_usuario_db(id_usuario, motivo, admin_nome):
+def desativar_usuario_db(id_usuario, motivo, admin_id):
     conn = get_connection()
     cursor = conn.cursor()
     try:
@@ -185,7 +194,7 @@ def desativar_usuario_db(id_usuario, motivo, admin_nome):
                 admin_desat = %s 
             WHERE id_user = %s
         """
-        cursor.execute(sql, (motivo, agora, admin_nome, id_usuario))
+        cursor.execute(sql, (motivo, agora, admin_id, id_usuario))
         conn.commit()
         return True
     except Exception as e:
@@ -265,13 +274,15 @@ def cadastrar_produto_db(id_forn, id_cat, nome, cod, val, ent, custo, venda, emb
     conn = get_connection()
     cursor = conn.cursor()
     try:
-        # AQUI: Verifique se as colunas no seu banco são exatamente estas 12:
-        # id, fornecedor, categoria, nome, codigo, validade, entrada, custo, venda, embalagem, qtd, lote
-        query = "INSERT INTO estoque VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
+        # Inserção deve usar a lista de colunas e incluir status_produto
+        query = "INSERT INTO estoque (id_estoque, id_fornecedor, id_categoria, nome_estoque, codigo_barras, data_validade, data_entrada, preco_unitario, preco_venda, embalagem, quantidade, lote, status_produto) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
         
-        # Certifique-se que o 'val' (validade) não está sendo trocado pelo 'ent' (entrada)
-        cursor.execute(query, (novo_id, f_id, c_id, nome, cod, val, ent, custo, venda, emb, qtd, lote))
+        cursor.execute(query, (novo_id, f_id, c_id, nome, cod, val, ent, custo, venda, emb, qtd, lote, 1))
         conn.commit()
+        try:
+            write_log('cadastrar_produto', user_id=None, details=f"id:{novo_id} nome:{nome} fornecedor:{f_id} qtd:{qtd}")
+        except Exception:
+            pass
         return True
     except Exception as e:
         print(f"Erro SQL ao cadastrar produto: {e}")
@@ -298,6 +309,10 @@ def atualizar_produto_db(id_produto, id_fornecedor, id_categoria, nome, data_val
     valores = (id_fornecedor, id_categoria, nome, data_val, preco_uni, preco_ven, embalagem, qtd, lote, id_produto)
     cursor.execute(query, valores)
     conn.commit()
+    try:
+        write_log('atualizar_produto', user_id=None, details=f"id:{id_produto} nome:{nome} qtd:{qtd}")
+    except Exception:
+        pass
     conn.close()
 
 
@@ -353,6 +368,8 @@ def buscar_venda_por_id(id_venda):
     conn.close()
     return resultado
 
+from log import write_log
+
 def registrar_venda_db(id_user, id_estoque, qtd, metodo, preco_venda=0):
     novo_id = gerar_id_char("venda", "id_venda", "V")
     conn = get_connection()
@@ -371,6 +388,11 @@ def registrar_venda_db(id_user, id_estoque, qtd, metodo, preco_venda=0):
         cursor.execute("UPDATE estoque SET quantidade = quantidade - %s WHERE id_estoque = %s", (qtd, id_estoque))
         
         conn.commit()
+        # registra no log
+        try:
+            write_log('registrar_venda', user_id=id_user, details=f"venda:{novo_id} produto:{id_estoque} qtd:{qtd} metodo:{metodo}")
+        except Exception:
+            pass
         return True, "Sucesso"
     except Exception as e:
         conn.rollback()
@@ -457,6 +479,11 @@ def atualizar_venda_db(id_venda, nova_qtd, novo_metodo):
             cursor.execute(query, (int(nova_qtd), int(nova_qtd), novo_metodo, id_venda))
             
             conn.commit()
+            # registra no log
+            try:
+                write_log('atualizar_venda', user_id=None, details=f"id_venda:{id_venda} nova_qtd:{nova_qtd} metodo:{novo_metodo}")
+            except Exception:
+                pass
             return True, "Venda atualizada com sucesso!"
         return False, "Venda não encontrada."
     except Exception as e:
@@ -488,6 +515,10 @@ def excluir_item_venda_db(id_venda):
             cursor.execute("DELETE FROM venda WHERE id_venda = %s", (id_venda,))
             
             conn.commit()
+            try:
+                write_log('excluir_venda', user_id=None, details=f"id_venda:{id_venda} produto:{id_prod} qtd:{qtd_venda}")
+            except Exception:
+                pass
             return True, "Venda excluída e estoque atualizado!"
         
         return False, "Venda não encontrada."
@@ -667,6 +698,10 @@ def atualizar_usuario_db(id_user, nome, cpf, email, perfil, salario, senha=None)
     try:
         conn = get_connection()
         cursor = conn.cursor()
+        # Verifica CPF duplicado em outro usuário
+        cursor.execute("SELECT id_user FROM usuario WHERE cpf = %s AND id_user != %s", (cpf, id_user))
+        if cursor.fetchone():
+            return False, "CPF já cadastrado"
         
         # Note que usei 'id_user' no WHERE porque é como está no seu VS Code
         if senha and senha.strip() != "":

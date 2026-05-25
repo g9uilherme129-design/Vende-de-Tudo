@@ -99,9 +99,10 @@ def produto(page: ft.Page, on_stock):
                 data_formatada, datetime.now().strftime("%Y-%m-%d"),
                 custo_final, venda_final, drop_emb.value, int(in_qtd.value), in_lote.value
             )
+            # Navega de volta primeiro para garantir que a mensagem apareça na tela de destino
+            on_stock()
             page.snack_bar = ft.SnackBar(ft.Text("Produto cadastrado!"), bgcolor="#08D345")
             page.snack_bar.open = True
-            on_stock()
         except Exception as ex:
             page.snack_bar = ft.SnackBar(ft.Text(f"Erro: {ex}"), bgcolor="red")
             page.snack_bar.open = True

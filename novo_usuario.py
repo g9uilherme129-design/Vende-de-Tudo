@@ -1,5 +1,6 @@
 import flet as ft
 from database import cadastrar_usuario_db, gerar_id_char
+from log import write_log
 
 
 def validar_cpf(cpf: str) -> bool:
@@ -145,6 +146,13 @@ def novo_usuario(page: ft.Page, on_users):
             page.update()
             return
 
+        # Validação: nome não deve conter dígitos
+        if any(ch.isdigit() for ch in nome):
+            page.snack_bar = ft.SnackBar(ft.Text("Nome não pode conter números."), bgcolor="#B00020")
+            page.snack_bar.open = True
+            page.update()
+            return
+
         # CPF validação (sem máscara)
         cpf_limpo = ''.join(filter(str.isdigit, cpf))
 
@@ -172,10 +180,13 @@ def novo_usuario(page: ft.Page, on_users):
             )
             
             if sucesso:
-                page.snack_bar = ft.SnackBar(ft.Text(msg), bgcolor="green")
+                # registra no log
+                write_log('cadastrar_usuario', user_id=novo_id, details=f"nome:{nome} cpf:{cpf_limpo} perfil:{perfil}")
+                # Primeiro volta para a lista de usuários e depois exibe a confirmação
+                on_users()
+                page.snack_bar = ft.SnackBar(ft.Text("Usuário cadastrado com sucesso!"), bgcolor="green")
                 page.snack_bar.open = True
                 page.update()
-                on_users() 
             else:
                 page.snack_bar = ft.SnackBar(ft.Text(f"Erro: {msg}"), bgcolor="red")
                 page.snack_bar.open = True

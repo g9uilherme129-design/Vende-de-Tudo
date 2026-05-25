@@ -1,8 +1,9 @@
 import flet as ft
 from database import buscar_produtos_estoque, buscar_categorias 
 from datetime import datetime
+from navigation import build_navigation_bar
 
-def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar_produto, on_editar_produto, on_logout, on_fornecedores, on_categorias):
+def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar_produto, on_editar_produto, on_logout, on_fornecedores, on_categorias, on_log=None):
 
     page.controls.clear()
     page.padding = 0 # Padding zero para o container de fundo preencher tudo
@@ -156,7 +157,7 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar
         for cat in categorias_reais:
             menu_items.append(ft.PopupMenuItem(content=ft.Text(cat), on_click=lambda e, c=cat: mudar_f(c)))
 
-    btn_filtro = ft.PopupMenuButton(icon=ft.Icons.SORT, icon_color=cor_texto_p, items=menu_items)
+    btn_filtro = ft.PopupMenuButton(content=ft.Text("Filtro", color=cor_texto_p), tooltip="Filtro", items=menu_items)
     btn_filtro.data = "todos"
 
     search_field = ft.TextField(
@@ -181,8 +182,10 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar
         destinos_navegacao.append(ft.NavigationBarDestination(icon=ft.Icons.LIST_ALT_OUTLINED, label="Vendas"))
         destinos_navegacao.append(ft.NavigationBarDestination(icon=ft.Icons.INVENTORY_2, label="Estoque"))
         destinos_navegacao.append(ft.NavigationBarDestination(icon=ft.Icons.GROUP_OUTLINED, label="Usuários"))
+        destinos_navegacao.append(ft.NavigationBarDestination(icon=ft.Icons.HISTORY, label="Logs"))
     else:
         destinos_navegacao.append(ft.NavigationBarDestination(icon=ft.Icons.INVENTORY_2, label="Estoque"))
+        destinos_navegacao.append(ft.NavigationBarDestination(icon=ft.Icons.HISTORY, label="Logs"))
 
     destinos_navegacao.append(ft.NavigationBarDestination(icon=ft.Icons.PERSON_OUTLINE, label="Perfil"))
 
@@ -201,17 +204,24 @@ def estoque(page: ft.Page, on_home, on_users, on_perfil, on_vendas, on_adicionar
         elif aba_selecionada == "Estoque": pass
         elif aba_selecionada == "Usuários": on_users()
         elif aba_selecionada == "Perfil": on_perfil()
+        elif aba_selecionada == "Logs":
+            if on_log:
+                on_log()
 
-    page.navigation_bar = ft.Container(
-        content=ft.NavigationBar(
-            bgcolor=cor_barra, 
-            selected_index=index_estoque, # Modificado para usar o index real calculado dinamicamente
-            on_change=trocar_aba,
-            indicator_color=cor_bar,
-            destinations=destinos_navegacao # Usa a lista dinâmica filtrada
-        ),
-        margin=ft.margin.only(left=25, right=25, bottom=20),
-        border_radius=40, clip_behavior=ft.ClipBehavior.ANTI_ALIAS
+    build_navigation_bar(
+        page=page,
+        selected_label="Estoque",
+        is_admin=not e_vendedor,
+        callbacks={
+            "on_home": on_home,
+            "on_vendas": on_vendas,
+            "on_stock": lambda: None,
+            "on_users": on_users,
+            "on_log": on_log,
+            "on_perfil": on_perfil,
+        },
+        bgcolor=cor_barra,
+        indicator_color=cor_bar,
     )
 
     # --- 3. CONTAINER DE BOTÕES DE AÇÃO FILTRADO ---

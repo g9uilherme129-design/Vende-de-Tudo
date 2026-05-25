@@ -1,4 +1,5 @@
 import flet as ft
+from navigation import build_navigation_bar
 from datetime import datetime
 from database import (
     obter_resumo_vendas_vendedor, 
@@ -6,7 +7,7 @@ from database import (
     buscar_dados_completos_perfil
 )
 
-def perfil_page(page: ft.Page, on_home, on_stock, on_vendas, on_users, on_logout, on_game, on_config, on_theme_change):
+def perfil_page(page: ft.Page, on_home, on_stock, on_vendas, on_users, on_logout, on_game, on_config, on_theme_change, on_log=None):
     page.controls.clear()
     
     # --- VERIFICAÇÃO DE CARGO ---
@@ -142,7 +143,7 @@ def perfil_page(page: ft.Page, on_home, on_stock, on_vendas, on_users, on_logout
     else:
         destinos_navegacao.append(ft.NavigationBarDestination(icon=ft.Icons.INVENTORY_2_OUTLINED, label="Estoque"))
 
-    destinos_navegacao.append(ft.NavigationBarDestination(icon=ft.Icons.PERSON, label="Perfil"))
+    destinos_navegacao.append(ft.NavigationBarDestination(icon=ft.Icons.PERSON_OUTLINE, label="Perfil"))
 
     # Descobre dinamicamente a posição atual da aba "Perfil"
     index_perfil = 0
@@ -151,25 +152,20 @@ def perfil_page(page: ft.Page, on_home, on_stock, on_vendas, on_users, on_logout
             index_perfil = i
             break
 
-    # --- 2. FUNÇÃO TROCAR_ABA DINÂMICA POR LABELS ---
-    def trocar_aba(e):
-        aba_selecionada = destinos_navegacao[e.control.selected_index].label
-        if aba_selecionada == "Inicial": on_home()
-        elif aba_selecionada == "Vendas": on_vendas()
-        elif aba_selecionada == "Estoque": on_stock()
-        elif aba_selecionada == "Usuários": on_users()
-        elif aba_selecionada == "Perfil": pass
-
-    page.navigation_bar = ft.Container(
-        content=ft.NavigationBar(
-            bgcolor=cor_barra, 
-            selected_index=index_perfil, # Define dinamicamente o index ativo
-            on_change=trocar_aba,
-            indicator_color=cor_bar,
-            destinations=destinos_navegacao # Passa a lista customizada baseada no cargo
-        ),
-        margin=ft.margin.only(left=25, right=25, bottom=20),
-        border_radius=40, clip_behavior=ft.ClipBehavior.ANTI_ALIAS
+    build_navigation_bar(
+        page=page,
+        selected_label="Perfil",
+        is_admin=not e_vendedor,
+        callbacks={
+            "on_home": on_home,
+            "on_vendas": on_vendas,
+            "on_stock": on_stock,
+            "on_users": on_users,
+            "on_log": on_log or (lambda: None),
+            "on_perfil": lambda: None,
+        },
+        bgcolor=cor_barra,
+        indicator_color=cor_bar,
     )
 
     page.update()

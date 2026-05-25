@@ -35,12 +35,39 @@ def login_view(page: ft.Page, on_login_sucesso, on_recuperar_senha):
             mensagem.color = ft.Colors.RED_400
             page.update()
 
+    # --- RESPONSIVIDADE: define tamanhos conforme largura da janela ---
+    w = page.window_width or 800
+    if w < 600:
+        # celular / compacto
+        logo_size = 160
+        card_w = 340
+        field_h = 48
+        padding_card = 24
+        btn_w = 220
+        title_size = 26
+    elif w < 1000:
+        # tablet
+        logo_size = 220
+        card_w = 520
+        field_h = 54
+        padding_card = 36
+        btn_w = 260
+        title_size = 28
+    else:
+        # desktop
+        logo_size = 260
+        card_w = 640
+        field_h = 60
+        padding_card = 50
+        btn_w = 320
+        title_size = 32
+
     # --- ESTILO DO CAMPO (TextField Personalizado) ---
     def estilo_campo(label, password=False, suffix=None, on_submit=None):
         return ft.TextField(
             label=label,
             password=password,
-            height=50,
+            height=field_h,
             border_color="#1E2B4E",
             focused_border_color=ft.Colors.BLUE_500,
             bgcolor="#0A122A",
@@ -83,8 +110,8 @@ def login_view(page: ft.Page, on_login_sucesso, on_recuperar_senha):
 
     botao_login = ft.ElevatedButton(
         "ENTRAR",
-        height=50,
-        width=250,
+        height=field_h,
+        width=btn_w,
         style=ft.ButtonStyle(
             bgcolor="#1B4F9C",
             color=ft.Colors.WHITE,
@@ -96,15 +123,15 @@ def login_view(page: ft.Page, on_login_sucesso, on_recuperar_senha):
 
     logo = ft.Image(
         src="imgs/icon.png",
-        width=200,
-        height=200,
+        width=logo_size,
+        height=logo_size,
         fit="contain",
     )
 
     card_login = ft.Container(
         content=ft.Column(
            [
-                ft.Text("LOGIN", size=30, weight=ft.FontWeight.BOLD, color="white"),
+                ft.Text("LOGIN", size=title_size, weight=ft.FontWeight.BOLD, color="white"),
                 ft.Divider(height=10, color="transparent"),
                 usuario,
                 senha,
@@ -117,10 +144,10 @@ def login_view(page: ft.Page, on_login_sucesso, on_recuperar_senha):
             horizontal_alignment=ft.CrossAxisAlignment.CENTER
         ),
         bgcolor="#081035",
-        padding=40,
+        padding=padding_card,
         border_radius=25,
         border=ft.border.all(1, "#1E2B4E"),
-        width=400,
+        width=card_w,
     )
 
     return ft.Column(

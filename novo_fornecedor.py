@@ -130,9 +130,10 @@ def novo_fornecedor(page: ft.Page, on_voltar):
         )
 
         if sucesso:
+            # Primeiro volta para a lista e então mostra a confirmação
+            on_voltar()
             page.snack_bar = ft.SnackBar(ft.Text("Fornecedor cadastrado!"), bgcolor="#08D345")
             page.snack_bar.open = True
-            on_voltar()
         else:
             page.snack_bar = ft.SnackBar(ft.Text(f"Erro: {msg}"), bgcolor="red")
             page.snack_bar.open = True

@@ -26,9 +26,9 @@ def editar_venda(page: ft.Page, id_venda, on_back):
     venda_atual = buscar_venda_por_id(id_venda)
     
     if not venda_atual:
+        on_back()
         page.snack_bar = ft.SnackBar(ft.Text("Venda não encontrada!"), bgcolor="red")
         page.snack_bar.open = True
-        on_back()
         return
 
     preco_unitario = float(venda_atual.get('preco_venda', 0))
@@ -94,8 +94,8 @@ def editar_venda(page: ft.Page, id_venda, on_back):
 
         sucesso, msg = atualizar_venda_db(id_venda, nova_qtd, drop_pagamento.value)
         if sucesso:
-            page.snack_bar = ft.SnackBar(ft.Text(msg), bgcolor=cor_destaque)
             on_back()
+            page.snack_bar = ft.SnackBar(ft.Text(msg), bgcolor=cor_destaque)
         else:
             page.snack_bar = ft.SnackBar(ft.Text(f"Erro: {msg}"), bgcolor="red")
         
@@ -107,8 +107,8 @@ def editar_venda(page: ft.Page, id_venda, on_back):
             if confirma:
                 sucesso, msg = excluir_item_venda_db(id_venda)
                 if sucesso:
-                    page.snack_bar = ft.SnackBar(ft.Text(msg), bgcolor="red")
                     on_back()
+                    page.snack_bar = ft.SnackBar(ft.Text(msg), bgcolor="red")
                 else:
                     page.snack_bar = ft.SnackBar(ft.Text(f"Erro: {msg}"))
                 page.snack_bar.open = True

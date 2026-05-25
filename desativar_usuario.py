@@ -1,6 +1,7 @@
 import flet as ft
 from datetime import datetime
 from database import desativar_usuario_db
+from log import write_log
 
 import flet as ft
 from datetime import datetime
@@ -100,13 +101,12 @@ def tela_desativar_usuario(page: ft.Page, user_data, on_voltar):
         sucesso = desativar_usuario_db(
             id_usuario=user_data['id_user'],
             motivo=motivo_input.value,
-            admin_nome=admin_data.get('nome_user')
+            admin_id=admin_data.get('id_user')
         )
 
         if sucesso:
-            page.snack_bar = ft.SnackBar(ft.Text(f"Usuário desativado com sucesso!"), bgcolor="green")
-            page.snack_bar.open = True
-            page.update()
+            admin_id = admin_data.get('id_user') if admin_data else None
+            write_log('desativar_usuario', user_id=admin_id, details=f"desativou {user_data.get('id_user')} motivo:{motivo_input.value}")
             on_voltar()
         else:
             page.snack_bar = ft.SnackBar(ft.Text("Erro ao processar desativação."), bgcolor="red")
@@ -140,7 +140,7 @@ def tela_desativar_usuario(page: ft.Page, user_data, on_voltar):
                         senha_container,
                         
                         ft.Text(
-                            f"Autorizado por: {admin_data.get('nome_user')}", 
+                            f"Autorizado por (ID): {admin_data.get('id_user')}", 
                             size=11, color=cor_secundaria, italic=True
                         ),
                         

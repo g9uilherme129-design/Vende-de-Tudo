@@ -70,10 +70,10 @@ def game_page(page: ft.Page, on_back):
             ft.Container(height=20),
             ft.Container(
                 content=ft.Row([
-                    ft.Icon(ft.Icons.CHECK_CIRCLE_OUTLINE, color="white"), 
-                    ft.Text("ESTOU CIENTE E DE ACORDO", color="white", weight="bold")
+                    ft.Icon(ft.Icons.CHECK_CIRCLE_OUTLINE, color="black"), 
+                    ft.Text("ESTOU CIENTE E DE ACORDO", color="black", weight="bold")
                 ], alignment="center"),
-                bgcolor=cor_texto_s, 
+                bgcolor="#16a34a", 
                 height=55, 
                 border_radius=15, 
                 on_click=lambda _: on_back()
