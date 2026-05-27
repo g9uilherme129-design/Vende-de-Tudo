@@ -166,7 +166,7 @@ def main(page: ft.Page):
     def carregar_editar_venda(id_venda):
         editar_venda(page, on_back=carregar_vendas, id_venda=id_venda)
 
-    def carregar_usuarios():
+    def carregar_usuarios(mensagem=None):
         usuarios(
             page, 
             on_logout=fazer_logout,
@@ -179,7 +179,8 @@ def main(page: ft.Page):
             on_editar_usuario=carregar_editar_usuario,
             on_desativar_usuario=carregar_desativar_usuario,
             user_data=page.user_data,
-            on_reativar_user=carregar_reativar_user
+            on_reativar_user=carregar_reativar_user,
+            mensagem=mensagem
         )
         
     def carregar_perfil():

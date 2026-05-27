@@ -47,9 +47,11 @@ def novo_usuario(page: ft.Page, on_users):
             password=password,
             can_reveal_password=password,
             border=ft.InputBorder.NONE,
-            content_padding=15,
+            content_padding=ft.padding.symmetric(horizontal=12, vertical=10),
             text_style=ft.TextStyle(color=cor_texto_p),
-            expand=True,
+            expand=False,
+            width=340,
+            height=45,
             keyboard_type=keyboard_type,
             max_length=limite,
             cursor_color=cor_texto_s,
@@ -58,19 +60,26 @@ def novo_usuario(page: ft.Page, on_users):
 
         container = ft.Column(
             [
-                ft.Text(f"  {label}", size=12, color=cor_texto_s, weight="bold"),
+                ft.Text(f"  {label}", size=15, color=cor_texto_s, weight="bold"),
                 ft.Container(
                     content=input_field,
                     bgcolor=cor_input,
                     border=ft.border.all(1, cor_borda),
                     border_radius=12,
                     padding=ft.padding.only(right=10, bottom=5),
+                    width=340,
                 )
             ],
             spacing=5,
+            width=340,
         )
         return container, input_field
     
+    def mostrar_snack(mensagem, cor="#B00020"):
+        page.snack_bar = ft.SnackBar(ft.Text(mensagem), bgcolor=cor)
+        page.snack_bar.open = True
+        page.update()
+
     def mascara_cpf(e):
         # Remove tudo o que não for número e limita a 11 dígitos
         valor = "".join(filter(str.isdigit, e.control.value))[:11]
@@ -86,8 +95,19 @@ def novo_usuario(page: ft.Page, on_users):
         e.control.value = valor
         page.update()
 
+    def bloquear_numeros_nome(e):
+        valor = e.control.value or ""
+        novo_valor = "".join(ch for ch in valor if not ch.isdigit())
+        if novo_valor != valor:
+            e.control.value = novo_valor
+            e.control.error_text = "Números não são permitidos"
+        else:
+            e.control.error_text = None
+        page.update()
+
     # --- CAMPOS ---
     nome_c, nome_in = estilo_input("NOME COMPLETO", hint="Ex: Neymar Jr", limite=100)
+    nome_in.on_change = bloquear_numeros_nome
 
     # 1. Cria o input deixando o limite livre para os 14 caracteres da máscara (000.000.000-00)
     cpf_c, cpf_in = estilo_input("CPF (Apenas números)",
@@ -118,16 +138,18 @@ def novo_usuario(page: ft.Page, on_users):
 
     perfil_c = ft.Column(
         [
-            ft.Text("  PERFIL / CARGO", size=12, color=cor_texto_s, weight="bold"),
+            ft.Text("  PERFIL / CARGO", size=9, color=cor_texto_s, weight="bold"),
             ft.Container(
                 content=perfil_dropdown,
                 bgcolor=cor_input,
                 border=ft.border.all(1, cor_borda),
                 border_radius=12,
-                height=55,
+                height=50,
+                width=340,
             )
         ],
         spacing=5,
+        width=340,
     )
 
     # ---------------- SALVAR ----------------
@@ -140,30 +162,19 @@ def novo_usuario(page: ft.Page, on_users):
         perfil = perfil_dropdown.value
 
         if not nome or not email or not senha or not perfil:
-            sb = ft.SnackBar(ft.Text("Preencha os campos obrigatórios!"), bgcolor="#B00020")
-            page.overlay.append(sb)
-            sb.open = True
-            page.update()
+            mostrar_snack("Preencha os campos obrigatórios!", "#B00020")
             return
 
         # Validação: nome não deve conter dígitos
         if any(ch.isdigit() for ch in nome):
-            page.snack_bar = ft.SnackBar(ft.Text("Nome não pode conter números."), bgcolor="#B00020")
-            page.snack_bar.open = True
-            page.update()
+            mostrar_snack("Nome não pode conter números.", "#B00020")
             return
 
         # CPF validação (sem máscara)
         cpf_limpo = ''.join(filter(str.isdigit, cpf))
 
         if not validar_cpf(cpf_limpo):
-            sb = ft.SnackBar(
-                ft.Text("CPF inválido! Verifique o número informado."),
-                bgcolor="#B00020"
-            )
-            page.overlay.append(sb)
-            sb.open = True
-            page.update()
+            mostrar_snack("CPF inválido! Verifique o número informado.", "#B00020")
             return
 
         try:
@@ -180,34 +191,12 @@ def novo_usuario(page: ft.Page, on_users):
             )
             
             if sucesso:
-                # registra no log
                 write_log('cadastrar_usuario', user_id=novo_id, details=f"nome:{nome} cpf:{cpf_limpo} perfil:{perfil}")
-                # Primeiro volta para a lista de usuários e depois exibe a confirmação
-                on_users()
-                page.snack_bar = ft.SnackBar(ft.Text("Usuário cadastrado com sucesso!"), bgcolor="green")
-                page.snack_bar.open = True
-                page.update()
+                on_users("Usuário salvo com sucesso")
             else:
-                page.snack_bar = ft.SnackBar(ft.Text(f"Erro: {msg}"), bgcolor="red")
-                page.snack_bar.open = True
-                page.update()
+                mostrar_snack(f"Erro: {msg}", "red")
         except Exception as ex:
-            page.snack_bar = ft.SnackBar(ft.Text(f"Erro inesperado: {ex}"), bgcolor="red")
-            page.snack_bar.open = True
-
-            sb = ft.SnackBar(ft.Text(msg), bgcolor="green" if sucesso else "red")
-            page.overlay.append(sb)
-            sb.open = True
-            page.update()
-
-            if sucesso:
-                on_users()
-
-        except Exception as ex:
-            sb = ft.SnackBar(ft.Text(f"Erro inesperado: {ex}"), bgcolor="red")
-            page.overlay.append(sb)
-            sb.open = True
-            page.update()
+            mostrar_snack(f"Erro inesperado: {ex}", "red")
 
     # ---------------- FORM ----------------
     form_content = ft.Column(

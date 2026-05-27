@@ -2,7 +2,7 @@ import flet as ft
 from database import buscar_usuarios_db
 from navigation import build_navigation_bar
 
-def usuarios(page: ft.Page, on_home, on_stock, on_vendas, on_perfil, on_logout, on_adicionar_usuario, on_editar_usuario, on_desativar_usuario, on_reativar_user, user_data, on_log=None):
+def usuarios(page: ft.Page, on_home, on_stock, on_vendas, on_perfil, on_logout, on_adicionar_usuario, on_editar_usuario, on_desativar_usuario, on_reativar_user, user_data, on_log=None, mensagem=None):
 
     page.controls.clear()
     page.padding = 0
@@ -231,3 +231,8 @@ def usuarios(page: ft.Page, on_home, on_stock, on_vendas, on_perfil, on_logout, 
     )
     
     filtrar_usuarios()
+
+    if mensagem:
+        page.snack_bar = ft.SnackBar(ft.Text(mensagem), bgcolor="green")
+        page.snack_bar.open = True
+        page.update()

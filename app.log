@@ -41,3 +41,5 @@
 [2026-05-25 16:45:40] user:U10001 action:confirmacao_desativacao details:U100008 - Ana Souza
 [2026-05-25 16:45:50] user:U10001 action:reativar_usuario details:reativou U100008
 [2026-05-25 16:45:50] user:U10001 action:confirmacao_reativacao details:U100008 - Ana Souza
+[2026-05-27 14:26:26] user:U100005 action:cadastrar_usuario details:nome:Piter Parck cpf:43648346989 perfil:vendedor
+[2026-05-27 14:38:07] user:U100006 action:cadastrar_usuario details:nome:Neymar Jr cpf:13254789522 perfil:admin
