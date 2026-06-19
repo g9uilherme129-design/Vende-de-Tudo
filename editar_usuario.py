@@ -113,19 +113,19 @@ def editar_usuario(page: ft.Page, on_users, id_usuario):
         # Lógica de validação de senha
         if nova_senha:
             if not senha_atual_in.value:
-                page.snack_bar = ft.SnackBar(ft.Text("Digite a senha atual para autorizar a mudança!"), bgcolor="orange")
+                page.snack_bar = ft.SnackBar(ft.Text("⚠️ Digite a senha atual para autorizar a mudança!"), bgcolor="orange")
                 page.snack_bar.open = True
                 page.update()
                 return
             
             if nova_senha != senha_conf_in.value:
-                page.snack_bar = ft.SnackBar(ft.Text("A nova senha e a confirmação não coincidem!"), bgcolor="red")
+                page.snack_bar = ft.SnackBar(ft.Text("❌ A nova senha e a confirmação não coincidem!"), bgcolor="#FF4444")
                 page.snack_bar.open = True
                 page.update()
                 return
             
             if not Validar_senha_atual_db(id_usuario, senha_atual_in.value):
-                page.snack_bar = ft.SnackBar(ft.Text("Senha atual incorreta!"), bgcolor="red")
+                page.snack_bar = ft.SnackBar(ft.Text("❌ Senha atual incorreta!"), bgcolor="#FF4444")
                 page.snack_bar.open = True
                 page.update()
                 return
@@ -142,13 +142,18 @@ def editar_usuario(page: ft.Page, on_users, id_usuario):
         )
         
         if sucesso:
-            on_users()
-            page.snack_bar = ft.SnackBar(ft.Text("Usuário atualizado com sucesso!"), bgcolor="green")
+            if nova_senha:
+                page.snack_bar = ft.SnackBar(ft.Text("✅ Usuário atualizado e senha alterada com sucesso!"), bgcolor="#00b40d")
+            else:
+                page.snack_bar = ft.SnackBar(ft.Text("✅ Usuário atualizado com sucesso!"), bgcolor="#00b40d")
             page.snack_bar.open = True
             page.update()
             write_log('atualizar_usuario', user_id=id_usuario, details=f"nome:{nome_in.value} perfil:{perfil_dropdown.value}")
+            import time
+            time.sleep(1)
+            on_users()
         else:
-            page.snack_bar = ft.SnackBar(ft.Text(f"Erro: {msg}"), bgcolor="red")
+            page.snack_bar = ft.SnackBar(ft.Text(f"❌ Erro: {msg}"), bgcolor="#FF4444")
             page.snack_bar.open = True
             page.update()
 

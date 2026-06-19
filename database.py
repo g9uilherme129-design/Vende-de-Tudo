@@ -218,6 +218,21 @@ def buscar_usuario_por_nome(nome_user):
     finally:
         conn.close()
 
+def buscar_nome_admin_por_id(admin_id):
+    """Busca o nome do admin dado seu ID"""
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        query = "SELECT nome_user FROM usuario WHERE id_user = %s"
+        cursor.execute(query, (admin_id,))
+        result = cursor.fetchone()
+        return result.get('nome_user', 'Sistema') if result else 'Sistema'
+    except Exception as e:
+        print(f"Erro ao buscar nome do admin: {e}")
+        return 'Sistema'
+    finally:
+        conn.close()
+
 # --- 2. FUNÇÕES DE ESTOQUE ---
 def buscar_produtos_estoque():
     conn = get_connection()
@@ -865,6 +880,9 @@ def buscar_fornecedores_dropdown():
     finally:
         conn.close()
 
+
+# --- Adicione estas duas funções no final do seu arquivo database.py ---
+
 def alterar_status_categoria_db(id_cat, novo_status):
     """ 
     Altera o status da categoria. 
@@ -873,20 +891,19 @@ def alterar_status_categoria_db(id_cat, novo_status):
     conn = get_connection()
     cursor = conn.cursor(dictionary=True)
     try:
-        # REGRA DE NEGÓCIO: Se for desativar, verifica se há produtos
-        if novo_status == "Inativo" or novo_status == 0:
+        # Garante a conversão para Booleano para o banco de dados
+        status_booleano = False if novo_status in [0, False, "Inativo"] else True
+
+        # REGRA DE NEGÓCIO: Se for desativar, verifica se há produtos no estoque
+        if not status_booleano:
             cursor.execute("SELECT COUNT(*) as total FROM estoque WHERE id_categoria = %s", (id_cat,))
             resultado = cursor.fetchone()
             
             if resultado['total'] > 0:
                 return "Erro: Existem produtos cadastrados nesta categoria."
 
-        # Se seu banco usa INT (1/0) ou VARCHAR ('Ativo'/'Inativo'), ajuste aqui:
-        # Exemplo para VARCHAR:
-        status_final = novo_status 
-        
         query = "UPDATE categoria SET status_categoria = %s WHERE id_categoria = %s"
-        cursor.execute(query, (status_final, id_cat))
+        cursor.execute(query, (status_booleano, id_cat))
         conn.commit()
         return True
     except Exception as e:
@@ -895,6 +912,31 @@ def alterar_status_categoria_db(id_cat, novo_status):
     finally:
         conn.close()
 
+
+def buscar_categorias_detalhado():
+    """
+    Busca todas as categorias do banco e formata as chaves 
+    para o formato que a interface do Flet espera.
+    """
+    conn = get_connection()
+    cursor = conn.cursor(dictionary=True)
+    try:
+        query = "SELECT * FROM categoria ORDER BY nome_categoria ASC"
+        cursor.execute(query)
+        resultado = cursor.fetchall()
+        
+        categorias_formatadas = []
+        for linha in resultado:
+            # O SEGREDO ESTÁ AQUI: Mapeia o boolean do banco para a string da UI
+            linha["status"] = "Ativo" if linha["status_categoria"] == 1 or linha["status_categoria"] is True else "Inativo"
+            categorias_formatadas.append(linha)
+            
+        return categorias_formatadas
+    except Exception as e:
+        print(f"Erro ao buscar categorias detalhado: {e}")
+        return []
+    finally:
+        conn.close()
 
 def buscar_categorias_ativas():
     conn = get_connection()
@@ -916,19 +958,6 @@ def buscar_categorias_dropdown():
     finally:
         conn.close()
 
-def buscar_categorias_detalhado():
-    conn = get_connection()
-    cursor = conn.cursor(dictionary=True)
-    try:
-        cursor.execute("SELECT id_categoria, nome_categoria FROM categoria ORDER BY nome_categoria ASC")
-        dados = cursor.fetchall()
-        
-        for d in dados:
-            d['status'] = "Ativo" 
-            
-        return dados
-    finally:
-        conn.close()
 
 def salvar_categoria_db(nome):
     conn = get_connection()

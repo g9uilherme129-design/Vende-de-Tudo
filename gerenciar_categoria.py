@@ -80,9 +80,38 @@ def gerenciar_categorias(page: ft.Page, on_back):
         filtrar_categorias()
 
     def alternar_status(id_cat, status_atual):
-        novo = "Inativo" if status_atual == "Ativo" else "Ativo"
-        alterar_status_categoria_db(id_cat, novo)
-        carregar_dados()
+        # 1. Se o status atual na UI for "Ativo", o novo status no banco deve ser False (Inativo)
+        # Se for qualquer outra coisa, deve ser True (Ativo)
+        novo_status_booleano = False if status_atual == "Ativo" else True
+        
+        # 2. Executa a função do banco e captura o retorno
+        resultado = alterar_status_categoria_db(id_cat, novo_status_booleano)
+        
+        # 3. Verifica o que aconteceu
+        if isinstance(resultado, str):
+            # Se retornou uma string, significa que caiu na regra de negócio (erro de produtos vinculados)
+            page.snack_bar = ft.SnackBar(
+                content=ft.Text(resultado, color="white"),
+                bgcolor=ft.Colors.RED_600
+            )
+            page.snack_bar.open = True
+            page.update()
+        elif resultado is True:
+            # Se deu certo, mostra uma mensagem de sucesso e recarrega a lista
+            page.snack_bar = ft.SnackBar(
+                content=ft.Text("Status alterado com sucesso!", color="white"),
+                bgcolor=ft.Colors.GREEN_600
+            )
+            page.snack_bar.open = True
+            carregar_dados()
+        else:
+            # Se retornou False, houve algum erro crítico no bloco try/except do banco
+            page.snack_bar = ft.SnackBar(
+                content=ft.Text("Erro interno ao tentar alterar o status.", color="white"),
+                bgcolor=ft.Colors.RED_ACCENT_700
+            )
+            page.snack_bar.open = True
+            page.update()
 
     # --- MODAIS (ADICIONAR / EDITAR) ---
     def abrir_modal_novo(e):

@@ -36,7 +36,7 @@ def reativar_user(page: ft.Page, user_data, on_gerenciar_usuario, on_theme_chang
 
     def validar_e_confirmar(e):
         if not txt_senha_admin.value:
-            txt_senha_admin.error_text = "Por favor, digite a senha!"
+            txt_senha_admin.error_text = "⚠️ Digite a senha do administrador!"
             page.update()
             return
         # Esperamos que o campo 'admin_desat' contenha o ID do admin que desativou
@@ -44,13 +44,13 @@ def reativar_user(page: ft.Page, user_data, on_gerenciar_usuario, on_theme_chang
         admin_db = buscar_usuario_por_id(admin_que_desativou)
 
         if not admin_db:
-            txt_senha_admin.error_text = "Admin de desativação não encontrado"
+            txt_senha_admin.error_text = "❌ Admin não encontrado"
             page.update()
             return
 
         # Só permite reativar se o perfil do responsável for 'admin'
         if str(admin_db.get('perfil','')).lower() != 'admin':
-            txt_senha_admin.error_text = "Somente administrador pode reativar este usuário"
+            txt_senha_admin.error_text = "❌ Somente administrador pode reativar"
             page.update()
             return
 
@@ -61,11 +61,11 @@ def reativar_user(page: ft.Page, user_data, on_gerenciar_usuario, on_theme_chang
                 # Primeiro volta para a tela de usuários
                 on_gerenciar_usuario()
                 # Então mostra o snack_bar na página atual (que agora é a listagem)
-                page.snack_bar = ft.SnackBar(ft.Text(f"Usuário {nome_usuario} reativado com sucesso!"), bgcolor=cor_destaque)
+                page.snack_bar = ft.SnackBar(ft.Text(f"✅ Usuário {nome_usuario} reativado com sucesso!"), bgcolor="#00b40d")
                 page.snack_bar.open = True
                 page.update()
         else:
-            txt_senha_admin.error_text = "Senha incorreta!"
+            txt_senha_admin.error_text = "❌ Senha incorreta!"
         page.update()
 
     # --- APPBAR (ESTILO PERFIL) ---

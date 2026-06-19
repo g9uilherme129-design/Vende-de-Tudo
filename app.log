@@ -43,3 +43,6 @@
 [2026-05-25 16:45:50] user:U10001 action:confirmacao_reativacao details:U100008 - Ana Souza
 [2026-05-27 14:26:26] user:U100005 action:cadastrar_usuario details:nome:Piter Parck cpf:43648346989 perfil:vendedor
 [2026-05-27 14:38:07] user:U100006 action:cadastrar_usuario details:nome:Neymar Jr cpf:13254789522 perfil:admin
+[2026-06-18 14:09:10] user:U10001 action:registrar_venda details:venda:V100001 produto:E000002 qtd:1 metodo:Dinheiro
+[2026-06-18 17:08:06] user:U100006 action:cadastrar_usuario details:nome:Miguel du grau cpf:85985985489 perfil:vendedor
+[2026-06-18 17:10:39] user:U100007 action:cadastrar_usuario details:nome:Biel cpf:58765466464 perfil:vendedor

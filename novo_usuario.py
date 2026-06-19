@@ -192,11 +192,14 @@ def novo_usuario(page: ft.Page, on_users):
             
             if sucesso:
                 write_log('cadastrar_usuario', user_id=novo_id, details=f"nome:{nome} cpf:{cpf_limpo} perfil:{perfil}")
-                on_users("Usuário salvo com sucesso")
+                mostrar_snack("✅ Usuário cadastrado com sucesso!", "#00b40d")
+                import time
+                time.sleep(1)
+                on_users()
             else:
-                mostrar_snack(f"Erro: {msg}", "red")
+                mostrar_snack(f"❌ {msg}", "#FF4444")
         except Exception as ex:
-            mostrar_snack(f"Erro inesperado: {ex}", "red")
+            mostrar_snack(f"❌ Erro inesperado: {ex}", "red")
 
     # ---------------- FORM ----------------
     form_content = ft.Column(
@@ -220,7 +223,7 @@ def novo_usuario(page: ft.Page, on_users):
                 )
             ),
         ],
-        spacing=18,
+        spacing=20,
         width=400,
     )
 

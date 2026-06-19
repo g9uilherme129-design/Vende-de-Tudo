@@ -1,5 +1,5 @@
 import flet as ft
-from database import buscar_usuarios_db
+from database import buscar_usuarios_db, buscar_nome_admin_por_id
 from navigation import build_navigation_bar
 
 def usuarios(page: ft.Page, on_home, on_stock, on_vendas, on_perfil, on_logout, on_adicionar_usuario, on_editar_usuario, on_desativar_usuario, on_reativar_user, user_data, on_log=None, mensagem=None):
@@ -68,7 +68,7 @@ def usuarios(page: ft.Page, on_home, on_stock, on_vendas, on_perfil, on_logout, 
                     ft.Text("DADOS DA DESATIVAÇÃO", size=11, weight="bold", color=cor_texto_p),
                 ], spacing=5),
                 ft.Text(f"Motivo: {u.get('motivo_desat', 'Não informado')}", size=12, color=cor_texto_p),
-                ft.Text(f"Por: Admin ID {u.get('admin_desat', 'Sistema')}", size=11, italic=True, color=cor_texto_p),
+                ft.Text(f"Por: Admin {buscar_nome_admin_por_id(u.get('admin_desat'))}", size=11, italic=True, color=cor_texto_p),
             ], spacing=3)
         )
 

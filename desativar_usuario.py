@@ -86,14 +86,14 @@ def tela_desativar_usuario(page: ft.Page, user_data, on_voltar):
 
     def confirmar_desativacao(e):
         if not motivo_input.value or not senha_input.value:
-            page.snack_bar = ft.SnackBar(ft.Text("Campos obrigatórios vazios!"), bgcolor="orange")
+            page.snack_bar = ft.SnackBar(ft.Text("⚠️ Preencha o motivo e sua senha!"), bgcolor="#FF9800")
             page.snack_bar.open = True
             page.update()
             return
 
         senha_correta = admin_data.get('senha_user')
         if senha_input.value != senha_correta:
-            page.snack_bar = ft.SnackBar(ft.Text("Senha de administrador incorreta!"), bgcolor="red")
+            page.snack_bar = ft.SnackBar(ft.Text("❌ Senha de administrador incorreta!"), bgcolor="#FF4444")
             page.snack_bar.open = True
             page.update()
             return
@@ -107,9 +107,14 @@ def tela_desativar_usuario(page: ft.Page, user_data, on_voltar):
         if sucesso:
             admin_id = admin_data.get('id_user') if admin_data else None
             write_log('desativar_usuario', user_id=admin_id, details=f"desativou {user_data.get('id_user')} motivo:{motivo_input.value}")
+            page.snack_bar = ft.SnackBar(ft.Text(f"✅ Usuário {user_data.get('nome_user', 'N/A')} desativado com sucesso!"), bgcolor="#00b40d")
+            page.snack_bar.open = True
+            page.update()
+            import time
+            time.sleep(1)
             on_voltar()
         else:
-            page.snack_bar = ft.SnackBar(ft.Text("Erro ao processar desativação."), bgcolor="red")
+            page.snack_bar = ft.SnackBar(ft.Text("❌ Erro ao processar desativação!"), bgcolor="#FF4444")
             page.snack_bar.open = True
             page.update()
 
