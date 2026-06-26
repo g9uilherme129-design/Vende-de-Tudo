@@ -151,6 +151,14 @@ def novo_usuario(page: ft.Page, on_users):
         spacing=5,
         width=340,
     )
+    mensagem_status_c = ft.Text(
+    "",
+    size=18,
+    weight=ft.FontWeight.BOLD,
+    text_align=ft.TextAlign.CENTER,
+    color="green",
+)
+
 
     # ---------------- SALVAR ----------------
     def salvar_usuario(e):
@@ -191,11 +199,18 @@ def novo_usuario(page: ft.Page, on_users):
             )
             
             if sucesso:
-                write_log('cadastrar_usuario', user_id=novo_id, details=f"nome:{nome} cpf:{cpf_limpo} perfil:{perfil}")
-                mostrar_snack("✅ Usuário cadastrado com sucesso!", "#00b40d")
-                import time
-                time.sleep(1)
-                on_users()
+                mensagem_status_c.value = "Usuário Cadastrado com Sucesso!"
+                mensagem_status_c.color = "green"
+
+                # limpa os campos
+                nome_in.value = ""
+                cpf_in.value = ""
+                email_in.value = ""
+                senha_in.value = ""
+                salario_in.value = ""
+                perfil_dropdown.value = None
+
+                page.update()
             else:
                 mostrar_snack(f"❌ {msg}", "#FF4444")
         except Exception as ex:
@@ -203,29 +218,31 @@ def novo_usuario(page: ft.Page, on_users):
 
     # ---------------- FORM ----------------
     form_content = ft.Column(
-        [
-            nome_c,
-            cpf_c,
-            email_c,
-            senha_c,
-            salario_c,
-            perfil_c,
-            ft.Container(height=10),
-            ft.ElevatedButton(
-                "CADASTRAR USUÁRIO",
-                on_click=salvar_usuario,
-                width=400,
-                height=55,
-                style=ft.ButtonStyle(
-                    bgcolor=cor_texto_s, # Azul no Dark / Rosa no Light
-                    color="white",
-                    shape=ft.RoundedRectangleBorder(radius=12),
-                )
+    [
+        nome_c,
+        cpf_c,
+        email_c,
+        senha_c,
+        salario_c,
+        perfil_c,
+        mensagem_status_c,
+        ft.Container(height=10),
+        ft.ElevatedButton(
+            "CADASTRAR USUÁRIO",
+            on_click=salvar_usuario,
+            width=400,
+            height=55,
+            style=ft.ButtonStyle(
+                bgcolor=cor_texto_s,
+                color="white",
+                shape=ft.RoundedRectangleBorder(radius=12),
             ),
-        ],
-        spacing=20,
-        width=400,
-    )
+        ),
+    ],
+    spacing=20,
+    width=400,
+)
+    
 
     page.add(
         ft.Container(
